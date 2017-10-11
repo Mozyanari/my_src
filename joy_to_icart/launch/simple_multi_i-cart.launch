@@ -1,0 +1,18 @@
+<launch>
+  <!--T-frog上のマイコンに関する設定-->
+	<arg name="port_robot" default="/dev/serial/by-id/usb-T-frog_project_T-frog_Driver-if00" />
+
+	<!--実行する際の引数がここに反映されてパラメータを反映-->
+	<arg name="robot_param" default="/home/student/icart-edu.param"/>
+
+  <!--ypspur_rosノードを生成-->
+	<node pkg="ypspur_ros" type="ypspur_ros" name="ypspur_ros" respawn="true">
+		<param name="port" value="$(arg port_robot)" />
+		<param name="param_file" value="$(arg robot_param)" />
+	</node>
+
+  <!--joyノードを生成-->
+	<node pkg="joy" type="joy_node" name="joy_node">
+	</node>
+  
+</launch>
