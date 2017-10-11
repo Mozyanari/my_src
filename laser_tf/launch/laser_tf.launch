@@ -1,0 +1,16 @@
+<launch>
+  <!--機体の座標系を出力-->
+  <node pkg="i_cart_tf" name="offset_tf_broadcast" type="offset_tf_broadcast"/>
+
+  <!-- scanデータをpointcloudにしてオフセット位置まで座標変換を行う．そしてpointcloud2の型に変換する-->
+  <node pkg="laser_tf" name="laser_to_pointcloud" type="laser_to_pointcloud"/>
+  <node pkg="laser_tf" name="pointcloud_trans_to_offset" type="pointcloud_trans_to_offset"/>
+  <node pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2"/>
+
+  <node pkg="pointcloud_to_laserscan" name="pointcloud_to_laserscan_node" type="pointcloud_to_laserscan_node">
+    <remap from="cloud_in" to="cloud2_offset"/>
+    <remap from="scan" to="scan_offset"/>
+    
+  </node>
+
+</launch>
