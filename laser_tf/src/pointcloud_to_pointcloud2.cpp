@@ -17,7 +17,7 @@ class pointcloud_to_pointcloud2{
 public:
   pointcloud_to_pointcloud2();
 
-public:
+private:
   //ノードハンドラ定義
   ros::NodeHandle nh;
 

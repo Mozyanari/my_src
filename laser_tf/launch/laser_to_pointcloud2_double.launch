@@ -1,0 +1,14 @@
+<launch>
+  <node ns="first" pkg="laser_tf" name="laser_to_pointcloud2_first" type="laser_to_pointcloud2">
+    <remap from="/scan" to="/lidar1/scan1"/>
+    <remap from="/cloud2" to="/cloud2_first"/>
+  </node>
+
+  <node ns="second" pkg="laser_tf" name="laser_to_pointcloud2_second" type="laser_to_pointcloud2">
+    <remap from="/scan" to="/lidar2/scan2"/>
+    <remap from="/cloud2" to="/cloud2_second"/>
+  </node>
+
+  <node pkg="laser_tf" type="merge_pointcloud2" name="merge_pointcloud2">
+  </node>
+</launch>

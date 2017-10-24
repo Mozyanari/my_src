@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   sensor_msgs
+  nodelet
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,8 +109,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES laser_tf
-#  CATKIN_DEPENDS roscpp rospy tf
+  LIBRARIES laser_tf
+  CATKIN_DEPENDS roscpp rospy tf laser_geometry pcl_conversions pcl_rossensor_msgs nodelet
 #  DEPENDS system_lib
 )
 
@@ -125,9 +126,11 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/laser_tf.cpp
-# )
+ add_library(${PROJECT_NAME}
+   src/laser_to_pointcloud_nodelet.cpp
+   src/pointcloud_to_pointcloud2_nodelet.cpp
+   src/pointcloud_trans_to_offset_nodelet.cpp
+ )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -138,8 +141,11 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(laser_to_pointcloud src/laser_to_pointcloud.cpp)
+add_executable(laser_to_pointcloud2 src/laser_to_pointcloud2.cpp)
 add_executable(pointcloud_trans_to_offset src/pointcloud_trans_to_offset.cpp)
 add_executable(pointcloud_to_pointcloud2 src/pointcloud_to_pointcloud2.cpp)
+add_executable(merge_pointcloud2 src/merge_pointcloud2.cpp)
+
 
 
 ## Rename C++ executable without prefix
@@ -154,9 +160,16 @@ add_executable(pointcloud_to_pointcloud2 src/pointcloud_to_pointcloud2.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(laser_to_pointcloud ${catkin_LIBRARIES})
+target_link_libraries(laser_to_pointcloud2 ${catkin_LIBRARIES})
 target_link_libraries(pointcloud_trans_to_offset ${catkin_LIBRARIES})
 target_link_libraries(pointcloud_to_pointcloud2 ${catkin_LIBRARIES})
+target_link_libraries(merge_pointcloud2 ${catkin_LIBRARIES})
 
+target_link_libraries(laser_tf ${catkin_LIBRARIES})
+
+if(catkin_EXPORTED_LIBRARIES)
+  add_dependencies(laser_tf ${catkin_EXPORTED_LIBRARIES})
+endif()
 
 
 #############
