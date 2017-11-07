@@ -1,0 +1,15 @@
+<launch>
+
+	<node pkg="tf" type="static_transform_publisher" name="stp_laser" args="0 0 0 0 0 0 base_link laser 100" />
+
+	<node pkg="gmapping" type="slam_gmapping" name="mapper">
+		<param name="maxUrange" value="4.0" type="double" />
+		<param name="xmax" value="20" type="double" />
+		<param name="ymax" value="20" type="double" />
+		<param name="xmin" value="-20" type="double" />
+		<param name="ymin" value="-20" type="double" />
+	</node>
+
+
+	<node pkg="rviz" type="rviz" args="-d '$(find rsj_seminar_navigation)/config/rviz/mapping.rviz'" name="visualizer" respawn="true" />
+</launch>

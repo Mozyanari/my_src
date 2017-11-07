@@ -18,7 +18,6 @@ class merge_pointcloud2{
     void cb_catch_cloud2_first(const sensor_msgs::PointCloud2::ConstPtr& cloud2);
     void cb_catch_cloud2_second(const sensor_msgs::PointCloud2::ConstPtr& cloud2);
 
-    //タイマーを用いて一定間隔ごとにマージ
     void merge(void);
 
     //ノードハンドラ作成

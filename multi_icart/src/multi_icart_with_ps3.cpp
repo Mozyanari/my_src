@@ -6,10 +6,10 @@
 
 
 //クラス定義(どのような構造か定義)-----------------------------------------------------
-class multi_icart
+class multi_icart_with_ps3
 {
   public:
-    multi_icart();
+    multi_icart_with_ps3();
 
   private:
 
@@ -24,7 +24,6 @@ class multi_icart
   void calc_linking_wheel_speed(void);
   void calc_linking_rad_multi(void);
   void calc_linking_position(void);
-  void calc_target_speed(void);
 
   //一秒ごとにデバックするための関数
   void debug(const ros::TimerEvent&);
@@ -109,7 +108,7 @@ class multi_icart
 };
 
 //コンストラクタ定義(初期化時に必ず呼び出される部分)---------------------------------------
-multi_icart::multi_icart():
+multi_icart_with_ps3::multi_icart_with_ps3():
 //ps3コントローラパラメータ
 vel_linear(3), vel_angular(0), a_scale_(4.0),l_scale_(2.0)
 {
@@ -171,21 +170,21 @@ vel_linear(3), vel_angular(0), a_scale_(4.0),l_scale_(2.0)
   odom_second.pose.pose.orientation.w = 1.0;
 
   //購読するトピックの定義
-	sub_joy_ = nh.subscribe<sensor_msgs::Joy>("joy", 10, &multi_icart::joyCallback, this);
-  sub_odom_first_ = nh.subscribe("/ypspur_ros_first/odom", 5, &multi_icart::cb_odom_first,this);
-  sub_odom_second_ = nh.subscribe("/ypspur_ros_second/odom", 5, &multi_icart::cb_odom_second,this);
+	sub_joy_ = nh.subscribe<sensor_msgs::Joy>("joy", 10, &multi_icart_with_ps3::joyCallback, this);
+  sub_odom_first_ = nh.subscribe("/ypspur_ros_first/odom", 5, &multi_icart_with_ps3::cb_odom_first,this);
+  sub_odom_second_ = nh.subscribe("/ypspur_ros_second/odom", 5, &multi_icart_with_ps3::cb_odom_second,this);
 
   //配布するトピックの定義
   pub_vel_first_ = nh.advertise<geometry_msgs::Twist>("/ypspur_ros_first/cmd_vel", 1);
   pub_vel_second_ = nh.advertise<geometry_msgs::Twist>("/ypspur_ros_second/cmd_vel", 1);
 
   //debugtimer定義
-  timer = nh.createTimer(ros::Duration(1.0), &multi_icart::debug,this);
+  timer = nh.createTimer(ros::Duration(1.0), &multi_icart_with_ps3::debug,this);
 
 }
 //関数定義-----------------------------------------------------------------------
 //cb_odom_first関数定義
-void multi_icart::cb_odom_first(const nav_msgs::Odometry::ConstPtr &msg){
+void multi_icart_with_ps3::cb_odom_first(const nav_msgs::Odometry::ConstPtr &msg){
   //first機体の状態受信
   odom_first = *msg;
 
@@ -204,8 +203,6 @@ void multi_icart::cb_odom_first(const nav_msgs::Odometry::ConstPtr &msg){
   //連結機体に関する計算------------------------------------------------------------
   //連結機帯の制御点のworld座標における位置を計算
   calc_linking_position();
-  //今の位置から目標地点へ向かう時の制御点の速度を計算
-  calc_target_speed();
   //連結機体の角度を計算
   calc_linking_rad_multi();
   //左右の車輪の速度を計算
@@ -219,7 +216,7 @@ void multi_icart::cb_odom_first(const nav_msgs::Odometry::ConstPtr &msg){
 }
 
 //cb_odom_second関数定義
-void multi_icart::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
+void multi_icart_with_ps3::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
   //機体の状態受信
   odom_second = *msg;
 
@@ -239,8 +236,6 @@ void multi_icart::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
   //連結機体に関する計算------------------------------------------------------------
   //連結機帯の制御点のworld座標における位置を計算
   calc_linking_position();
-  //今の位置から目標地点へ向かう時の制御点の速度を計算
-  calc_target_speed();
   //連結機体の角度を計算
   calc_linking_rad_multi();
   //左右の車輪の速度を計算
@@ -256,13 +251,21 @@ void multi_icart::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
 }
 
 //Joycallback関数定義
-void multi_icart::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
+void multi_icart_with_ps3::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
 {
   //ローカル変数定義
 
   //x,y方向の速度の更新
   x_vel = joy->axes[vel_linear]*0.1;
   y_vel = joy->axes[vel_angular]*0.1;
+
+  if(joy->buttons[10]==1){
+    omega_vel=-0.1;
+  }else if(joy->buttons[11]==1){
+    omega_vel=0.1;
+  }else{
+    omega_vel=0.0;
+  }
   //omega_vel = joy->button[]
 
   //double path1 = (cos(rad)+((d/s)*sin(rad)))*x_vel;
@@ -282,6 +285,8 @@ void multi_icart::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
 
   ROS_INFO("x_vel %f",x_vel);
   ROS_INFO("y_vel %f",y_vel);
+  ROS_INFO("omega_vel %f",omega_vel);
+
 
   //ROS_INFO("path1 %f",path1);
   //ROS_INFO("path2 %f",path2);
@@ -300,13 +305,13 @@ void multi_icart::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
   //ROS_INFO("position_x_second %f",position_x_second);
   //ROS_INFO("position_y_second %f",position_y_second);
 
-  ROS_INFO("rad_multi %f",rad_multi);
+  //ROS_INFO("rad_multi %f",rad_multi);
 
 }
 
 //連結機体の計算に関する計算関数------------------------------------------------------
 //連結機体それぞれの左右の車輪の速度を計算して、pubできる形にする
-void multi_icart::calc_linking_wheel_speed(void){
+void multi_icart_with_ps3::calc_linking_wheel_speed(void){
   //左右の車輪の速度を計算
   //First機体の計算
   //右の車輪計算
@@ -337,89 +342,47 @@ void multi_icart::calc_linking_wheel_speed(void){
 }
 
 //連結機体の角度を計算
-void multi_icart::calc_linking_rad_multi(void){
+void multi_icart_with_ps3::calc_linking_rad_multi(void){
   //連結機体の角度を計算
   rad_multi = asin((world_offset_position_y_first - world_offset_position_y_second) / distance_multi);
 }
 
 //連結機帯の制御点のworld座標における位置を計算
-void multi_icart::calc_linking_position(void){
+void multi_icart_with_ps3::calc_linking_position(void){
   //連結機帯の制御点のworld座標における位置を計算
   world_control_point_x = (world_offset_position_x_first + world_offset_position_x_second) / 2;
   world_control_point_y = (world_offset_position_y_first + world_offset_position_y_second) / 2;
 }
-void multi_icart::calc_target_speed(void){
-  //パラメータ取得
-  double set_target_x,set_target_y,set_target_rad;
-  ros::param::get("/multi_icart/target_position_x",set_target_x);
-  ros::param::get("/multi_icart/target_position_y",set_target_y);
-  ros::param::get("/multi_icart/target_position_rad",set_target_rad);
 
-  //制御点と目標位置の差を計算
-  double diff_x = (set_target_x - world_control_point_x);
-  double diff_y = (set_target_y - world_control_point_y);
-  double diff_rad = (set_target_rad - rad_multi);
 
-  //ズレが0.01以上なら速度を出す
-  if(diff_x > 0.05){
-    x_vel = 0.05;
-  }else if(diff_x < -0.01){
-    x_vel = -0.05;
-  }else{
-    x_vel = 0;
-  }
-
-  if(diff_y > 0.05){
-    y_vel = 0.05;
-  }else if(diff_y < -0.01){
-    y_vel = -0.05;
-  }else{
-    y_vel = 0;
-  }
-
-  if(diff_rad > 1){
-    omega_vel = 0.05;
-  }else if(diff_rad < -1){
-    omega_vel = -0.05;
-  }else{
-    omega_vel = 0;
-  }
-  //debag
-  ROS_INFO("world_control_point_x %f",world_control_point_x);
-  ROS_INFO("world_control_point_y %f",world_control_point_y);
-  ROS_INFO("rad_multi %f",rad_multi*180/M_PI);
-  ROS_INFO("target_position_x %f",set_target_x);
-  ROS_INFO("target_position_y %f",set_target_y);
-  ROS_INFO("target_rad %f",set_target_rad);
-}
 
 //一秒ごとにdebugしたい変数を見るための関数
-void multi_icart::debug(const ros::TimerEvent&){
+void multi_icart_with_ps3::debug(const ros::TimerEvent&){
   //first機体に関するデバック
-  //ROS_INFO("world_offset_position_x_first %f",world_offset_position_x_first);
-  //ROS_INFO("world_offset_position_y_first %f",world_offset_position_y_first);
-  //ROS_INFO("rad_first %f",rad_first*180/M_PI);
+  ROS_INFO("world_offset_position_x_first %f",world_offset_position_x_first);
+  ROS_INFO("world_offset_position_y_first %f",world_offset_position_y_first);
+  ROS_INFO("rad_first %f",rad_first*180/M_PI);
 
   //second機体に関するデバック
-  //ROS_INFO("world_offset_position_x_second %f",world_offset_position_x_second);
-  //ROS_INFO("world_offset_position_y_second %f",world_offset_position_y_second);
-  //ROS_INFO("rad_second %f",rad_second*180/M_PI);
+  ROS_INFO("world_offset_position_x_second %f",world_offset_position_x_second);
+  ROS_INFO("world_offset_position_y_second %f",world_offset_position_y_second);
+  ROS_INFO("rad_second %f",rad_second*180/M_PI);
 
 
   //連結機体に関するデバック
-  //ROS_INFO("world_control_point_x %f",world_control_point_x);
-  //ROS_INFO("world_control_point_y %f",world_control_point_y);
-  //ROS_INFO("rad_multi %f",rad_multi*180/M_PI);
+  ROS_INFO("world_control_point_x %f",world_control_point_x);
+  ROS_INFO("world_control_point_y %f",world_control_point_y);
+  ROS_INFO("rad_multi %f",rad_multi*180/M_PI);
 
   //目標位置に関するデバック
-  //double set_target_x,set_target_y,set_target_rad;
-  //ros::param::get("/multi_icart/target_position_x",set_target_x);
-  //ros::param::get("/multi_icart/target_position_y",set_target_y);
-  //ros::param::get("/multi_icart/target_position_rad",set_target_rad);
+  double set_target_x,set_target_y,set_target_rad;
+  ros::param::get("/multi_icart_with_ps3/target_position_x",set_target_x);
+  ros::param::get("/multi_icart_with_ps3/target_position_y",set_target_y);
+  ros::param::get("/multi_icart_with_ps3/target_position_rad",set_target_rad);
 
-  //ROS_INFO("target_position_x %f",set_target_x);
-  //ROS_INFO("target_position_y %f",set_target_y);
-  //ROS_INFO("target_rad %f",set_target_rad);
+  ROS_INFO("target_position_x %f",set_target_x);
+  ROS_INFO("target_position_y %f",set_target_y);
+  ROS_INFO("target_rad %f",set_target_rad);
 
 
 
@@ -429,8 +392,8 @@ void multi_icart::debug(const ros::TimerEvent&){
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "multi_icart");
-	multi_icart multi_icart;
+	ros::init(argc, argv, "multi_icart_with_ps3");
+	multi_icart_with_ps3 multi_icart_with_ps3;
 	ros::spin();
 	return 0;
 }

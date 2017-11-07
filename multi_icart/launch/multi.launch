@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="multi_icart" type="multi_icart" name="multi_icart" output="screen">
+    <param name="target_position_x" value="0.0"/>
+    <param name="target_position_y" value="2.0"/>
+    <param name="target_position_rad" value="0.4"/>
+  </node>
+
+</launch>

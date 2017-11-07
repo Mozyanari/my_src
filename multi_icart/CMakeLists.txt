@@ -134,6 +134,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME} src/multi_icart.cpp)
+add_executable(${PROJECT_NAME}_with_ps3 src/multi_icart_with_ps3.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,6 +150,9 @@ add_executable(${PROJECT_NAME} src/multi_icart.cpp)
 target_link_libraries(${PROJECT_NAME}
    ${catkin_LIBRARIES}
  )
+ target_link_libraries(${PROJECT_NAME}_with_ps3
+    ${catkin_LIBRARIES}
+  )
 
 #############
 ## Install ##

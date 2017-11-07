@@ -126,11 +126,7 @@ include_directories(
 )
 
 ## Declare a C++ library
- add_library(${PROJECT_NAME}
-   src/laser_to_pointcloud_nodelet.cpp
-   src/pointcloud_to_pointcloud2_nodelet.cpp
-   src/pointcloud_trans_to_offset_nodelet.cpp
- )
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -143,8 +139,11 @@ include_directories(
 add_executable(laser_to_pointcloud src/laser_to_pointcloud.cpp)
 add_executable(laser_to_pointcloud2 src/laser_to_pointcloud2.cpp)
 add_executable(pointcloud_trans_to_offset src/pointcloud_trans_to_offset.cpp)
+add_executable(pointcloud_trans_to_control src/pointcloud_trans_to_control.cpp)
 add_executable(pointcloud_to_pointcloud2 src/pointcloud_to_pointcloud2.cpp)
 add_executable(merge_pointcloud2 src/merge_pointcloud2.cpp)
+add_executable(laser_filter src/laser_filter.cpp)
+
 
 
 
@@ -162,14 +161,13 @@ add_executable(merge_pointcloud2 src/merge_pointcloud2.cpp)
 target_link_libraries(laser_to_pointcloud ${catkin_LIBRARIES})
 target_link_libraries(laser_to_pointcloud2 ${catkin_LIBRARIES})
 target_link_libraries(pointcloud_trans_to_offset ${catkin_LIBRARIES})
+target_link_libraries(pointcloud_trans_to_control ${catkin_LIBRARIES})
 target_link_libraries(pointcloud_to_pointcloud2 ${catkin_LIBRARIES})
 target_link_libraries(merge_pointcloud2 ${catkin_LIBRARIES})
+target_link_libraries(laser_filter ${catkin_LIBRARIES})
 
-target_link_libraries(laser_tf ${catkin_LIBRARIES})
 
-if(catkin_EXPORTED_LIBRARIES)
-  add_dependencies(laser_tf ${catkin_EXPORTED_LIBRARIES})
-endif()
+
 
 
 #############

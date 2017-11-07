@@ -6,9 +6,9 @@
 
 
 
-class pointcloud_trans_to_offset{
+class pointcloud_trans_to_control{
 public:
-  pointcloud_trans_to_offset();
+  pointcloud_trans_to_control();
 
   //Listener定義
   tf::TransformListener listener;
@@ -27,26 +27,27 @@ private:
 };
 
 //construct
-pointcloud_trans_to_offset::pointcloud_trans_to_offset(){
+pointcloud_trans_to_control::pointcloud_trans_to_control(): nh("~")
+{
   //sub_define
-  sub_point = nh.subscribe("/cloud", 5, &pointcloud_trans_to_offset::cb_offset_cloud,this);
+  sub_point = nh.subscribe("/cloud", 5, &pointcloud_trans_to_control::cb_offset_cloud,this);
   //pub_define
   pub_offset_point = nh.advertise<sensor_msgs::PointCloud>("/cloud_offset",10);
 
   //変換座標パラメータ設定
-  nh.setParam("cloud_trans_mother","base_link");
-  nh.setParam("cloud_trans_chile","offset_base_link");
+  //nh.setParam("cloud_trans_mother","base_link");
+  //nh.setParam("cloud_trans_chile","offset_base_link");
 }
 
 //callback
-void pointcloud_trans_to_offset::cb_offset_cloud(const sensor_msgs::PointCloud &cloud){
+void pointcloud_trans_to_control::cb_offset_cloud(const sensor_msgs::PointCloud &cloud){
   sensor_msgs::PointCloud offset_cloud;
   std::string cloud_trans_mother;
   std::string cloud_trans_chile;
 
   //動的に変換座標取得
-  ros::param::get("cloud_trans_mother",cloud_trans_mother);
-  ros::param::get("cloud_trans_chile",cloud_trans_chile);
+  nh.getParam("cloud_trans_mother",cloud_trans_mother);
+  nh.getParam("cloud_trans_chile",cloud_trans_chile);
 
 
   //trans_cloud_to_offset_cloud
@@ -67,9 +68,9 @@ void pointcloud_trans_to_offset::cb_offset_cloud(const sensor_msgs::PointCloud &
 //main
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "pointcloud_trans_to_offset");
+    ros::init(argc, argv, "pointcloud_trans_to_control");
 
-    pointcloud_trans_to_offset pointcloud_trans_to_offset;
+    pointcloud_trans_to_control pointcloud_trans_to_control;
 
     ros::spin();
 

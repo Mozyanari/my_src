@@ -1,0 +1,27 @@
+axis_linear: 2
+scale_linear: 0.1
+scale_linear_turbo: 0.7
+
+axis_angular: 0.5
+scale_angular: 1.0
+
+enable_button: 8  # L2 shoulder button
+enable_turbo_button: 10  # L1 shoulder button
+
+#define PS3_BUTTON_SELECT            0
+#define PS3_BUTTON_STICK_LEFT        1
+#define PS3_BUTTON_STICK_RIGHT       2
+#define PS3_BUTTON_START             3
+#define PS3_BUTTON_CROSS_UP          4
+#define PS3_BUTTON_CROSS_RIGHT       5
+#define PS3_BUTTON_CROSS_DOWN        6
+#define PS3_BUTTON_CROSS_LEFT        7
+#define PS3_BUTTON_REAR_LEFT_2       8
+#define PS3_BUTTON_REAR_RIGHT_2      9
+#define PS3_BUTTON_REAR_LEFT_1       10
+#define PS3_BUTTON_REAR_RIGHT_1      11
+#define PS3_BUTTON_ACTION_TRIANGLE   12
+#define PS3_BUTTON_ACTION_CIRCLE     13
+#define PS3_BUTTON_ACTION_CROSS      14
+#define PS3_BUTTON_ACTION_SQUARE     15
+#define PS3_BUTTON_PAIRING           16

@@ -1,6 +1,7 @@
 <launch>
   <!--機体の座標系を出力-->
-  <node pkg="i_cart_tf" name="offset_tf_broadcast" type="offset_tf_broadcast"/>
+  <!--<node pkg="i_cart_tf" name="offset_tf_broadcast" type="offset_tf_broadcast"/>-->
+  <node pkg="tf" type="static_transform_publisher" name="offset" args="-0.16 0 0 0 0 0 base_link offset_base_link 100" />
 
   <node pkg="tf" type="static_transform_publisher" name="world" args="1 0 0 0 0 0 world odom 100" />
 

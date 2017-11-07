@@ -1,0 +1,199 @@
+<launch>
+  <!--tf_publish-->
+  <!--world-->
+  <!--to_odom_first-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" />
+
+  <!--to_odom_second-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_second" args="0.16 0 0 0 0 0 world odom_second 100" />
+
+  <!--control_point-->
+  <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast"/>
+
+  <!--laser-->
+  <!--to_base_link_first-->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_first_to_laser" args="0 0 0 0 0 0 base_link_first base_link_laser_first 100" />
+
+  <!--to_base_link_second-->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_second_to_laser" args="0 0 0 0 0 0 base_link_second base_link_laser_second 100" />
+
+  <!--first-->
+  <!--offset位置の出力-->
+  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_first base_link_first_offset 10" />
+
+  <!--laser_to_pointcloud-->
+  <node ns="first" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_first" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/scan_first"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_first"/>
+
+    <param name="laser_base" value="base_link_laser_first"/>
+  </node>
+
+
+
+  <!--pointcloud_trans_to_control-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_first"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+
+    <param name="cloud_trans_mother" type="str" value="base_link_laser_first"/>
+    <param name="cloud_trans_chile" type="str" value="control_point"/>
+  </node>
+
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_first"/>
+  </node>
+
+  <!--amcl_node-->
+<!--
+  <node ns="first" pkg="amcl" type="amcl" name="amcl_first">
+    <remap from="/scan" to="/scan_first"/>
+
+    <param name="odom_alpha1" type="double" value="7" />
+		<param name="odom_alpha2" type="double" value="7" />
+		<param name="odom_alpha3" type="double" value="3.5" />
+		<param name="odom_alpha4" type="double" value="3.5" />
+		<param name="laser_max_beams" type="int" value="150" />
+		<param name="min_particles" type="int" value="300" />
+		<param name="max_particles" type="int" value="500" />
+		<param name="update_min_d" type="double" value="0.05" />
+		<param name="update_min_a" type="double" value="0.08" />
+
+    <param name="odom_frame_id" value="odom_first"/>
+    <param name="base_frame_id" value="base_link_first"/>
+  </node>
+-->
+  <!--first_end-->
+
+
+
+  <!--second-->
+  <!--offset位置の出力-->
+  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_second base_link_second_offset 10" />
+
+  <!--laser_to_pointcloud-->
+  <node ns="second" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_second" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/scan_second"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_second"/>
+
+    <param name="laser_base" value="base_link_laser_second"/>
+  </node>
+
+  <!--pointcloud_trans_to_control-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_second"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+
+    <param name="cloud_trans_mother" type="str" value="base_link_laser_second"/>
+    <param name="cloud_trans_chile" type="str" value="control_point"/>
+
+  </node>
+
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_second"/>
+  </node>
+
+  <!--amcl_node-->
+<!--
+  <node ns="second" pkg="amcl" type="amcl" name="amcl_second">
+    <remap from="/scan" to="/scan_second"/>
+
+    <param name="odom_alpha1" type="double" value="7" />
+		<param name="odom_alpha2" type="double" value="7" />
+		<param name="odom_alpha3" type="double" value="3.5" />
+		<param name="odom_alpha4" type="double" value="3.5" />
+		<param name="laser_max_beams" type="int" value="150" />
+		<param name="min_particles" type="int" value="300" />
+		<param name="max_particles" type="int" value="500" />
+		<param name="update_min_d" type="double" value="0.05" />
+		<param name="update_min_a" type="double" value="0.08" />
+
+    <param name="odom_frame_id" value="odom_second"/>
+    <param name="base_frame_id" value="base_link_second"/>
+  </node>
+-->
+
+  <!--second_end-->
+
+  <!--other-->
+  <!--merge_pointcloud2-->
+  <node pkg="laser_tf" type="merge_pointcloud2" name="merge_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud2_first" to="/cloud2_control_point_first"/>
+    <remap from="/cloud2_second" to="/cloud2_control_point_second"/>
+    <!--pub-->
+    <remap from="/cloud2_merge" to="/cloud2_merge"/>
+  </node>
+
+  <!--pointcloud2_to_laserscan-->
+
+  <node pkg="pointcloud_to_laserscan" name="pointcloud_to_laserscan_node" type="pointcloud_to_laserscan_node" respawn="true">
+    <remap from="cloud_in" to="cloud2_merge"/>
+    <remap from="scan" to="scan_control_point"/>
+
+    <rosparam>
+      min_height: 0.0
+      max_height: 0.0
+
+      angle_min: -3.14
+      angle_max: 3.14
+      angle_increment: 0.005
+      scan_time: 0.1
+      range_min: 0.5
+      range_max: 5.0
+      use_inf: false
+
+      concurrency_level: 1
+    </rosparam>
+  </node>
+
+  <!--laser_filter_for_add_time_to_node-->
+  <node pkg="laser_tf" name="laser_filter" type="laser_filter" respawn="true"/>
+
+  <!--gmapping_create-->
+  <node pkg="gmapping" type="slam_gmapping" name="mapper" respawn="true">
+		<param name="maxUrange" value="5.0" type="double" />
+		<param name="xmax" value="20" type="double" />
+		<param name="ymax" value="20" type="double" />
+		<param name="xmin" value="-20" type="double" />
+		<param name="ymin" value="-20" type="double" />
+
+    <remap from="/scan" to="/scan_filter"/>
+    <param name="odom_frame" value="world"/>
+    <param name="base_frame" value="control_point"/>
+
+    <!--mapの更新タイミング-->
+    <param name="linearUpdate" value="0.1"/>
+    <param name="angularUpdate" value="0.01"/>
+	</node>
+
+  <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
+  <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
+
+  <!--move_node-->
+  <node pkg="multi_icart" type="multi_icart" name="multi_icart">
+    <param name="target_position_x" value="0.0"/>
+    <param name="target_position_y" value="0.0"/>
+    <param name="target_position_rad" value="0.0"/>
+  </node>
+
+
+
+
+</launch>

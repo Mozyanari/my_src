@@ -135,6 +135,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(offset_tf_broadcast src/offset_tf_broadcast.cpp)
  add_executable(control_tf_broadcast src/control_tf_broadcast.cpp)
+ add_executable(tf_distance src/tf_distance.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,6 +150,7 @@ include_directories(
 ## Specify libraries to link a library or executable target against
  target_link_libraries(offset_tf_broadcast ${catkin_LIBRARIES})
  target_link_libraries(control_tf_broadcast ${catkin_LIBRARIES})
+ target_link_libraries(tf_distance ${catkin_LIBRARIES})
 
 #############
 ## Install ##

@@ -1,0 +1,17 @@
+<launch>
+  <!--first_param-->
+  <!--laser_to_pointcloud-->
+  <param name="first/laser_base" type="str" value="base_link_first"/>
+  <!--pointcloud_trans_to_control_point-->
+  <param name="first/cloud_trans_mother" type="str" value="base_link_first"/>
+  <param name="first/cloud_trans_chile" type="str" value="control_point"/>
+
+  <!--second_param-->
+  <!--laser_to_pointcloud-->
+  <param name="second/laser_base" type="str" value="base_link_second"/>
+  <!--pointcloud_trans_to_control_point-->
+  <param name="second/cloud_trans_mother" type="str" value="base_link_second"/>
+  <param name="second/cloud_trans_chile" type="str" value="control_point"/>
+
+
+</launch>
