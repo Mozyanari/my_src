@@ -150,7 +150,11 @@ path_planning::path_planning(){
   //購読するトピックの定義
   sub_target_point = nh.subscribe("/target_point", 5, &path_planning::calc_machine_position,this);
   sub_odom_first = nh.subscribe("/ypspur_ros_first/odom", 5, &path_planning::cb_odom_first,this);
+  sub_arrive_position_first=nh.subscribe("/frag_data_first", 5, &path_planning::Arrive_position_first,this);
+
   sub_odom_second = nh.subscribe("/ypspur_ros_second/odom", 5, &path_planning::cb_odom_second,this);
+  sub_arrive_position_second=nh.subscribe("/frag_data_second", 5, &path_planning::Arrive_position_second,this);
+
 
   //配布するトピックの定義
   pub_target_point_first = nh.advertise<nav_msgs::Odometry>("target_point_first", 1);
@@ -268,10 +272,12 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
   //firstの１つめのデータをセット
   sub_goal_first.pose.pose.position.x = sub_goal_first_x[0];
   sub_goal_first.pose.pose.position.y = sub_goal_first_y[0];
+  sub_goal_first.pose.pose.position.z = 0;
 
   //secondの１つめのデータをセット
   sub_goal_second.pose.pose.position.x = sub_goal_second_x[0];
   sub_goal_second.pose.pose.position.y = sub_goal_second_y[0];
+  sub_goal_second.pose.pose.position.z = 0;
 
   //データを送信
   send_target_point();
@@ -289,31 +295,35 @@ void path_planning::Arrive_position_first(const nav_msgs::Odometry::ConstPtr &po
   nav_msgs::Odometry first_position= *position;
   //今何番目のサブゴールかを判定
   //最終地点なら6とする
-  first_number = -1;
-  for(int i=0;i<5;i++){
-    if((sub_goal_first_x[i] == first_position.pose.pose.position.x) && (sub_goal_first_y[i] == first_position.pose.pose.position.y)){
-      first_number = i;
-    }else if((first_position.pose.pose.position.x == target_x_first) && (first_position.pose.pose.position.y == target_y_first)){
-      first_number = 6;
-    }
-  }
-  //0~4番目なら，次のサブゴールをセット.5番目なら最終到達地点へセット,6番目は最終地点へ到達したとして次の目的地の更新はしない
+  first_number = first_position.pose.pose.position.z;
+
+  //何番目についたかデバック
+  ROS_INFO("First_Arrive_%d",first_number);
+
+  //マシンにサブゴールを更新するデータを送るかのフラグ
+  int send_frag = 0;
+  //0~3番目なら，次のサブゴールをセット.4番目なら最終到達地点へセット,6番目は最終地点へ到達したとして次の目的地の更新はしない
   //その他ならエラー
-  if((-1<first_number) && (first_number<5)){
+  if((-1<first_number) && (first_number<4)){
     sub_goal_first.pose.pose.position.x=sub_goal_first_x[first_number+1];
-    sub_goal_second.pose.pose.position.y=sub_goal_first_y[first_number+1];
-  }else if(first_number == 5){
+    sub_goal_first.pose.pose.position.y=sub_goal_first_y[first_number+1];
+    sub_goal_first.pose.pose.position.z=(first_number+1);
+    send_frag = 1;
+  }else if(first_number == 4){
     sub_goal_first.pose.pose.position.x=target_x_first;
-    sub_goal_second.pose.pose.position.y=target_y_first;
-  }else if(first_number == 6){
+    sub_goal_first.pose.pose.position.y=target_y_first;
+    sub_goal_first.pose.pose.position.z=(first_number+1);
+    send_frag = 1;
+  }else if(first_number == 5){
     ROS_INFO("End");
   }else{
     ROS_INFO("Error");
   }
 
   //Secondと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
-  if(first_number == second_number){
+  if((first_number == second_number) && (send_frag ==1)){
     send_target_point();
+    ROS_INFO("send_next_point");
   }
 }
 
@@ -322,31 +332,36 @@ void path_planning::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &p
   nav_msgs::Odometry second_position= *position;
   //今何番目のサブゴールかを判定
   //最終地点なら6とする
-  second_number = -1;
-  for(int i=0;i<5;i++){
-    if((sub_goal_second_x[i] == second_position.pose.pose.position.x) && (sub_goal_second_y[i] == second_position.pose.pose.position.y)){
-      second_number = i;
-    }else if((second_position.pose.pose.position.x == target_x_second) && (second_position.pose.pose.position.y == target_y_second)){
-      second_number = 6;
-    }
-  }
-  //0~4番目なら，次のサブゴールをセット.5番目なら最終到達地点へセット,6番目は最終地点へ到達したとして次の目的地の更新はしない
+  second_number = second_position.pose.pose.position.z;
+
+  //何番目についたかデバック
+  ROS_INFO("Second_Arrive_%d",second_number);
+
+  //マシンにサブゴールを更新するデータを送るかのフラグ
+  int send_frag = 0;
+
+  //0~3番目なら，次のサブゴールをセット.4番目なら最終到達地点へセット,5番目は最終地点へ到達したとして次の目的地の更新はしない
   //その他ならエラー
-  if((-1<second_number) && (second_number<5)){
+  if((-1<second_number) && (second_number<4)){
     sub_goal_second.pose.pose.position.x=sub_goal_second_x[second_number+1];
     sub_goal_second.pose.pose.position.y=sub_goal_second_y[second_number+1];
-  }else if(second_number == 5){
+    sub_goal_second.pose.pose.position.z=(second_number+1);
+    send_frag = 1;
+  }else if(second_number == 4){
     sub_goal_second.pose.pose.position.x=target_x_second;
     sub_goal_second.pose.pose.position.y=target_y_second;
-  }else if(second_number == 6){
+    sub_goal_second.pose.pose.position.z=(second_number+1);
+    send_frag = 1;
+  }else if(second_number == 5){
     ROS_INFO("End");
   }else{
     ROS_INFO("Error");
   }
 
   //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
-  if(first_number == second_number){
+  if((first_number == second_number) && (send_frag ==1)){
     send_target_point();
+    ROS_INFO("send_next_point");
   }
 }
 
@@ -553,9 +568,7 @@ void path_planning::send_target_marker(void){
 
   marker_pub.publish(marker_control);
 
-  ros::Duration(0.01).sleep();
-
-
+  ros::Duration(0.001).sleep();
 }
 
 

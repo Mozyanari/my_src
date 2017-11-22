@@ -108,11 +108,11 @@ icart_move::icart_move(){
   odom.pose.pose.orientation.w = 1.0;
 
   //購読するトピックの定義
-  sub_odom= nh.subscribe("/ypspur_ros/odom", 5, &icart_move::cb_odom,this);
+  sub_odom= nh.subscribe("/ypspur_ros_first/odom", 5, &icart_move::cb_odom,this);
   sub_flag_receive=nh.subscribe("/target_point_first", 5, &icart_move::receive_target_point,this);
   //配布するトピックの定義
-  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros/cmd_vel", 1);
-  pub_flag_publish=nh.advertise<geometry_msgs::Twist>("/frag_data_first", 1);
+  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros_first/cmd_vel", 1);
+  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data_first", 1);
 
 }
 //関数定義-----------------------------------------------------------------------
@@ -144,7 +144,7 @@ void icart_move::calc_speed(void){
 
   //位置のズレが0.01[m]以上なら速度を出す
   //0.01以内なら到達したと判定し，それぞれのフラグを1とする
-  
+
   if(diff_x > 0.01){
     x_vel = 0.1;
   }else if(diff_x < -0.01){
@@ -192,6 +192,8 @@ void icart_move::calc_speed(void){
 
   //計算したTopicを送る
   pub_vel.publish(twist);
+  ROS_INFO("x_flag=%d",x_flag);
+  ROS_INFO("y_flag=%d",y_flag);
 }
 
 //目標地点の更新とflag処理
@@ -206,6 +208,8 @@ void icart_move::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   //フラグを折る
   x_flag=0;
   y_flag=0;
+
+  ROS_INFO("target_odom_update");
 }
 
 //実行されるメイン関数---------------------------------------------------------------
