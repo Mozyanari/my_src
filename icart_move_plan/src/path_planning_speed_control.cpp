@@ -24,6 +24,9 @@ private:
   //制御点の目標位置からそれぞれの機体の位置の算出
   void calc_machine_position(const nav_msgs::Odometry::ConstPtr &position);
 
+  //目標位置へ到達するときの機体の速度を計算
+  void calc_machine_speed(void);
+
   //機体からのオドメトリ取得
   void cb_odom_first(const nav_msgs::Odometry::ConstPtr &msg);
   void cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg);
@@ -100,8 +103,8 @@ private:
   //オフセット距離
   double s;
 
-  //サブゴール間の最小距離
-  double min_goal_length;
+  //機体の最高加速度
+  double acc_max;
 
   //世界座標系におけるサブゴールの位置の配列
   //制御点に関して
@@ -125,6 +128,12 @@ private:
   int first_number;
   int second_number;
 
+  //それぞれの機体の目標速度
+  double sub_goal_speed_first;
+  double sub_goal_speed_second;
+
+
+
   //Marker_data
   visualization_msgs::Marker marker_control;
   visualization_msgs::Marker marker_first;
@@ -142,6 +151,9 @@ path_planning::path_planning(){
 
   //オフセット距離[m]160mm
   s = 0.16;
+
+  //機体の最高加速度:80[mm/s^2]
+  acc_max = 0.08;
 
   //サブゴールの最小距離[0.5m]
   //min_goal_length = 0.5;
@@ -257,6 +269,8 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
     sub_goal_second_y[j] = sub_goal_y[j] - control_point * sin(sub_goal_rad[j]);
   }
 
+
+
   //デバック
   for(int k=0;k<devide_number;k++){
     ROS_INFO("sub_goal_x[%d]=%f",k,sub_goal_x[k]);
@@ -305,17 +319,9 @@ void path_planning::Arrive_position_first(const nav_msgs::Odometry::ConstPtr &po
 
   //マシンにサブゴールを更新するデータを送るかのフラグ
   int send_frag = 0;
-  //0~3番目なら，次のサブゴールをセット.4番目なら最終到達地点へセット,6番目は最終地点へ到達したとして次の目的地の更新はしない
+  //0~(devide_number-2)番目なら，次のサブゴールをセット.(devide_number-1)番目なら最終到達地点へセット,(devide_number)番目は最終地点へ到達したとして次の目的地の更新はしない
   //その他ならエラー
-  if((-1<first_number) && (first_number<(devide_number-1))){
-    sub_goal_first.pose.pose.position.x=sub_goal_first_x[first_number+1];
-    sub_goal_first.pose.pose.position.y=sub_goal_first_y[first_number+1];
-    sub_goal_first.pose.pose.position.z=(first_number+1);
-    send_frag = 1;
-  }else if(first_number == (devide_number-1)){
-    sub_goal_first.pose.pose.position.x=target_x_first;
-    sub_goal_first.pose.pose.position.y=target_y_first;
-    sub_goal_first.pose.pose.position.z=(first_number+1);
+  if((-1<first_number) && (first_number<=(devide_number-1))){
     send_frag = 1;
   }else if(first_number == devide_number){
     ROS_INFO("End");
@@ -323,9 +329,18 @@ void path_planning::Arrive_position_first(const nav_msgs::Odometry::ConstPtr &po
     ROS_INFO("Error");
   }
 
-  //Secondと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
+  //secondと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
+  //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
   if((first_number == second_number) && (send_frag ==1)){
+    //目標位置を入力
     send_target_point();
+    //目標スピードを入力
+    calc_machine_speed();
+
+    //データを送信
+    pub_target_point_first.publish(sub_goal_first);
+    pub_target_point_second.publish(sub_goal_second);
+
     ROS_INFO("send_next_point");
   }
 }
@@ -334,7 +349,6 @@ void path_planning::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &p
   //到達位置を取得
   nav_msgs::Odometry second_position= *position;
   //今何番目のサブゴールかを判定
-  //最終地点なら6とする
   second_number = second_position.pose.pose.position.z;
 
   //何番目についたかデバック
@@ -343,35 +357,98 @@ void path_planning::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &p
   //マシンにサブゴールを更新するデータを送るかのフラグ
   int send_frag = 0;
 
-  //0~3番目なら，次のサブゴールをセット.4番目なら最終到達地点へセット,5番目は最終地点へ到達したとして次の目的地の更新はしない
+  //0~(devide_number-2)番目なら，次のサブゴールをセット.(devide_number-1)番目なら最終到達地点へセット,(devide_number)番目は最終地点へ到達したとして次の目的地の更新はしない
   //その他ならエラー
-  if((-1<second_number) && (second_number<(devide_number-1))){
-    sub_goal_second.pose.pose.position.x=sub_goal_second_x[second_number+1];
-    sub_goal_second.pose.pose.position.y=sub_goal_second_y[second_number+1];
-    sub_goal_second.pose.pose.position.z=(second_number+1);
-    send_frag = 1;
-  }else if(second_number == (devide_number-1)){
-    sub_goal_second.pose.pose.position.x=target_x_second;
-    sub_goal_second.pose.pose.position.y=target_y_second;
-    sub_goal_second.pose.pose.position.z=(second_number+1);
+  if((-1<second_number) && (second_number<=(devide_number-1))){
     send_frag = 1;
   }else if(second_number == devide_number){
     ROS_INFO("End");
   }else{
     ROS_INFO("Error");
   }
-
   //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
   if((first_number == second_number) && (send_frag ==1)){
+    //目標位置を入力
     send_target_point();
+    //目標スピードを入力
+    calc_machine_speed();
+
+    //データを送信
+    pub_target_point_first.publish(sub_goal_first);
+    pub_target_point_second.publish(sub_goal_second);
+
     ROS_INFO("send_next_point");
   }
 }
 
 //目標地点をfirst,secondともに送信する
 void path_planning::send_target_point(void){
-  pub_target_point_first.publish(sub_goal_first);
-  pub_target_point_second.publish(sub_goal_second);
+  //first機体の目標位置を入力
+  if((-1<first_number) && (first_number<(devide_number-1))){
+    //サブゴールを入力
+    sub_goal_first.pose.pose.position.x=sub_goal_first_x[first_number+1];
+    sub_goal_first.pose.pose.position.y=sub_goal_first_y[first_number+1];
+    sub_goal_first.pose.pose.position.z=(first_number+1);
+  }else if(first_number == (devide_number-1)){
+    //最終到達地点を入力
+    sub_goal_first.pose.pose.position.x=target_x_first;
+    sub_goal_first.pose.pose.position.y=target_y_first;
+    sub_goal_first.pose.pose.position.z=devide_number;
+  }
+
+
+  //second機体の目標位置を入力
+  if((-1<second_number) && (second_number<(devide_number-1))){
+    //サブゴールを入力
+    sub_goal_second.pose.pose.position.x=sub_goal_second_x[second_number+1];
+    sub_goal_second.pose.pose.position.y=sub_goal_second_y[second_number+1];
+    sub_goal_second.pose.pose.position.z=(second_number+1);
+  }else if(second_number == (devide_number-1)){
+    //最終到達地点を入力
+    sub_goal_second.pose.pose.position.x=target_x_second;
+    sub_goal_second.pose.pose.position.y=target_y_second;
+    sub_goal_second.pose.pose.position.z=devide_number;
+  }
+}
+
+//目標位置へ到達するときの機体の速度を計算
+void path_planning::calc_machine_speed(void){
+  static double old_speed_first=0;
+  static double old_speed_second=0;
+
+  //それぞれの機体の位置からの目標地点までの距離を計算
+  double target_distance_first = sqrt( (pow((sub_goal_first_x[first_number+1]-world_offset_position_x_first),2)) + (pow((sub_goal_first_y[first_number+1]-world_offset_position_y_first),2)) );
+  double target_distance_second = sqrt( (pow((sub_goal_second_x[second_number+1]-world_offset_position_x_second),2)) + (pow((sub_goal_second_y[second_number+1]-world_offset_position_y_second),2)) );
+
+  //viが実数解を持つためのtiを決める
+  time = 1;
+  for(;time<100;time++){
+    //条件判定式
+    double first_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_first)-(2*acc_max*target_distance_first);
+    double second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
+    //条件判定でどちらも正になるtimeがわかればそれを使う
+    if((first_judge>0)&&(second_judge>0)){
+      break;
+    }
+  }
+  while(1){
+    //viを計算
+    speed_first = old_speed_first + (acc_max * time) - sqrt(first_judge);
+    speed_second = old_speed_second + (acc_max * time) - sqrt(second_judge);
+
+    //viMaxを超えているかを判定
+    if((speed_first < Max_speed) && (speed_second < Max_speed)){
+      break;
+    }else{
+      //もう一度timeを増やして計算
+      time++;
+    }
+  }
+
+  //速度の保持
+  old_speed_first = speed_first;
+  old_speed_second = speed_second;
+
 }
 
 void path_planning::send_target_marker(void){
