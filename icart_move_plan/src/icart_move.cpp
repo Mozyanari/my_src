@@ -61,6 +61,10 @@ private:
   //機体の目標位置
   double set_target_x;
   double set_target_y;
+
+  //機体の僕表速度
+  double set_target_speed;
+
   //何番目のフラグ
   int get_frag;
 
@@ -144,31 +148,28 @@ void icart_move::calc_speed(void){
   double diff_x = (set_target_x - world_offset_position_x);
   double diff_y = (set_target_y - world_offset_position_y);
 
-  //位置のズレが0.01[m]以上なら速度を出す
-  //0.01以内なら到達したと判定し，それぞれのフラグを1とする
-
-  if(diff_x > 0.01){
-    x_vel = 0.1;
-  }else if(diff_x < -0.01){
-    x_vel = -0.1;
-  }else{
-    x_vel = 0;
+  //位置の誤差がx,yともに1cm以内ならflag=1
+  if((-0.01 < diff_x) && (diff_x < 0.01)){
     x_flag=1;
-  }
-
-  if(diff_y > 0.01){
-    y_vel = 0.1;
-  }else if(diff_y < -0.01){
-    y_vel = -0.1;
   }else{
-    y_vel = 0;
-    y_flag=1;
+    x_flag=0;
   }
-  if((x_flag==1) && (y_flag==1)){
-    //フラグがONの限り速度は0
-    x_vel = 0;
-    y_vel = 0;
+  if((-0.01 < diff_y) && (diff_y < 0.01)){
+    y_flag=1;
+  }else{
+    y_flag=0;
+  }
 
+  //与えられた速度を今の位置からx,y方向に振り分ける計算
+  //まずは，x,y方向の誤差から角度を計算
+  double target_rad = atan2(diff_y,diff_x);
+
+  //角度から速度をx,yに振り分け
+  x_vel = set_target_speed * cos(target_rad);
+  y_vel = set_target_speed * sin(target_rad);
+
+
+  if((x_flag==1) && (y_flag==1)){
     //フラグをPC側に送信
     //今到達している場所を登録
     flag.pose.pose.position.x=set_target_x;
@@ -206,14 +207,10 @@ void icart_move::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   //目標地点を更新
   set_target_x=target_point.pose.pose.position.x;
   set_target_y=target_point.pose.pose.position.y;
-
-  //フラグを折る
-  x_flag=0;
-  y_flag=0;
-
   //フラグの番号を更新
   get_frag = target_point.pose.pose.position.z;
 
+  set_target_speed = target_point.twist.twist.linear.z;
   ROS_INFO("target_odom_update");
 }
 

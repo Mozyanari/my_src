@@ -103,8 +103,7 @@ private:
   //オフセット距離
   double s;
 
-  //機体の最高加速度
-  double acc_max;
+
 
   //世界座標系におけるサブゴールの位置の配列
   //制御点に関して
@@ -132,6 +131,12 @@ private:
   double sub_goal_speed_first;
   double sub_goal_speed_second;
 
+  //機体の最高加速度[m/s^2]
+  double acc_max;
+
+  //最高速度[m/s]
+  double Max_speed;
+
 
 
   //Marker_data
@@ -154,6 +159,9 @@ path_planning::path_planning(){
 
   //機体の最高加速度:80[mm/s^2]
   acc_max = 0.08;
+
+  //最高速度:0.1[m/s]
+  Max_speed = 0.1;
 
   //サブゴールの最小距離[0.5m]
   //min_goal_length = 0.5;
@@ -413,26 +421,34 @@ void path_planning::send_target_point(void){
 
 //目標位置へ到達するときの機体の速度を計算
 void path_planning::calc_machine_speed(void){
-  static double old_speed_first=0;
-  static double old_speed_second=0;
+  //変数定義
+  double first_judge = 0;
+  double second_judge = 0;
+  double speed_first = 0;
+  double speed_second = 0;
+  static double old_speed_first = 0;
+  static double old_speed_second = 0;
 
   //それぞれの機体の位置からの目標地点までの距離を計算
   double target_distance_first = sqrt( (pow((sub_goal_first_x[first_number+1]-world_offset_position_x_first),2)) + (pow((sub_goal_first_y[first_number+1]-world_offset_position_y_first),2)) );
   double target_distance_second = sqrt( (pow((sub_goal_second_x[second_number+1]-world_offset_position_x_second),2)) + (pow((sub_goal_second_y[second_number+1]-world_offset_position_y_second),2)) );
 
+
   //viが実数解を持つためのtiを決める
-  time = 1;
+  int time = 1;
   for(;time<100;time++){
     //条件判定式
-    double first_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_first)-(2*acc_max*target_distance_first);
-    double second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
+    first_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_first)-(2*acc_max*target_distance_first);
+    second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
     //条件判定でどちらも正になるtimeがわかればそれを使う
     if((first_judge>0)&&(second_judge>0)){
       break;
     }
   }
+
+
+  //viを計算
   while(1){
-    //viを計算
     speed_first = old_speed_first + (acc_max * time) - sqrt(first_judge);
     speed_second = old_speed_second + (acc_max * time) - sqrt(second_judge);
 
@@ -446,16 +462,14 @@ void path_planning::calc_machine_speed(void){
       second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
     }
   }
-  
+
   //速度を代入
   sub_goal_first.twist.twist.linear.z=speed_first;
   sub_goal_second.twist.twist.linear.z=speed_second;
 
-
   //速度の保持
   old_speed_first = speed_first;
   old_speed_second = speed_second;
-
 }
 
 void path_planning::send_target_marker(void){
