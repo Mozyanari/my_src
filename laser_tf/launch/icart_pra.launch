@@ -1,6 +1,38 @@
 <launch>
-  <!--機体の座標系を出力-->
-  <node ns="first" pkg="i_cart_tf" name="offset_tf_broadcast" type="offset_tf_broadcast">
+  <!--tf_publish-->
+  <!--world-->
+  <!--to_odom_first-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" />
+
+  <!--to_odom_second-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_second" args="0.16 0 0 0 0 0 world odom_second 100" />
+
+  <!--control_point-->
+  <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast"/>
+
+  <!--laser-->
+  <!--to_base_link_first-->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_first_to_laser" args="0 0 0 0 0 0 base_link_first base_link_laser_first 100" />
+
+  <!--to_base_link_second-->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_second_to_laser" args="0 0 0 0 0 0 base_link_second base_link_laser_second 100" />
+
+  <!--first-->
+  <!--offset位置の出力-->
+  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_first base_link_first_offset 10" />
+
+  <!--second-->
+  <!--offset位置の出力-->
+  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_second base_link_second_offset 10" />
+
+  <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
+  <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
+  
+  <!--move_node-->
+  <node pkg="multi_icart" type="multi_icart" name="multi_icart">
+    <param name="target_position_x" value="0.0"/>
+    <param name="target_position_y" value="0.0"/>
+    <param name="target_position_rad" value="0.0"/>
   </node>
 
 

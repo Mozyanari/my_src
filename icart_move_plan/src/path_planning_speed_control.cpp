@@ -442,8 +442,15 @@ void path_planning::calc_machine_speed(void){
     }else{
       //もう一度timeを増やして計算
       time++;
+      first_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_first)-(2*acc_max*target_distance_first);
+      second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
     }
   }
+  
+  //速度を代入
+  sub_goal_first.twist.twist.linear.z=speed_first;
+  sub_goal_second.twist.twist.linear.z=speed_second;
+
 
   //速度の保持
   old_speed_first = speed_first;
