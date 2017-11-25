@@ -1,0 +1,25 @@
+<library path="lib/liblaser_tf_nodelet">
+
+	<class name="laser_tf_nodelet/laser_to_pointcloud_nodelet" type="laser_to_pointcloud_ns::laser_to_pointcloud_nodelet"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			laser_to_pointcloud
+		</description>
+	</class>
+
+	<class name="laser_tf_nodelet/pointcloud_trans_to_offset_nodelet" type="pointcloud_trans_to_offset_ns::pointcloud_trans_to_offset_nodelet"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			pointcloud_trans_to_offset
+		</description>
+	</class>
+
+	<class name="laser_tf_nodelet/pointcloud_to_pointcloud2_nodelet" type="pointcloud_to_pointcloud2_ns::pointcloud_to_pointcloud2_nodelet"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			pointcloud_to_pointcloud2
+		</description>
+	</class>
+
+
+</library>
