@@ -30,7 +30,7 @@
   <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
 
   <!--move_node-->
-  <node pkg="icart_move_plan" type="path_planning" name="path_planning">
+  <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
   </node>
 
 

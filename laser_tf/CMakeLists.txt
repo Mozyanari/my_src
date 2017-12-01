@@ -143,6 +143,8 @@ add_executable(pointcloud_trans_to_control src/pointcloud_trans_to_control.cpp)
 add_executable(pointcloud_to_pointcloud2 src/pointcloud_to_pointcloud2.cpp)
 add_executable(merge_pointcloud2 src/merge_pointcloud2.cpp)
 add_executable(laser_filter src/laser_filter.cpp)
+add_executable(icp_test src/icp_test.cpp)
+add_executable(icp_transform src/icp_transform.cpp)
 
 
 
@@ -165,6 +167,8 @@ target_link_libraries(pointcloud_trans_to_control ${catkin_LIBRARIES})
 target_link_libraries(pointcloud_to_pointcloud2 ${catkin_LIBRARIES})
 target_link_libraries(merge_pointcloud2 ${catkin_LIBRARIES})
 target_link_libraries(laser_filter ${catkin_LIBRARIES})
+target_link_libraries(icp_test ${catkin_LIBRARIES})
+target_link_libraries(icp_transform ${catkin_LIBRARIES})
 
 
 

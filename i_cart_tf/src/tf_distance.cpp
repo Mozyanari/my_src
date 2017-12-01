@@ -54,7 +54,7 @@ void tf_distance::calc_tf_distance(const ros::TimerEvent&){
   }
 
   tf_distance.data=sqrt( (pow(transform.getOrigin().x(),2)) + (pow(transform.getOrigin().y(),2)) );
-  ROS_INFO("tf_distance.data %f",tf_distance);
+  //ROS_INFO("tf_distance.data %f",tf_distance);
 
   pub_tf_distance.publish(tf_distance);
 }

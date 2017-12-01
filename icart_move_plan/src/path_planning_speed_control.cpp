@@ -1,5 +1,5 @@
 //サブゴールを何分割するか
-#define devide_number 50
+#define devide_number 10
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -137,6 +137,12 @@ private:
   //最高速度[m/s]
   double Max_speed;
 
+  //前回のスピードを保持
+  double old_speed_first;
+  double old_speed_second;
+
+  int old_sub_goal_number;
+
 
 
   //Marker_data
@@ -160,11 +166,20 @@ path_planning::path_planning(){
   //機体の最高加速度:80[mm/s^2]
   acc_max = 0.08;
 
-  //最高速度:0.1[m/s]
+  //最高速度:0.1[m/s],100[mm/s]
   Max_speed = 0.1;
 
   //サブゴールの最小距離[0.5m]
   //min_goal_length = 0.5;
+
+  old_speed_first = 0;
+  old_speed_second = 0;
+
+  //サブゴール変数の初期化
+  first_number=-1;
+  second_number=-1;
+
+  old_sub_goal_number = -1;
 
   //odomのクオータニオンを初期化
   odom_first.pose.pose.orientation.w = 1.0;
@@ -230,7 +245,7 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
   target_control_point_x=control_target_position.pose.pose.position.x;
   target_control_point_y=control_target_position.pose.pose.position.y;
   target_control_point_rad=tf::getYaw(control_target_position.pose.pose.orientation);
-  ROS_INFO("target_control_point_rad=%f",target_control_point_rad);
+  //ROS_INFO("target_control_point_rad=%f",target_control_point_rad);
 
   //最終的な目標とするfirstとsecondのそれぞれの位置を計算
   //first
@@ -280,6 +295,7 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
 
 
   //デバック
+  /*
   for(int k=0;k<devide_number;k++){
     ROS_INFO("sub_goal_x[%d]=%f",k,sub_goal_x[k]);
     ROS_INFO("sub_goal_y[%d]=%f",k,sub_goal_y[k]);
@@ -292,6 +308,7 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
     ROS_INFO("sub_goal_second_x[%d]=%f",k,sub_goal_second_x[k]);
     ROS_INFO("sub_goal_second_y[%d]=%f",k,sub_goal_second_y[k]);
   }
+  */
 
   //１つめの目標位置を送信
   //firstの１つめのデータをセット
@@ -304,8 +321,15 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
   sub_goal_second.pose.pose.position.y = sub_goal_second_y[0];
   sub_goal_second.pose.pose.position.z = 0;
 
-  //データを送信
+  //位置データを入力
   send_target_point();
+
+  //目標スピードを入力
+  calc_machine_speed();
+
+  //データを送信
+  pub_target_point_first.publish(sub_goal_first);
+  pub_target_point_second.publish(sub_goal_second);
 
   //マーカを送信
   send_target_marker();
@@ -338,8 +362,7 @@ void path_planning::Arrive_position_first(const nav_msgs::Odometry::ConstPtr &po
   }
 
   //secondと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
-  //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
-  if((first_number == second_number) && (send_frag ==1)){
+  if((first_number == second_number) && (send_frag ==1) && (old_sub_goal_number != first_number)){
     //目標位置を入力
     send_target_point();
     //目標スピードを入力
@@ -349,7 +372,27 @@ void path_planning::Arrive_position_first(const nav_msgs::Odometry::ConstPtr &po
     pub_target_point_first.publish(sub_goal_first);
     pub_target_point_second.publish(sub_goal_second);
 
+    //サブゴールの更新番号を保存
+    old_sub_goal_number = first_number;
+
     ROS_INFO("send_next_point");
+  }else if((first_number == second_number) && (first_number == devide_number) && (old_sub_goal_number != first_number)){
+    //両方の機体が最終到達地点についたとして速度がゼロのみを送信
+    //速度を代入
+    sub_goal_first.twist.twist.linear.z=0;
+    sub_goal_second.twist.twist.linear.z=0;
+
+
+    //データを送信
+    pub_target_point_first.publish(sub_goal_first);
+    pub_target_point_second.publish(sub_goal_second);
+
+    //サブゴールの更新番号を保存
+    old_sub_goal_number = first_number;
+
+    //変数初期化
+    old_speed_first=0;
+    old_speed_second=0;
   }
 }
 
@@ -374,8 +417,10 @@ void path_planning::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &p
   }else{
     ROS_INFO("Error");
   }
-  //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を送信する
-  if((first_number == second_number) && (send_frag ==1)){
+
+  //データの更新を行うかの判定
+  //firstと比較してnumberが同じならどちらも同じ番号のゴールにたどり着いたとして次の目的地を 送信する
+  if((first_number == second_number) && (send_frag == 1) && (old_sub_goal_number != first_number)){
     //目標位置を入力
     send_target_point();
     //目標スピードを入力
@@ -385,11 +430,31 @@ void path_planning::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &p
     pub_target_point_first.publish(sub_goal_first);
     pub_target_point_second.publish(sub_goal_second);
 
+    //サブゴールの更新番号を保存
+    old_sub_goal_number = first_number;
+
     ROS_INFO("send_next_point");
+  }else if((first_number == second_number) && (first_number == devide_number) && (old_sub_goal_number != first_number)){
+    //最終到達地点についたとして速度がゼロのみを送信
+    //速度を代入
+    sub_goal_first.twist.twist.linear.z=0;
+    sub_goal_second.twist.twist.linear.z=0;
+
+
+    //データを送信
+    pub_target_point_first.publish(sub_goal_first);
+    pub_target_point_second.publish(sub_goal_second);
+
+    //サブゴールの更新番号を保存
+    old_sub_goal_number = first_number;
+
+    //変数初期化
+    old_speed_first=0;
+    old_speed_second=0;
   }
 }
 
-//目標地点をfirst,secondともに送信する
+//目標地点をfirst,secondともに入力
 void path_planning::send_target_point(void){
   //first機体の目標位置を入力
   if((-1<first_number) && (first_number<(devide_number-1))){
@@ -426,12 +491,21 @@ void path_planning::calc_machine_speed(void){
   double second_judge = 0;
   double speed_first = 0;
   double speed_second = 0;
-  static double old_speed_first = 0;
-  static double old_speed_second = 0;
 
   //それぞれの機体の位置からの目標地点までの距離を計算
-  double target_distance_first = sqrt( (pow((sub_goal_first_x[first_number+1]-world_offset_position_x_first),2)) + (pow((sub_goal_first_y[first_number+1]-world_offset_position_y_first),2)) );
-  double target_distance_second = sqrt( (pow((sub_goal_second_x[second_number+1]-world_offset_position_x_second),2)) + (pow((sub_goal_second_y[second_number+1]-world_offset_position_y_second),2)) );
+  //サブゴール
+  double a=sub_goal_first_x[first_number+1]-world_offset_position_x_first;
+  double b=sub_goal_first_y[first_number+1]-world_offset_position_y_first;
+  double c=sub_goal_second_x[second_number+1]-world_offset_position_x_second;
+  double d=sub_goal_second_y[second_number+1]-world_offset_position_y_second;
+
+  //再いしゅう視点に関して
+  
+  double target_distance_first = sqrt((pow(a,2)) + (pow(b,2)));
+  double target_distance_second = sqrt((pow(c,2)) + (pow(d,2)));
+
+  ROS_INFO("target_distance_first %d",target_distance_first);
+  ROS_INFO("target_distance_second %d",target_distance_second);
 
 
   //viが実数解を持つためのtiを決める
@@ -445,7 +519,6 @@ void path_planning::calc_machine_speed(void){
       break;
     }
   }
-
 
   //viを計算
   while(1){
@@ -462,6 +535,7 @@ void path_planning::calc_machine_speed(void){
       second_judge = pow((acc_max*time),2)+(2*acc_max*time*old_speed_second)-(2*acc_max*target_distance_second);
     }
   }
+  ROS_INFO("time=%d",time);
 
   //速度を代入
   sub_goal_first.twist.twist.linear.z=speed_first;
@@ -492,9 +566,9 @@ void path_planning::send_target_marker(void){
     marker_control.pose.orientation.z = 0.0;
     marker_control.pose.orientation.w = 1.0;
 
-    marker_control.scale.x = 0.1;
-    marker_control.scale.y = 0.1;
-    marker_control.scale.z = 0.1;
+    marker_control.scale.x = 0.05;
+    marker_control.scale.y = 0.05;
+    marker_control.scale.z = 0.05;
 
     marker_control.color.r = 0.0f;
     marker_control.color.g = 1.0f;
@@ -524,9 +598,9 @@ void path_planning::send_target_marker(void){
   marker_control.pose.orientation.z = 0.0;
   marker_control.pose.orientation.w = 1.0;
 
-  marker_control.scale.x = 0.2;
-  marker_control.scale.y = 0.2;
-  marker_control.scale.z = 0.2;
+  marker_control.scale.x = 0.1;
+  marker_control.scale.y = 0.1;
+  marker_control.scale.z = 0.1;
 
   marker_control.color.r = 0.0f;
   marker_control.color.g = 1.0f;
@@ -558,9 +632,9 @@ void path_planning::send_target_marker(void){
     marker_control.pose.orientation.z = 0.0;
     marker_control.pose.orientation.w = 1.0;
 
-    marker_control.scale.x = 0.1;
-    marker_control.scale.y = 0.1;
-    marker_control.scale.z = 0.1;
+    marker_control.scale.x = 0.05;
+    marker_control.scale.y = 0.05;
+    marker_control.scale.z = 0.05;
 
     marker_control.color.r = 1.0f;
     marker_control.color.g = 0.0f;
@@ -590,9 +664,9 @@ void path_planning::send_target_marker(void){
   marker_control.pose.orientation.z = 0.0;
   marker_control.pose.orientation.w = 1.0;
 
-  marker_control.scale.x = 0.2;
-  marker_control.scale.y = 0.2;
-  marker_control.scale.z = 0.2;
+  marker_control.scale.x = 0.1;
+  marker_control.scale.y = 0.1;
+  marker_control.scale.z = 0.1;
 
   marker_control.color.r = 1.0f;
   marker_control.color.g = 0.0f;
@@ -624,9 +698,9 @@ void path_planning::send_target_marker(void){
     marker_control.pose.orientation.z = 0.0;
     marker_control.pose.orientation.w = 1.0;
 
-    marker_control.scale.x = 0.1;
-    marker_control.scale.y = 0.1;
-    marker_control.scale.z = 0.1;
+    marker_control.scale.x = 0.05;
+    marker_control.scale.y = 0.05;
+    marker_control.scale.z = 0.05;
 
     marker_control.color.r = 0.0f;
     marker_control.color.g = 0.0f;
@@ -656,9 +730,9 @@ void path_planning::send_target_marker(void){
   marker_control.pose.orientation.z = 0.0;
   marker_control.pose.orientation.w = 1.0;
 
-  marker_control.scale.x = 0.2;
-  marker_control.scale.y = 0.2;
-  marker_control.scale.z = 0.2;
+  marker_control.scale.x = 0.1;
+  marker_control.scale.y = 0.1;
+  marker_control.scale.z = 0.1;
 
   marker_control.color.r = 0.0f;
   marker_control.color.g = 0.0f;

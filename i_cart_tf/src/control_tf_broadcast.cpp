@@ -87,9 +87,9 @@ void control_tf_broadcast::control_pub(const ros::TimerEvent&){
   br.sendTransform(tf::StampedTransform(transform_control, ros::Time::now(),"world","control_point"));
 
 
-  ROS_INFO("world_control_point_x %f",world_control_point_x);
-  ROS_INFO("world_control_point_y %f",world_control_point_y);
-  ROS_INFO("world_control_point_rad %f",world_control_point_rad);
+  //ROS_INFO("world_control_point_x %f",world_control_point_x);
+  //ROS_INFO("world_control_point_y %f",world_control_point_y);
+  //ROS_INFO("world_control_point_rad %f",world_control_point_rad);
 
 
 }

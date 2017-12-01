@@ -179,7 +179,6 @@ void icart_move::calc_speed(void){
 
     pub_flag_publish.publish(flag);
     ROS_INFO("Reach_target_point_second");
-
   }
 
   //左右の車輪の速度を計算
