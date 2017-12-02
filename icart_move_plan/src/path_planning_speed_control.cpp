@@ -322,6 +322,7 @@ void path_planning::calc_machine_position(const nav_msgs::Odometry::ConstPtr &po
   sub_goal_second.pose.pose.position.z = 0;
 
   //位置データを入力
+  //なぜもう一度位置データやってんねん
   send_target_point();
 
   //目標スピードを入力
@@ -500,7 +501,7 @@ void path_planning::calc_machine_speed(void){
   double d=sub_goal_second_y[second_number+1]-world_offset_position_y_second;
 
   //再いしゅう視点に関して
-  
+
   double target_distance_first = sqrt((pow(a,2)) + (pow(b,2)));
   double target_distance_second = sqrt((pow(c,2)) + (pow(d,2)));
 

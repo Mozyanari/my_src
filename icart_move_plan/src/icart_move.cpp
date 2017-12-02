@@ -23,15 +23,16 @@ private:
   //ノードハンドラ作成
 	ros::NodeHandle nh;
 
+/*
+使用するTopicの定義
+*/
   //使用するpub/sebの定義
   ros::Subscriber sub_odom;
   ros::Subscriber sub_flag_receive;
-
   ros::Publisher pub_vel;
   ros::Publisher pub_flag_publish;
 
-  //機体の状態データ
-  nav_msgs::Odometry odom;
+
 
   //フラグデータ(ポジションのx,yに到達した場所，zにフラグデータを挿入)
   nav_msgs::Odometry flag;
@@ -40,10 +41,9 @@ private:
   geometry_msgs::Twist twist;
 
   //機体パラメータ
-  //速度
-  double x_vel;
-  double y_vel;
-  double omega_vel;
+  //機体のデータ受信
+  nav_msgs::Odometry odom;
+
 
   //タイヤの半径[mm]
   double r;
@@ -54,30 +54,27 @@ private:
   //機体の姿勢角度[rad]
   double rad;
 
-  //機体のロボット座標における位置
-  double position_x;
-  double position_y;
-
   //機体の目標位置
   double set_target_x;
   double set_target_y;
 
-  //機体の僕表速度
+  //機体の目標速度
   double set_target_speed;
 
   //何番目のフラグ
   int get_frag;
+  int old_get_flag;
+
+  //これ以上送信しないかどうかのフラグ
+  int last_flag;
 
   //連結距離
   double distance_multi;
 
   //それぞれの機体のオフセットとワールド座標を考慮した位置
-  //secondのオフセット位置が(0.0)になるように設定
+  //firstのオフセット位置が(0.0)になるように設定
   double world_offset_position_x;
   double world_offset_position_y;
-
-  //左右の車輪の速度
-  double omega_l, omega_r;
 
   //オフセット距離
   double s;
@@ -85,10 +82,6 @@ private:
   //目標位置
   double target_x;
   double target_y;
-
-  //フラグ
-  int x_flag;
-  int y_flag;
 };
 
 icart_move::icart_move(){
@@ -106,35 +99,34 @@ icart_move::icart_move(){
   distance_multi = 0.57;
 
   //フラグの初期化
-  //フラグは最初は1として動作不可にする
-  x_flag=1;
-  y_flag=1;
+  last_flag=0;
 
   //odomのクオータニオンを初期化
   odom.pose.pose.orientation.w = 1.0;
 
   //購読するトピックの定義
-  sub_odom= nh.subscribe("/ypspur_ros_second/odom", 5, &icart_move::cb_odom,this);
-  sub_flag_receive=nh.subscribe("/target_point_second", 5, &icart_move::receive_target_point,this);
+  sub_odom= nh.subscribe("/ypspur_ros_first/odom", 5, &icart_move::cb_odom,this);
+  sub_flag_receive=nh.subscribe("/target_point_first", 5, &icart_move::receive_target_point,this);
   //配布するトピックの定義
-  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros_second/cmd_vel", 1);
-  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data_second", 1);
+  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros_first/cmd_vel", 1);
+  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data_first", 1);
 
 }
 //関数定義-----------------------------------------------------------------------
 void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &msg){
+  //機体の状態データ
   //機体のデータ受信
   odom = *msg;
 
   //機体に関する計算----------------------------------------------------------
   //機体の角度を代入
   rad = tf::getYaw(odom.pose.pose.orientation);
-  //second機体の位置を代入
-  position_x = odom.pose.pose.position.x;
-  position_y = odom.pose.pose.position.y;
+  //first機体の位置を代入
+  double position_x = odom.pose.pose.position.x;
+  double position_y = odom.pose.pose.position.y;
 
-  //機体のworld座標におけるオフセット位置を計算(second)
-  world_offset_position_x = (position_x + s) - (s * cos(rad));
+  //機体のworld座標におけるオフセット位置を計算(first)
+  world_offset_position_x = (position_x + s + distance_multi) - (s * cos(rad));
   world_offset_position_y = position_y - (s * sin(rad));
 
   //機体に与える速度に関する計算と速度の送信，到達したかの判定
@@ -148,44 +140,65 @@ void icart_move::calc_speed(void){
   double diff_x = (set_target_x - world_offset_position_x);
   double diff_y = (set_target_y - world_offset_position_y);
 
-  //位置の誤差がx,yともに1cm以内ならflag=1
-  if((-0.01 < diff_x) && (diff_x < 0.01)){
-    x_flag=1;
-  }else{
-    x_flag=0;
-  }
-  if((-0.01 < diff_y) && (diff_y < 0.01)){
-    y_flag=1;
-  }else{
-    y_flag=0;
-  }
-
   //与えられた速度を今の位置からx,y方向に振り分ける計算
   //まずは，x,y方向の誤差から角度を計算
   double target_rad = atan2(diff_y,diff_x);
 
   //角度から速度をx,yに振り分け
-  x_vel = set_target_speed * cos(target_rad);
-  y_vel = set_target_speed * sin(target_rad);
+  double x_vel = set_target_speed * cos(target_rad);
+  double y_vel = set_target_speed * sin(target_rad);
+
+  //位置の誤差がx,yともに5cm以内ならflag=1
+  //1cm以内ならlast_frag=1
+  int x_flag = 0;
+  int y_flag = 0;
+  int last_flag_x=0;
+  int last_flag_y=0;
+
+  if((-0.05 < diff_x) && (diff_x < 0.05)){
+    x_flag=1;
+    if((-0.01 < diff_x) && (diff_x < 0.01)){
+      last_flag_x=1;
+      x_vel = 0;
+    }
+  }else{
+    x_flag=0;
+  }
+
+  if((-0.05 < diff_y) && (diff_y < 0.05)){
+    y_flag=1;
+    if((-0.01 < diff_y) && (diff_y < 0.01)){
+      last_flag_y=1;
+      y_vel = 0;
+    }
+  }else{
+    y_flag=0;
+  }
 
 
-  if((x_flag==1) && (y_flag==1)){
+
+  if((x_flag==1) && (y_flag==1) && (last_flag != 1)){
     //フラグをPC側に送信
     //今到達している場所を登録
-    flag.pose.pose.position.x=set_target_x;
-    flag.pose.pose.position.y=set_target_y;
+    flag.pose.pose.position.x=world_offset_position_x;
+    flag.pose.pose.position.y=world_offset_position_y;
     //何番目のフラグ処理をしたかを返す
     flag.pose.pose.position.z=get_frag;
-
+    //データを送信
     pub_flag_publish.publish(flag);
-    ROS_INFO("Reach_target_point_second");
+
+    //last_fragがONならそれ以上進まないので最後のデータ送信
+    if((last_flag_x == 1) && (last_flag_y == 1)){
+      last_flag = 1;
+    }
+    //ROS_INFO("Reach_target_point_first");
   }
 
   //左右の車輪の速度を計算
   //右の車輪計算
-  omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
+  double omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
   //左の車輪計算
-  omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
+  double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
 
   //速度のpublish
   //車輪の計算からx方向とω方向の速度計算
@@ -210,7 +223,10 @@ void icart_move::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   get_frag = target_point.pose.pose.position.z;
 
   set_target_speed = target_point.twist.twist.linear.z;
-  ROS_INFO("target_odom_update");
+
+  //last_flagを0にしてフラグを折る
+  last_flag = 0;
+  //ROS_INFO("target_odom_update");
 }
 
 //実行されるメイン関数---------------------------------------------------------------
