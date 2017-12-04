@@ -1,0 +1,17 @@
+#テキストファイルは無視
+*txt
+
+#git cloneで取得したもの
+rsj_robot_test/
+rsj_seminar_navigation/
+sample_nodelet/
+ypspur_ros/
+yp-spur/
+measure_message_passing/
+
+#勉強のために作成しただけのもの
+ros_param_test/
+using_markers/
+
+#gitで保管しても意味がないもの
+CMakeFiles/

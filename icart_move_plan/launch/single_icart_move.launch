@@ -1,37 +1,33 @@
 <launch>
   <!--tf_publish-->
   <!--world-->
-  <!--to_odom_first-->
-  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" respawn="true"/>
-
   <!--to_odom_second-->
   <node pkg="tf" type="static_transform_publisher" name="world_to_second" args="0.16 0 0 0 0 0 world odom_second 100" respawn="true"/>
-
-  <!--control_point-->
-  <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast" respawn="true"/>
-
-  <!--laser-->
-  <!--to_base_link_first-->
-  <node pkg="tf" type="static_transform_publisher" name="base_link_first_to_laser" args="0 0 0 0 0 0 base_link_first base_link_laser_first 100" respawn="true"/>
-
-  <!--to_base_link_second-->
-  <node pkg="tf" type="static_transform_publisher" name="base_link_second_to_laser" args="0 0 0 0 0 0 base_link_second base_link_laser_second 100" respawn="true"/>
-
-  <!--first-->
-  <!--offset位置の出力-->
-  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_first base_link_first_offset 10" respawn="true"/>
-
 
   <!--second-->
   <!--offset位置の出力-->
   <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_second base_link_second_offset 10" respawn="true"/>
 
-  <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
-  <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
+  <!--laser-->
+  <!--to_base_link_second-->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_second_to_laser" args="0 0 0 0 0 0 base_link_second base_link_laser_second 100" respawn="true"/>
 
   <!--move_node-->
-  <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
+  <node pkg="icart_move_plan" type="single_path_plan" name="path_planning">
   </node>
+
+  <!--gmapping-->
+  <node pkg="gmapping" type="slam_gmapping" name="mapper">
+		<param name="maxUrange" value="4.0" type="double" />
+		<param name="xmax" value="20" type="double" />
+		<param name="ymax" value="20" type="double" />
+		<param name="xmin" value="-20" type="double" />
+		<param name="ymin" value="-20" type="double" />
+
+    <remap from="/scan" to="/scan_second"/>
+    <param name="odom_frame" value="world"/>
+    <param name="base_frame" value="base_link_second"/>
+	</node>
 
 
 
