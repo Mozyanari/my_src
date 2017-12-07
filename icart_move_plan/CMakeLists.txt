@@ -138,6 +138,8 @@ add_executable(icart_move src/icart_move.cpp)
 add_executable(path_planning src/path_planning.cpp)
 add_executable(path_planning_speed_control src/path_planning_speed_control.cpp)
 add_executable(single_path_plan src/single_path_plan.cpp)
+add_executable(data_create src/data_create.cpp)
+
 
 
 ## Rename C++ executable without prefix
@@ -155,6 +157,7 @@ target_link_libraries(icart_move ${catkin_LIBRARIES})
 target_link_libraries(path_planning ${catkin_LIBRARIES})
 target_link_libraries(path_planning_speed_control ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan ${catkin_LIBRARIES})
+target_link_libraries(data_create ${catkin_LIBRARIES})
 
 
 #############
