@@ -1,0 +1,62 @@
+<launch>
+  <!--laser_to_pointcloud-->
+  <node ns="first" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_first" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/scan_first"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_first"/>
+
+    <param name="laser_base" value="base_link_laser_first"/>
+  </node>
+
+
+  <!--pointcloud_trans_to_control-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_first"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+
+    <param name="cloud_trans_mother" type="str" value="base_link_laser_first"/>
+    <param name="cloud_trans_chile" type="str" value="control_point"/>
+  </node>
+
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_first"/>
+  </node>
+
+  <!--laser_to_pointcloud-->
+  <node ns="second" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_second" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/scan_second"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_second"/>
+
+    <param name="laser_base" value="base_link_laser_second"/>
+  </node>
+
+  <!--pointcloud_trans_to_control-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_second"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+
+    <param name="cloud_trans_mother" type="str" value="base_link_laser_second"/>
+    <param name="cloud_trans_chile" type="str" value="control_point"/>
+
+  </node>
+
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_second"/>
+  </node>
+  
+</launch>

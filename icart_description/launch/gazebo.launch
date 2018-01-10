@@ -17,9 +17,37 @@
 
   <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
 
-  <include file="$(find icart_description)/launch/control.launch"/>
+<!--
+  <group ns = "robot1">
+    <param name="tf_prefix" value="robot1_tf" />
+    <include file="$(find icart_description)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x 1 -y 1 -z 0" />
+      <arg name="robot_name"  value="Robot1" />
+    </include>
+  </group>
 
+  <group ns = "robot2">
+    <param name="tf_prefix" value="robot2_tf" />
+    <include file="$(find icart_description)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x -1 -y -1 -z 0" />
+      <arg name="robot_name"  value="Robot2" />
+    </include>
+  </group>
+-->
+
+  <include file="$(find icart_description)/launch/control.launch"/>
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="-urdf -model icart -param robot_description"/>
+<!--
+  <include file="$(find icart_description)/launch/control_first.launch"/>
+  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="-urdf -model icart_first -param robot_description_first">
+  </node>
+-->
+<!--
+  <include file="$(find icart_description)/launch/control_second.launch"/>
+  <node name="urdf_spawner_second" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="-urdf -model icart_second -param robot_description_second"/>
+  -->
 
 </launch>

@@ -1,0 +1,106 @@
+<launch>
+  <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
+  <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
+
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <arg name="init_pose_first" value="-x 0.73 -y 0 -z -0.4" />
+  <arg name="init_pose_second" value="-x 0.16 -y 0 -z -0.4" />
+
+  <arg name="rvizconfig" default="$(find icart_description)/urdf_gazebo_multi.rviz"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="debug" value="$(arg debug)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+  <!--<param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>-->
+  <param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>
+  <param name="robot_description_second" command="$(find xacro)/xacro.py $(arg model_second)"/>
+
+<!--
+  <group ns = "robot1">
+    <param name="tf_prefix" value="robot1_tf" />
+    <include file="$(find icart_description)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x 1 -y 1 -z 0" />
+      <arg name="robot_name"  value="Robot1" />
+    </include>
+  </group>
+
+  <group ns = "robot2">
+    <param name="tf_prefix" value="robot2_tf" />
+    <include file="$(find icart_description)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x -1 -y -1 -z 0" />
+      <arg name="robot_name"  value="Robot2" />
+    </include>
+  </group>
+-->
+<!--
+  <include file="$(find icart_description)/launch/control.launch"/>
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="-urdf -model icart -param robot_description"/>
+  -->
+  <include file="$(find icart_description)/launch/control_first.launch"/>
+  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_first) -urdf -model icart_first -param robot_description_first">
+  </node>
+
+  <include file="$(find icart_description)/launch/control_second.launch"/>
+  <node name="urdf_spawner_second" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_second) -urdf -model icart_second -param robot_description_second">
+  </node>
+
+  <!--to_odom_first-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" respawn="true"/>
+
+  <!--to_odom_second-->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_second" args="0.16 0 0 0 0 0 world odom_second 100" respawn="true"/>
+
+  <!--first-->
+  <!--offset位置の出力-->
+  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_first base_link_first_offset 10" respawn="true"/>
+
+  <!--second-->
+  <!--offset位置の出力-->
+  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_second base_link_second_offset 10" respawn="true"/>
+
+  <!--control_pointの出力-->
+  <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast" respawn="true"/>
+
+  <!--rvizの表示-->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+his number will represent the desired physics update frequency. In this case, Gazebo will run STEP_TIME*UPDATE_RATE times reality.
+  <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
+  <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
+
+
+  <!--move_node-->
+  <!--first-->
+  <node ns = "first" pkg="icart_move_plan" type="icart_move" name="icart_move_first" respawn="true">
+    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+  </node>
+
+  <!--second-->
+  <node ns = "second" pkg="icart_move_plan" type="icart_move" name="icart_move_second" respawn="true">
+    <remap from="/ypspur_ros_first/odom" to="/icart_second/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
+    <remap from="/target_point_first" to="/target_point_second"/>
+    <remap from="/frag_data_first" to="/frag_data_second"/>
+  </node>
+
+  <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
+    <remap from="/ypspur_ros_first/odom" to="/icart_first/diss_drive_controller/odom"/>
+    <remap from="/ypspur_ros_first/odom" to="/icart_second/diss_drive_controller/odom"/>
+  </node>
+
+
+
+</launch>

@@ -1,0 +1,19 @@
+<launch>
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find icart_description)/config/controller_first.yaml" command="load"/>
+
+  <!-- load the controllers -->
+  <node name="controller_spawner_first" pkg="controller_manager"
+  type="spawner" ns="icart_first" output="screen"
+  args="joint_state_controller
+     diff_drive_controller">
+   </node>
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher_first" pkg="robot_state_publisher"
+     type="robot_state_publisher" respawn="false" output="screen" ns="/icart_first">
+     <remap from="robot_description" to="robot_description_first" />
+  </node>
+
+</launch>

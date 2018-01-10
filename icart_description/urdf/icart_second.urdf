@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<robot name="icart">
+<robot name="icart_second">
   <!--visual&collision define-->
   <!--icart_body-->
-  <link name="base_link">
+  <link name="base_link_second">
     <visual>
       <geometry>
         <mesh filename="package://icart_description/mesh/DAE/i-Cart_body.dae"/>
@@ -23,7 +23,7 @@
   </link>
 
   <!--icart_caster-->
-  <link name="caster_link">
+  <link name="caster_link_second">
     <visual>
       <geometry>
         <mesh filename="package://icart_description/mesh/DAE/i-Cart_caster.dae"/>
@@ -45,7 +45,7 @@
   </link>
 
   <!--icart_right_wheel-->
-  <link name="right_wheel_link">
+  <link name="right_wheel_link_second">
     <visual>
       <geometry>
         <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_right_wheel.dae"/>-->
@@ -70,7 +70,7 @@
   </link>
 
   <!--icart_left_wheel-->
-  <link name="left_wheel_link">
+  <link name="left_wheel_link_second">
     <visual>
       <geometry>
         <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_left_wheel.dae"/>-->
@@ -95,7 +95,7 @@
   </link>
 
   <!-- Hokuyo Laser -->
-  <link name="hokuyo_link">
+  <link name="hokuyo_link_second">
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -120,49 +120,49 @@
 
   <!--joint define-->
   <!--base_link to caster-->
-  <joint name="caster_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="caster_link"/>
+  <joint name="caster_joint_second" type="fixed">
+    <parent link="base_link_second"/>
+    <child link="caster_link_second"/>
     <origin xyz="-0.096 0 -0.019" rpy="0 0 0"/>
   </joint>
 
   <!--base_link to left_wheel-->
-  <joint name="left_wheel_joint" type="continuous">
-    <parent link="base_link"/>
-    <child link="left_wheel_link"/>
+  <joint name="left_wheel_joint_second" type="continuous">
+    <parent link="base_link_second"/>
+    <child link="left_wheel_link_second"/>
     <origin xyz="0.105 0.178 -0.022" rpy="-1.5707 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <!--base_link to right_wheel-->
-  <joint name="right_wheel_joint" type="continuous">
-    <parent link="base_link"/>
-    <child link="right_wheel_link"/>
+  <joint name="right_wheel_joint_second" type="continuous">
+    <parent link="base_link_second"/>
+    <child link="right_wheel_link_second"/>
     <origin xyz="0.105 -0.178 -0.022" rpy="-1.5707 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <!--base_link to hokuyo-->
-  <joint name="hokuyo_joint" type="fixed">
+  <joint name="hokuyo_joint_second" type="fixed">
     <axis xyz="0 1 0" />
     <origin xyz="0.105 0 0.035" rpy="0 0 0"/>
-    <parent link="base_link"/>
-    <child link="hokuyo_link"/>
+    <parent link="base_link_second"/>
+    <child link="hokuyo_link_second"/>
   </joint>
 
   <!--define base_foot-->
-  <link name="base_footprint"/>
-    <joint name="base_link_joint" type="fixed">
-    <parent link="base_footprint"/>
-    <child link="base_link"/>
-    <origin xyz="-0.10 0 0.050"/>
+  <link name="base_footprint_second"/>
+    <joint name="base_link_joint_second" type="fixed">
+    <parent link="base_footprint_second"/>
+    <child link="base_link_second"/>
+    <origin xyz="-0.105 0 0.545"/>
   </joint>
 
   <!-- ===============  Transmission =============== -->
 
   <transmission name="left_wheel_trans">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="left_wheel_joint">
+      <joint name="left_wheel_joint_second">
   <hardwareInterface>VelocityJointInterface</hardwareInterface>
       </joint>
    <actuator name="left_wheel_motor">
@@ -173,7 +173,7 @@
 
   <transmission name="right_wheel_trans">
        <type>transmission_interface/SimpleTransmission</type>
-       <joint name="right_wheel_joint">
+       <joint name="right_wheel_joint_second">
    <hardwareInterface>VelocityJointInterface</hardwareInterface>
        </joint>
     <actuator name="right_wheel_motor">
@@ -187,37 +187,38 @@
  <!-- =============== Gazebo =============== -->
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>icart</robotNamespace>
+      <robotNamespace>icart_second</robotNamespace>
+      <robotParam>robot_description_second</robotParam>
     </plugin>
   </gazebo>
 
- <gazebo reference="base_link">
+ <gazebo reference="base_link_second">
    <selfCollide>true</selfCollide>
     <mu1 value="0.05" />
     <mu2 value="0.05" />
   </gazebo>
 
- <gazebo reference="left_wheel_link">
+ <gazebo reference="left_wheel_link_second">
    <selfCollide>true</selfCollide>
     <mu1 value="1.0" />
     <mu2 value="1.0" />
   </gazebo>
 
- <gazebo reference="right_wheel_link">
+ <gazebo reference="right_wheel_link_second">
    <selfCollide>true</selfCollide>
     <mu1 value="1.0" />
     <mu2 value="1.0" />
   </gazebo>
 
- <gazebo reference="caster_link">
+ <gazebo reference="caster_link_second">
    <selfCollide>true</selfCollide>
      <!-- This caster is no frictional resistance. -->
-    <mu1 value="0.0" />
-    <mu2 value="0.0" />
+    <mu1 value="0.01" />
+    <mu2 value="0.01" />
   </gazebo>
 
   <!-- hokuyo -->
-  <gazebo reference="hokuyo_link">
+  <gazebo reference="hokuyo_link_second">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>true</visualize>
@@ -247,8 +248,8 @@
         </noise>
       </ray>
       <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-        <topicName>/icart/laser/scan</topicName>
-        <frameName>hokuyo_link</frameName>
+        <topicName>/icart_second/laser/scan</topicName>
+        <frameName>hokuyo_link_second</frameName>
       </plugin>
     </sensor>
   </gazebo>
