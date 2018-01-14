@@ -1,0 +1,12 @@
+<launch>
+
+  <!--icart-->
+  <node pkg="icart_move_plan" type="icart_move_second" name="icart_move_second" respawn="true">
+    <remap from="/ypspur_ros_second/odom" to="/icart/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_second/cmd_vel" to="/icart/diff_drive_controller/cmd_vel"/>
+  </node>
+  <!--move_node-->
+  <node pkg="icart_move_plan" type="single_path_plan" name="path_planning">
+    <remap from="/ypspur_ros_second/odom" to="/icart/diff_drive_controller/odom"/>
+  </node>
+</launch>

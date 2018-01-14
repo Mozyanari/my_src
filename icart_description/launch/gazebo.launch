@@ -7,6 +7,8 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
+  <arg name="rvizconfig" default="$(find icart_description)/urdf_gazebo.rviz"/>
+
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <arg name="debug" value="$(arg debug)" />
       <arg name="gui" value="$(arg gui)" />
@@ -38,16 +40,13 @@
   <include file="$(find icart_description)/launch/control.launch"/>
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="-urdf -model icart -param robot_description"/>
-<!--
-  <include file="$(find icart_description)/launch/control_first.launch"/>
-  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model icart_first -param robot_description_first">
-  </node>
--->
-<!--
-  <include file="$(find icart_description)/launch/control_second.launch"/>
-  <node name="urdf_spawner_second" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model icart_second -param robot_description_second"/>
-  -->
 
+    <!--to_odom-->
+    <node pkg="tf" type="static_transform_publisher" name="world_to_icart" args="0.16 0 0 0 0 0 world odom 100" respawn="true"/>
+
+    <!--offset位置の出力-->
+    <node pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint base_link_offset 10" respawn="true"/>
+
+    <!--rvizの表示-->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
 </launch>

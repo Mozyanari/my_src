@@ -45,7 +45,7 @@ class icp_transform{
 };
 //コンストラクタ初期化
 icp_transform::icp_transform(){
-  pub_pcl_first = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("/pcl_data",10);
+  //pub_pcl_first = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("/pcl_data",10);
 
   sub_cloud2_first=nh.subscribe<sensor_msgs::PointCloud2> ("/cloud2_control_point_first", 100, &icp_transform::cb_catch_cloud2_first, this);
   sub_cloud2_second=nh.subscribe<sensor_msgs::PointCloud2> ("/cloud2_control_point_second", 100, &icp_transform::cb_catch_cloud2_second, this);
@@ -100,6 +100,9 @@ void icp_transform::transform(const ros::TimerEvent&){
   Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
   transformation_matrix = icp.getFinalTransformation ().cast<double>();
   print4x4Matrix (transformation_matrix);
+
+  //変換マトリクスをpublishする
+
 }
 
 

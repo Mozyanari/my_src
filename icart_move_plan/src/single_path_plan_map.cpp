@@ -5,6 +5,8 @@
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 
 #include <visualization_msgs/Marker.h>
 #include <string>
@@ -13,9 +15,11 @@
 
 
 
-class single_path_plan{
+class single_path_plan_map{
 public:
-  single_path_plan();
+  single_path_plan_map();
+  //Listener定義
+  tf::TransformListener listener;
 private:
 /*
 関数定義
@@ -61,13 +65,13 @@ private:
 /*
 現在の機体のデータ関係
 */
-  /*single_path_plan::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg)*/
+  /*single_path_plan_map::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg)*/
   nav_msgs::Odometry odom_second;
   //現在の機体の世界座標におけるオフセット位置
   double world_offset_position_x_second;
   double world_offset_position_y_second;
 
-  /*single_path_plan::single_path_plan()*/
+  /*single_path_plan_map::single_path_plan_map()*/
   //機体の最高加速度[m/s^2]
   double acc_max;
   //最高速度[m/s]
@@ -108,16 +112,15 @@ private:
 */
   //Marker_data
   visualization_msgs::Marker marker_control;
-  visualization_msgs::Marker marker_first;
   visualization_msgs::Marker marker_second;
 
 };
 
-single_path_plan::single_path_plan(){
+single_path_plan_map::single_path_plan_map(){
   //購読するトピックの定義
-  sub_target_point = nh.subscribe("/target_point", 5, &single_path_plan::calc_machine_position,this);
-  sub_odom_second = nh.subscribe("/ypspur_ros_second/odom", 5, &single_path_plan::cb_odom_second,this);
-  sub_arrive_position_second=nh.subscribe("/frag_data_second", 5, &single_path_plan::Arrive_position_second,this);
+  sub_target_point = nh.subscribe("/target_point", 5, &single_path_plan_map::calc_machine_position,this);
+  sub_odom_second = nh.subscribe("/ypspur_ros_second/odom", 5, &single_path_plan_map::cb_odom_second,this);
+  sub_arrive_position_second=nh.subscribe("/frag_data_second", 5, &single_path_plan_map::Arrive_position_second,this);
 
   //配布するトピックの定義
   pub_target_point_second = nh.advertise<nav_msgs::Odometry>("target_point_second", 1);
@@ -158,12 +161,12 @@ single_path_plan::single_path_plan(){
 //関数定義-----------------------------------------------------------------------
 //cb_odom_second関数定義
 //機体のオドメトリデータの取得
-void single_path_plan::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
+void single_path_plan_map::cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg){
   //second機体の状態受信
   odom_second = *msg;
 }
 //機体の世界座標系における位置の更新
-void single_path_plan::update_odom_second(void){
+void single_path_plan_map::update_odom_second(void){
   //second機体に関する計算----------------------------------------------------------
   //second機体の位置を代入
   double position_x_second = odom_second.pose.pose.position.x;
@@ -178,7 +181,7 @@ void single_path_plan::update_odom_second(void){
 
 
 //制御点の目標位置が更新された時にそれぞれの機体のサブゴールを作成
-void single_path_plan::calc_machine_position(const nav_msgs::Odometry::ConstPtr &position){
+void single_path_plan_map::calc_machine_position(const nav_msgs::Odometry::ConstPtr &position){
   //目標位置を取得
   nav_msgs::Odometry target_position = *position;
 
@@ -237,16 +240,43 @@ void single_path_plan::calc_machine_position(const nav_msgs::Odometry::ConstPtr 
 
 }
 //目標地点を入力
-void single_path_plan::send_target_point(void){
-  //second機体の次の目標位置を入力
+void single_path_plan_map::send_target_point(void){
+  //second機体の次の目標位置を入力(map)
+  geometry_msgs::PointStamped map_point;
+  geometry_msgs::PointStamped world_point;
+
+  map_point.header.frame_id = "map";
+  world_point.header.frame_id = "world";
+
+  std::string map = "map";
+  std::string world = "world";
+
+
   if((-2<second_number) && (second_number<(split_number-1))){
-    sub_goal_second.pose.pose.position.x=sub_goal_second_x[second_number+1];
-    sub_goal_second.pose.pose.position.y=sub_goal_second_y[second_number+1];
+    map_point.point.x=sub_goal_second_x[second_number+1];
+    map_point.point.y=sub_goal_second_y[second_number+1];
+    //sub_goal_second.pose.pose.position.x = sub_goal_second_x[second_number+1];
+    //sub_goal_second.pose.pose.position.y = sub_goal_second_y[second_number+1];
     sub_goal_second.pose.pose.position.z=(second_number+1);
   }
+  //world上の値へ変換
+  try{
+    //wait_until_trans
+    listener.waitForTransform(map,world,ros::Time::now(),ros::Duration(5.0));
+    //trans_to_wolrd_point
+    listener.transformPoint(map,ros::Time(0),map_point,world,world_point);
+  }catch (tf::TransformException &ex) {
+    ROS_ERROR("%s",ex.what());
+    ros::Duration(1.0).sleep();
+  }
+
+  //返還後の位置を送信
+  sub_goal_second.pose.pose.position.x = world_point.point.x;
+  sub_goal_second.pose.pose.position.y = world_point.point.y;
+
 }
 //目標位置へ到達するときの機体の速度を計算
-void single_path_plan::send_machine_speed(void){
+void single_path_plan_map::send_machine_speed(void){
   //変数定義
   double second_judge = 0;
   double speed_second = 0;
@@ -257,8 +287,8 @@ void single_path_plan::send_machine_speed(void){
 
   //それぞれの機体の位置からの目標地点までの距離を計算
   //サブゴール
-  double a=sub_goal_second_x[second_number+1]-world_offset_position_x_second;
-  double b=sub_goal_second_y[second_number+1]-world_offset_position_y_second;
+  double a=sub_goal_second.pose.pose.position.x-world_offset_position_x_second;
+  double b=sub_goal_second.pose.pose.position.y-world_offset_position_y_second;
 
   double target_distance_second = sqrt((pow(a,2)) + (pow(b,2)));
 
@@ -296,7 +326,7 @@ void single_path_plan::send_machine_speed(void){
 }
 
 //secondがサブゴールに到達したら実行する
-void single_path_plan::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &position){
+void single_path_plan_map::Arrive_position_second(const nav_msgs::Odometry::ConstPtr &position){
   //到達位置を取得
   nav_msgs::Odometry second_position= *position;
 
@@ -333,12 +363,12 @@ void single_path_plan::Arrive_position_second(const nav_msgs::Odometry::ConstPtr
 
 
 
-void single_path_plan::send_target_marker(void){
+void single_path_plan_map::send_target_marker(void){
   //secondの目標位置をマークする
   for(int i=0;i<split_number;i++){
     std::ostringstream ss;
     ss << i;
-    marker_control.header.frame_id = "/world";
+    marker_control.header.frame_id = "/map";
     marker_control.header.stamp = ros::Time::now();
     marker_control.ns = ("second_marker"+ss.str());
     marker_control.id = 0;
@@ -374,8 +404,8 @@ void single_path_plan::send_target_marker(void){
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "single_path_plan");
-	single_path_plan single_path_plan;
+	ros::init(argc, argv, "single_path_plan_map");
+	single_path_plan_map single_path_plan_map;
 	ros::spin();
 	return 0;
 }

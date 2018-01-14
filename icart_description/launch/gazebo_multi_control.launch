@@ -8,8 +8,8 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
-  <arg name="init_pose_first" value="-x 0.73 -y 0 -z -0.4" />
-  <arg name="init_pose_second" value="-x 0.16 -y 0 -z -0.4" />
+  <arg name="init_pose_first" value="-x 0.73 -y 0 -z 0.0001" />
+  <arg name="init_pose_second" value="-x 0.16 -y 0 -z 0.0001" />
 
   <arg name="rvizconfig" default="$(find icart_description)/urdf_gazebo_multi.rviz"/>
 
@@ -66,41 +66,38 @@
   <!--first-->
   <!--offset位置の出力-->
   <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_first base_link_first_offset 10" respawn="true"/>
+  <!--move-->
+  <!--
+  <node ns = "first" pkg="icart_move_plan" type="icart_move_first" name="icart_move_first" respawn="true">
+    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+  </node>
+-->
 
   <!--second-->
   <!--offset位置の出力-->
   <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_second base_link_second_offset 10" respawn="true"/>
+  <!--move-->
+  <!--
+  <node ns = "second" pkg="icart_move_plan" type="icart_move_second" name="icart_move_second" respawn="true">
+    <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_second/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
+  </node>
+-->
 
   <!--control_pointの出力-->
   <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast" respawn="true"/>
 
   <!--rvizの表示-->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
-his number will represent the desired physics update frequency. In this case, Gazebo will run STEP_TIME*UPDATE_RATE times reality.
   <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
   <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
 
-
   <!--move_node-->
-  <!--first-->
-  <node ns = "first" pkg="icart_move_plan" type="icart_move" name="icart_move_first" respawn="true">
-    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
-    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
-  </node>
-
-  <!--second-->
-  <node ns = "second" pkg="icart_move_plan" type="icart_move" name="icart_move_second" respawn="true">
-    <remap from="/ypspur_ros_first/odom" to="/icart_second/diff_drive_controller/odom"/>
-    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
-    <remap from="/target_point_first" to="/target_point_second"/>
-    <remap from="/frag_data_first" to="/frag_data_second"/>
-  </node>
-
+  <!--
   <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
-    <remap from="/ypspur_ros_first/odom" to="/icart_first/diss_drive_controller/odom"/>
-    <remap from="/ypspur_ros_first/odom" to="/icart_second/diss_drive_controller/odom"/>
+    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
   </node>
-
-
-
+-->
 </launch>

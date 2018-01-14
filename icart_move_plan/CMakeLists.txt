@@ -135,9 +135,12 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(icart_move src/icart_move.cpp)
+add_executable(icart_move_first src/icart_move_first.cpp)
+add_executable(icart_move_second src/icart_move_second.cpp)
 add_executable(path_planning src/path_planning.cpp)
 add_executable(path_planning_speed_control src/path_planning_speed_control.cpp)
 add_executable(single_path_plan src/single_path_plan.cpp)
+add_executable(single_path_plan_map src/single_path_plan_map.cpp)
 add_executable(data_create src/data_create.cpp)
 
 
@@ -154,9 +157,12 @@ add_executable(data_create src/data_create.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(icart_move ${catkin_LIBRARIES})
+target_link_libraries(icart_move_first ${catkin_LIBRARIES})
+target_link_libraries(icart_move_second ${catkin_LIBRARIES})
 target_link_libraries(path_planning ${catkin_LIBRARIES})
 target_link_libraries(path_planning_speed_control ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan ${catkin_LIBRARIES})
+target_link_libraries(single_path_plan_map ${catkin_LIBRARIES})
 target_link_libraries(data_create ${catkin_LIBRARIES})
 
 
