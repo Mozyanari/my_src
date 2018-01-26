@@ -14,7 +14,7 @@ icart_second:
     # Wheel separation and diameter. These are both optional.
     # diff_drive_controller will attempt to read either one or both from the
     # URDF if not specified as a parameter
-    wheel_separation : 0.178
+    wheel_separation : 0.356
     wheel_radius : 0.0325
 
     # Wheel separation and radius multipliers
@@ -35,16 +35,16 @@ icart_second:
     linear:
       x:
         has_velocity_limits    : true
-        max_velocity           : 0.55  # m/s
-        min_velocity           : -0.55 # m/s
+        max_velocity           : 0.9  # m/s
+        min_velocity           : -0.9 # m/s
         has_acceleration_limits: true
-        max_acceleration       : 0.25  # m/s^2
-        min_acceleration       : -0.25 # m/s^2
+        max_acceleration       : 0.8  # m/s^2
+        min_acceleration       : -0.8 # m/s^2
     angular:
       z:
         has_velocity_limits    : true
-        max_velocity           : 10.3  # rad/s
-        min_velocity           : -10.3
+        max_velocity           : 3.14  # rad/s
+        min_velocity           : -3.14
         has_acceleration_limits: true
-        max_acceleration       : 10.3  # rad/s^2
-        min_acceleration       : -10.3
+        max_acceleration       : 1.57  # rad/s^2
+        min_acceleration       : -1.57

@@ -12,43 +12,43 @@
   <arg name="init_pose" value="-x 0.16 -y 0 -z 0.0001" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
       <arg name="debug" value="$(arg debug)" />
       <arg name="gui" value="$(arg gui)" />
       <arg name="paused" value="$(arg paused)"/>
       <arg name="use_sim_time" value="$(arg use_sim_time)"/>
       <arg name="headless" value="$(arg headless)"/>
-    </include>
+  </include>
 
   <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
-
-<!--
-  <group ns = "robot1">
-    <param name="tf_prefix" value="robot1_tf" />
-    <include file="$(find icart_description)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x 1 -y 1 -z 0" />
-      <arg name="robot_name"  value="Robot1" />
-    </include>
-  </group>
-
-  <group ns = "robot2">
-    <param name="tf_prefix" value="robot2_tf" />
-    <include file="$(find icart_description)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x -1 -y -1 -z 0" />
-      <arg name="robot_name"  value="Robot2" />
-    </include>
-  </group>
--->
 
   <include file="$(find icart_description)/launch/control.launch"/>
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="$(arg init_pose) -urdf -model icart -param robot_description"/>
 
     <!--to_odom-->
-    <node pkg="tf" type="static_transform_publisher" name="world_to_icart" args="0.16 0 0 0 0 0 world odom 100" respawn="true"/>
-
+    <node pkg="tf" type="static_transform_publisher" name="world_to_icart" args="0.16 0 0 0 0 0 world odom 10" respawn="true"/>
     <!--offset位置の出力-->
     <node pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint base_link_offset 10" respawn="true"/>
 
     <!--rvizの表示-->
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+    <!--gmapping-->
+    <node pkg="gmapping" type="slam_gmapping" name="mapper">
+  		<param name="maxUrange" value="20.0" type="double" />
+  		<param name="xmax" value="20" type="double" />
+  		<param name="ymax" value="20" type="double" />
+  		<param name="xmin" value="-20" type="double" />
+  		<param name="ymin" value="-20" type="double" />
+      <param name="base_frame" value="base_footprint" type="string" />
+      <param name="odom_frame" value="world" type="string" />
+
+      <remap from="/scan" to="/icart/laser/scan" />
+  	</node>
+
+    <!--controler-->
+  	<node pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop">
+  		<remap from="/mouse_vel" to="/icart/diff_drive_controller/cmd_vel" />
+  	</node>
 </launch>

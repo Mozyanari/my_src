@@ -1,4 +1,5 @@
 <launch>
+  <!--icartを2台出現させる-->
   <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
   <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
 
@@ -26,28 +27,6 @@
   <param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>
   <param name="robot_description_second" command="$(find xacro)/xacro.py $(arg model_second)"/>
 
-<!--
-  <group ns = "robot1">
-    <param name="tf_prefix" value="robot1_tf" />
-    <include file="$(find icart_description)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x 1 -y 1 -z 0" />
-      <arg name="robot_name"  value="Robot1" />
-    </include>
-  </group>
-
-  <group ns = "robot2">
-    <param name="tf_prefix" value="robot2_tf" />
-    <include file="$(find icart_description)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x -1 -y -1 -z 0" />
-      <arg name="robot_name"  value="Robot2" />
-    </include>
-  </group>
--->
-<!--
-  <include file="$(find icart_description)/launch/control.launch"/>
-  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model icart -param robot_description"/>
-  -->
   <include file="$(find icart_description)/launch/control_first.launch"/>
   <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="$(arg init_pose_first) -urdf -model icart_first -param robot_description_first">
@@ -58,6 +37,8 @@
     args="$(arg init_pose_second) -urdf -model icart_second -param robot_description_second">
   </node>
 
+  <!--機体のtf関係を永続的に出力-->
+  <!--from_world-->
   <!--to_odom_first-->
   <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" respawn="true"/>
 
@@ -67,24 +48,11 @@
   <!--first-->
   <!--offset位置の出力-->
   <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_first base_link_first_offset 10" respawn="true"/>
-  <!--move-->
-  <!--
-  <node ns = "first" pkg="icart_move_plan" type="icart_move_first" name="icart_move_first" respawn="true">
-    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
-    <remap from="/ypspur_ros_first/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
-  </node>
--->
 
   <!--second-->
   <!--offset位置の出力-->
   <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_second base_link_second_offset 10" respawn="true"/>
-  <!--move-->
-  <!--
-  <node ns = "second" pkg="icart_move_plan" type="icart_move_second" name="icart_move_second" respawn="true">
-    <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
-    <remap from="/ypspur_ros_second/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
-  </node>
--->
+
 
   <!--control_pointの出力-->
   <node pkg="i_cart_tf" type="control_tf_broadcast" name="control_tf_broadcast" respawn="true"/>
@@ -94,11 +62,11 @@
   <!--tf_distance_for_calc_distnace_of_between_first_and_second-->
   <node pkg="i_cart_tf" type="tf_distance" name="first_second_offset_distance"/>
 
-  <!--move_node-->
-  <!--
-  <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
-    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
-    <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
-  </node>
--->
+  <!--laser関係はincludeする-->
+  <!--長くなってきたため-->
+  <!--laser-->
+  <include file="$(find icart_description)/launch/laser_translate.launch"/>
+
+
+
 </launch>

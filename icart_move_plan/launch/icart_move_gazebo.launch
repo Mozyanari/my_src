@@ -15,4 +15,11 @@
     <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
     <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
   </node>
+
+  <!--data_catch-->
+  <node pkg="icart_move_plan" type="data_create" name="data_create">
+    <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
+    <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
+  </node>
+
 </launch>

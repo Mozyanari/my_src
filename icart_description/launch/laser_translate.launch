@@ -1,0 +1,12 @@
+<launch>
+  <!--laser_to_pointcloud-->
+  <node ns="first" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_first" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/scan_first"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_first"/>
+
+    <param name="laser_base" value="base_link_laser_first"/>
+  </node>
+
+</launch>
