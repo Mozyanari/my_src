@@ -4,12 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
-        - /TF1
         - /TF1/Frames1
-        - /LaserScan1
-        - /LaserScan2
       Splitter Ratio: 0.726744175
     Tree Height: 463
   - Class: rviz/Selection
@@ -83,6 +78,8 @@ Visualization Manager:
           Value: true
         left_wheel_link_second:
           Value: true
+        map:
+          Value: true
         odom_first:
           Value: false
         odom_second:
@@ -99,35 +96,36 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        world:
-          control_point:
-            {}
-          odom_first:
-            base_footprint_first:
-              base_link_first:
-                caster_link_first:
+        map:
+          world:
+            control_point:
+              {}
+            odom_first:
+              base_footprint_first:
+                base_link_first:
+                  caster_link_first:
+                    {}
+                  hokuyo_link_first:
+                    {}
+                  left_wheel_link_first:
+                    {}
+                  right_wheel_link_first:
+                    {}
+                base_link_first_offset:
                   {}
-                hokuyo_link_first:
+            odom_second:
+              base_footprint_second:
+                base_link_second:
+                  caster_link_second:
+                    {}
+                  hokuyo_link_second:
+                    {}
+                  left_wheel_link_second:
+                    {}
+                  right_wheel_link_second:
+                    {}
+                base_link_second_offset:
                   {}
-                left_wheel_link_first:
-                  {}
-                right_wheel_link_first:
-                  {}
-              base_link_first_offset:
-                {}
-          odom_second:
-            base_footprint_second:
-              base_link_second:
-                caster_link_second:
-                  {}
-                hokuyo_link_second:
-                  {}
-                left_wheel_link_second:
-                  {}
-                right_wheel_link_second:
-                  {}
-              base_link_second_offset:
-                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -145,20 +143,20 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 0; 0
-      Max Intensity: -999999
+      Max Intensity: 999999
       Min Color: 255; 0; 0
-      Min Intensity: 999999
+      Min Intensity: 0
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.00999999978
+      Size (m): 0.100000001
       Style: Flat Squares
       Topic: /icart_first/laser/scan
       Unreliable: false
       Use Fixed Frame: true
-      Use rainbow: true
+      Use rainbow: false
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -175,87 +173,68 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 85; 85; 255
-      Max Intensity: -999999
+      Max Intensity: 999999
       Min Color: 85; 85; 255
-      Min Intensity: 999999
+      Min Intensity: 2.0539093
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.00999999978
+      Size (m): 0.100000001
       Style: Flat Squares
       Topic: /icart_second/laser/scan
       Unreliable: false
       Use Fixed Frame: true
-      Use rainbow: true
+      Use rainbow: false
       Value: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: visualization_marker
       Name: Marker
       Namespaces:
-        control_marker0: true
-        control_marker1: true
-        control_marker10: true
-        control_marker11: true
-        control_marker12: true
-        control_marker13: true
-        control_marker14: true
-        control_marker15: true
-        control_marker16: true
-        control_marker17: true
-        control_marker18: true
-        control_marker19: true
-        control_marker2: true
-        control_marker3: true
-        control_marker4: true
-        control_marker5: true
-        control_marker6: true
-        control_marker7: true
-        control_marker8: true
-        control_marker9: true
-        first_marker0: true
-        first_marker1: true
-        first_marker10: true
-        first_marker11: true
-        first_marker12: true
-        first_marker13: true
-        first_marker14: true
-        first_marker15: true
-        first_marker16: true
-        first_marker17: true
-        first_marker18: true
-        first_marker19: true
-        first_marker2: true
-        first_marker3: true
-        first_marker4: true
-        first_marker5: true
-        first_marker6: true
-        first_marker7: true
-        first_marker8: true
-        first_marker9: true
-        second_marker0: true
-        second_marker1: true
-        second_marker10: true
-        second_marker11: true
-        second_marker12: true
-        second_marker13: true
-        second_marker14: true
-        second_marker15: true
-        second_marker16: true
-        second_marker17: true
-        second_marker18: true
-        second_marker19: true
-        second_marker2: true
-        second_marker3: true
-        second_marker4: true
-        second_marker5: true
-        second_marker6: true
-        second_marker7: true
-        second_marker8: true
-        second_marker9: true
+        {}
       Queue Size: 100
+      Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: false
+      Name: Map
+      Topic: /map
+      Unreliable: false
+      Use Timestamp: false
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 0; 170; 0
+      Max Intensity: 999999
+      Min Color: 0; 170; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.100000001
+      Style: Flat Squares
+      Topic: /cloud2_merge
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: false
       Value: true
   Enabled: true
   Global Options:
@@ -280,26 +259,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 2.7370553
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 0.618463814
-        Y: -0.670080781
-        Z: 0
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.17039895
+      Scale: 43.0065956
       Target Frame: <Fixed Frame>
-      Value: XYOrbit (rviz)
-      Yaw: -1.25277352
+      Value: TopDownOrtho (rviz)
+      X: 2
+      Y: 1
     Saved: ~
 Window Geometry:
   Displays:
@@ -317,5 +291,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1301
-  X: 1345
+  X: 65
   Y: 24

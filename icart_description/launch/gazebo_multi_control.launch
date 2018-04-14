@@ -8,7 +8,7 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
-  <arg name="init_pose_first" value="-x 0.73 -y 0 -z 0.0001" />
+  <arg name="init_pose_first" value="-x 1.16-y 0 -z 0.0001" />
   <arg name="init_pose_second" value="-x 0.16 -y 0 -z 0.0001" />
 
   <arg name="rvizconfig" default="$(find icart_description)/urdf_gazebo_multi.rviz"/>
@@ -59,7 +59,7 @@
   </node>
 
   <!--to_odom_first-->
-  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="0.73 0 0 0 0 0 world odom_first 100" respawn="true"/>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_first" args="1.16 0 0 0 0 0 world odom_first 100" respawn="true"/>
 
   <!--to_odom_second-->
   <node pkg="tf" type="static_transform_publisher" name="world_to_second" args="0.16 0 0 0 0 0 world odom_second 100" respawn="true"/>
@@ -101,4 +101,5 @@
     <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
   </node>
 -->
+
 </launch>

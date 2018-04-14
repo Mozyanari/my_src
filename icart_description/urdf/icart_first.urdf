@@ -40,7 +40,7 @@
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.500"/>
+      <mass value="5.500"/>
       <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.00025"  iyz="0" izz="0.00025"/>
      </inertial>
 
@@ -66,7 +66,7 @@
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="1.500"/>
+      <mass value="10.500"/>
       <inertia ixx="0.0013541667" ixy="0" ixz="0" iyy="0.0013541667" iyz="0" izz="0.0025"/>
    </inertial>
   </link>
@@ -91,19 +91,22 @@
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="1.500"/>
+      <mass value="10.500"/>
       <inertia ixx="0.0013541667" ixy="0" ixz="0" iyy="0.0013541667" iyz="0" izz="0.0025"/>
    </inertial>
   </link>
 
   <!-- Hokuyo Laser -->
   <link name="hokuyo_link_first">
+        <!-- laser catch itself. URG collision off-->
+    <!--
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <box size="0.1 0.1 0.1"/>
       </geometry>
     </collision>
+  -->
 
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -201,13 +204,13 @@
   </gazebo>
 
  <gazebo reference="left_wheel_link_first">
-   <selfCollide>false</selfCollide>
+   <selfCollide>true</selfCollide>
     <mu1 value="1.0" />
     <mu2 value="1.0" />
   </gazebo>
 
  <gazebo reference="right_wheel_link_first">
-   <selfCollide>false</selfCollide>
+   <selfCollide>true</selfCollide>
     <mu1 value="1.0" />
     <mu2 value="1.0" />
   </gazebo>
@@ -223,21 +226,21 @@
   <gazebo reference="hokuyo_link_first">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
-      <visualize>false</visualize>
+      <visualize>true</visualize>
       <update_rate>40</update_rate>
       <ray>
         <scan>
           <horizontal>
             <samples>720</samples>
             <resolution>1</resolution>
-            <min_angle>-1.570796</min_angle>
-            <max_angle>1.570796</max_angle>
+            <min_angle>-2.0944</min_angle>
+            <max_angle>2.0944</max_angle>
           </horizontal>
         </scan>
         <range>
-          <min>2.0</min>
-          <max>30.0</max>
-          <resolution>0.01</resolution>
+          <min>0.8</min>
+          <max>5.6</max>
+          <resolution>0.36</resolution>
         </range>
         <noise>
           <type>gaussian</type>

@@ -1,12 +1,100 @@
 <launch>
+  <!--first-->
   <!--laser_to_pointcloud-->
   <node ns="first" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_first" respawn="true">
     <!--sub-->
-    <remap from="/scan" to="/scan_first"/>
+    <remap from="/scan" to="/icart_first/laser/scan"/>
     <!--pub-->
     <remap from="/cloud" to="/cloud_first"/>
 
-    <param name="laser_base" value="base_link_laser_first"/>
+    <param name="laser_base" value="hokuyo_link_first"/>
+  </node>
+  <!--pointcloud_trans_to_hokuyo_link_second-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_first"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+
+    <param name="cloud_trans_mother" type="str" value="hokuyo_link_first"/>
+    <param name="cloud_trans_chile" type="str" value="hokuyo_link_second"/>
+  </node>
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="first" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_first"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_first"/>
+  </node>
+
+  <!--second-->
+  <!--laser_to_pointcloud-->
+  <node ns="second" pkg="laser_tf" type="laser_to_pointcloud" name="laser_to_pointcloud_second" respawn="true">
+    <!--sub-->
+    <remap from="/scan" to="/icart_second/laser/scan"/>
+    <!--pub-->
+    <remap from="/cloud" to="/cloud_second"/>
+
+    <param name="laser_base" value="hokuyo_link_second"/>
+  </node>
+  <!--pointcloud_trans_to_control-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_trans_to_control_point" type="pointcloud_trans_to_control">
+    <!--sub-->
+    <remap from="/cloud" to="/cloud_second"/>
+    <!--pub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+
+    <param name="cloud_trans_mother" type="str" value="hokuyo_link_second"/>
+    <param name="cloud_trans_chile" type="str" value="hokuyo_link_second"/>
+
+  </node>
+  <!--pointcloud_to_pointcloud2-->
+  <node ns="second" pkg="laser_tf" name="pointcloud_to_pointcloud2" type="pointcloud_to_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud_offset" to="/cloud_control_point_second"/>
+    <!--pub-->
+    <remap from="/cloud2_offset" to="/cloud2_control_point_second"/>
+  </node>
+
+  <!--icp_node-->
+  <node pkg="laser_tf" name="icp_transform" type="icp_transform" output="screen">
+  </node>
+
+  <!--merge_pointcloud2-->
+  <node pkg="laser_tf" type="merge_pointcloud2" name="merge_pointcloud2">
+    <!--sub-->
+    <remap from="/cloud2_first" to="/cloud2_control_point_first"/>
+    <remap from="/cloud2_second" to="/cloud2_control_point_second"/>
+    <!--pub-->
+    <remap from="/cloud2_merge" to="/cloud2_merge"/>
+  </node>
+
+  <!--pointcloud2_to_laserscan-->
+
+  <node pkg="pointcloud_to_laserscan" name="pointcloud_to_laserscan_node" type="pointcloud_to_laserscan_node" respawn="true">
+    <remap from="cloud_in" to="cloud2_merge"/>
+    <remap from="scan" to="scan_control_point"/>
+
+    <rosparam>
+      min_height: 0.0
+      max_height: 0.0
+
+      angle_min: -3.14
+      angle_max: 3.14
+      angle_increment: 0.005
+      scan_time: 0.1
+      range_min: 0.5
+      range_max: 20.0
+      use_inf: false
+
+      concurrency_level: 1
+    </rosparam>
+  </node>
+
+  <!--laser_filter_for_add_time_to_node-->
+  <node pkg="laser_tf" name="laser_filter" type="laser_filter" respawn="true" >
+    <remap from="scan_first" to="/icart_first/laser/scan"/>
+    <remap from="scan_second" to="/icart_second/laser/scan"/>
   </node>
 
 </launch>
