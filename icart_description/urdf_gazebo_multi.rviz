@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /TF1/Frames1
       Splitter Ratio: 0.726744175
     Tree Height: 463
@@ -52,44 +53,36 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_footprint_first:
-          Value: true
-        base_footprint_second:
-          Value: true
         base_link_first:
-          Value: false
+          Value: true
         base_link_first_offset:
-          Value: true
-        base_link_second:
           Value: false
-        base_link_second_offset:
+        base_link_second:
           Value: true
+        base_link_second_offset:
+          Value: false
         caster_link_first:
           Value: false
         caster_link_second:
           Value: false
-        control_point:
-          Value: true
         hokuyo_link_first:
           Value: false
         hokuyo_link_second:
           Value: false
         left_wheel_link_first:
-          Value: true
+          Value: false
         left_wheel_link_second:
-          Value: true
+          Value: false
         map:
           Value: true
         odom_first:
-          Value: false
+          Value: true
         odom_second:
-          Value: false
+          Value: true
         right_wheel_link_first:
-          Value: true
+          Value: false
         right_wheel_link_second:
-          Value: true
-        world:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -97,35 +90,30 @@ Visualization Manager:
       Show Names: false
       Tree:
         map:
-          world:
-            control_point:
-              {}
-            odom_first:
-              base_footprint_first:
-                base_link_first:
-                  caster_link_first:
-                    {}
-                  hokuyo_link_first:
-                    {}
-                  left_wheel_link_first:
-                    {}
-                  right_wheel_link_first:
-                    {}
-                base_link_first_offset:
-                  {}
-            odom_second:
-              base_footprint_second:
-                base_link_second:
-                  caster_link_second:
-                    {}
-                  hokuyo_link_second:
-                    {}
-                  left_wheel_link_second:
-                    {}
-                  right_wheel_link_second:
-                    {}
-                base_link_second_offset:
-                  {}
+          odom_first:
+            base_link_first:
+              base_link_first_offset:
+                {}
+              caster_link_first:
+                {}
+              hokuyo_link_first:
+                {}
+              left_wheel_link_first:
+                {}
+              right_wheel_link_first:
+                {}
+          odom_second:
+            base_link_second:
+              base_link_second_offset:
+                {}
+              caster_link_second:
+                {}
+              hokuyo_link_second:
+                {}
+              left_wheel_link_second:
+                {}
+              right_wheel_link_second:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -145,7 +133,7 @@ Visualization Manager:
       Max Color: 255; 0; 0
       Max Intensity: 999999
       Min Color: 255; 0; 0
-      Min Intensity: 0
+      Min Intensity: 999999
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -175,7 +163,7 @@ Visualization Manager:
       Max Color: 85; 85; 255
       Max Intensity: 999999
       Min Color: 85; 85; 255
-      Min Intensity: 2.0539093
+      Min Intensity: 0.0128512532
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -200,12 +188,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic: /map
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -236,10 +224,26 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: false
       Value: true
+    - Alpha: 1
+      Arrow Length: 0.300000012
+      Axes Length: 0.300000012
+      Axes Radius: 0.00999999978
+      Class: rviz/PoseArray
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.0700000003
+      Head Radius: 0.0299999993
+      Name: PoseArray
+      Shaft Length: 0.230000004
+      Shaft Radius: 0.00999999978
+      Shape: Arrow (Flat)
+      Topic: /particlecloud
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -272,8 +276,8 @@ Visualization Manager:
       Scale: 43.0065956
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 2
-      Y: 1
+      X: 0.395594835
+      Y: 0.162919044
     Saved: ~
 Window Geometry:
   Displays:
@@ -291,5 +295,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1301
-  X: 65
-  Y: 24
+  X: 1985
+  Y: 336

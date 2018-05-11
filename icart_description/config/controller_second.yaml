@@ -28,7 +28,7 @@ icart_second:
     odom_frame_id: odom_second #default: odom
 
     # Base frame_id
-    base_frame_id: base_footprint_second #default: base_link
+    base_frame_id: base_link_second #default: base_link
 
     # Velocity and acceleration limits
     # Whenever a min_* is unspecified, default to -max_*

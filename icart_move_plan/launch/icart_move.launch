@@ -33,6 +33,10 @@
   <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
   </node>
 
+  <!--date_create-->
+  <node pkg="icart_move_plan" type="data_create" name="data_create">
+  </node>
+
 
 
 
