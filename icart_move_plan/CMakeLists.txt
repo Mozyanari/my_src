@@ -142,6 +142,7 @@ add_executable(path_planning_speed_control src/path_planning_speed_control.cpp)
 add_executable(single_path_plan src/single_path_plan.cpp)
 add_executable(single_path_plan_map src/single_path_plan_map.cpp)
 add_executable(data_create src/data_create.cpp)
+add_executable(icart_move_tf src/icart_move_tf.cpp)
 
 
 
@@ -164,6 +165,7 @@ target_link_libraries(path_planning_speed_control ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan_map ${catkin_LIBRARIES})
 target_link_libraries(data_create ${catkin_LIBRARIES})
+target_link_libraries(icart_move_tf ${catkin_LIBRARIES})
 
 
 #############
