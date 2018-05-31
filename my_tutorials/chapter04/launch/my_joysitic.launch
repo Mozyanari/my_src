@@ -1,0 +1,25 @@
+<launch>
+
+    <!-- Turtlesim Node -->
+    <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
+
+    <!-- joy node -->
+    <node pkg="joy" type="joy_node" name="teleopJoy" output="screen">
+      <param name="dev" type="string" value="/dev/input/js1" />
+      <param name="deadzone"          value="0.12" />
+      <param name="autorepeat_rate"   value="1.0" />
+      <param name="coalesce_interval" value="0.0" />
+    </node>
+
+    <!-- define buttons & Axes for HORI Pad/PS3 Pad-->
+    <param name="axis_linear"   value="3"   type="int" />
+    <param name="axis_angular"  value="0"   type="int" />
+    <param name="scale_linear"  value="3.0" type="double" />
+    <param name="scale_angular" value="2.0" type="double" />
+
+    <node pkg="chapter04" type="my_joystick" name="my_joystick" 
+	launch-prefix="xterm -font r14 -bg darkblue -geometry 113x30+503+80 -e"
+	output="screen" required="true" 
+    />	
+
+</launch>

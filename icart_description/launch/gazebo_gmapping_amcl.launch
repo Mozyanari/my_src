@@ -70,11 +70,11 @@
 -->
   <!--first-->
   <!--offset位置の出力-->
-  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_first base_link_first_offset 10" respawn="true"/>
+  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_first base_footprint_first_offset 10" respawn="true"/>
 
   <!--second-->
   <!--offset位置の出力-->
-  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_link_second base_link_second_offset 10" respawn="true"/>
+  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.16 0 0 0 0 0 base_footprint_second base_footprint_second_offset 10" respawn="true"/>
 
 
   <!--control_pointの出力-->

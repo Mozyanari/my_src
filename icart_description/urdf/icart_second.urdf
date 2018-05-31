@@ -155,14 +155,12 @@
   </joint>
 
   <!--define base_foot-->
-  <!--
   <link name="base_footprint_second"/>
     <joint name="base_link_joint_second" type="fixed">
-    <parent link="base_footprint_second"/>
-    <child link="base_link_second"/>
-    <origin xyz="-0.105 0 0.0545"/>
+    <parent link="base_link_second"/>
+    <child link="base_footprint_second"/>
+    <origin xyz="0.105 0 0.0"/>
   </joint>
--->
 
   <!-- ===============  Transmission =============== -->
 

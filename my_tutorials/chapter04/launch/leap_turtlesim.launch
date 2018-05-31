@@ -1,0 +1,12 @@
+<launch>
+    <!-- Turtlesim Node -->
+    <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
+
+    <!-- leapmotion node -->
+    <node pkg="chapter04" type="leap_motion_publisher" name="leap_motion" />
+
+    <node pkg="chapter04" type="leap_turtle_teleop" name="leap_teleop" 
+	launch-prefix="xterm -font r14 -bg darkblue -geometry 113x30+503+80 -e"
+	required="true" 
+    />	
+</launch>

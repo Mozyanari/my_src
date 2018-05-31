@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>my_tutorials</name>
+  <version>0.0.0</version>
+  <description>The my_tutorials package</description>
+  <maintainer email="fei@kanto-gakuin.ac.jp">Fei Qian</maintainer>
+  <license>BSD</license>
+  <author>Fei Qian</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>chapter03</run_depend>
+  <run_depend>chapter04</run_depend>
+  <run_depend>chapter05</run_depend>
+  <run_depend>chapter06</run_depend>
+  <run_depend>chapter07</run_depend>
+  <run_depend>chapter08</run_depend>
+  <run_depend>chapter09</run_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <metapackage/> 
+  </export>
+</package>

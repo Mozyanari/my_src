@@ -156,14 +156,12 @@
   </joint>
 
   <!--define base_foot-->
-  <!--
     <link name="base_footprint_first"/>
     <joint name="base_link_joint_first" type="fixed">
-    <parent link="base_footprint_first"/>
-    <child link="base_link_first"/>
-    <origin xyz="-0.105 0 0.0545"/>
+    <parent link="base_link_first"/>
+    <child link="base_footprint_first"/>
+    <origin xyz="0.105 0 0.0"/>
   </joint>
--->
 
   <!-- ===============  Transmission =============== -->
 

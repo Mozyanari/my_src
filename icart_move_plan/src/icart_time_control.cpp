@@ -3,9 +3,9 @@
 #include <tf/transform_datatypes.h>
 
 
-class icart_move_tf{
+class icart_time_control{
 public:
-  icart_move_tf();
+  icart_time_control();
 private:
   //コールバック定義
   //ターゲットポジション取得
@@ -13,9 +13,6 @@ private:
 
   //機体のodomを取得
   void cb_odom(const nav_msgs::Odometry::ConstPtr &msg);
-
-  //tfからのestimate_odomを受信
-  void receive_estimate_odom(const nav_msgs::Odometry::ConstPtr &msg);
 
   //ターゲットポジションと現在のodomからPIDによる位置制御，またフラグ処理
   void calc_speed(void);
@@ -32,9 +29,10 @@ private:
   //使用するpub/sebの定義
   ros::Subscriber sub_odom;
   ros::Subscriber sub_flag_receive;
-  ros::Subscriber sub_estimate_odom;
   ros::Publisher pub_vel;
   ros::Publisher pub_flag_publish;
+
+
 
   //フラグデータ(ポジションのx,yに到達した場所，zにフラグデータを挿入)
   nav_msgs::Odometry flag;
@@ -43,12 +41,9 @@ private:
   geometry_msgs::Twist twist;
 
   //機体パラメータ
-  //機体のオドメトリデータ受信
+  //機体のデータ受信
   nav_msgs::Odometry odom;
-  //機体のオドメトリデータを保存
-  nav_msgs::Odometry old_odom;
-  //機体の推定オドメトリデータ受信
-  nav_msgs::Odometry estimate_odom;
+
 
   //タイヤの半径[mm]
   double r;
@@ -76,17 +71,8 @@ private:
   //連結距離
   double distance_multi;
 
-  //取得した推定ポジション
-  double estimate_position_x;
-  double estimate_position_y;
-  double estimate_position_rad;
-
-  //それぞれの機体のワールド座標における位置
-  double world_position_x;
-  double world_position_y;
-  double world_position_rad;
-
   //それぞれの機体のオフセットとワールド座標を考慮した位置
+  //firstのオフセット位置が(0.0)になるように設定
   double world_offset_position_x;
   double world_offset_position_y;
 
@@ -96,10 +82,9 @@ private:
   //目標位置
   double target_x;
   double target_y;
-
 };
 
-icart_move_tf::icart_move_tf(){
+icart_time_control::icart_time_control(){
   //変数初期化
   //タイヤの半径[m]32.5mm
   r = 0.0325;
@@ -119,42 +104,37 @@ icart_move_tf::icart_move_tf(){
   //odomのクオータニオンを初期化
   odom.pose.pose.orientation.w = 1.0;
 
-  //購読するトピックの定義world_position_x
-  sub_odom= nh.subscribe("/ypspur_ros/odom", 5, &icart_move_tf::cb_odom,this);
-  sub_flag_receive=nh.subscribe("/target_point", 5, &icart_move_tf::receive_target_point,this);
-  sub_estimate_odom=nh.subscribe("/estimate_odom", 5, &icart_move_tf::receive_estimate_odom,this);
+  //購読するトピックの定義
+  sub_odom= nh.subscribe("/ypspur_ros_first/odom", 5, &icart_time_control::cb_odom,this);
+  sub_flag_receive=nh.subscribe("/target_point_first", 5, &icart_time_control::receive_target_point,this);
   //配布するトピックの定義
-  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros/cmd_vel", 1);
-  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data", 1);
+  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros_first/cmd_vel", 1);
+  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data_first", 1);
 
 }
 //関数定義-----------------------------------------------------------------------
-void icart_move_tf::cb_odom(const nav_msgs::Odometry::ConstPtr &msg){
+void icart_time_control::cb_odom(const nav_msgs::Odometry::ConstPtr &msg){
   //機体の状態データ
   //機体のデータ受信
   odom = *msg;
 
   //機体に関する計算----------------------------------------------------------
-  //移動量を取得
-  double diff_odom_x = odom.pose.pose.position.x - old_odom.pose.pose.position.x;
-  double diff_odom_y = odom.pose.pose.position.y - old_odom.pose.pose.position.y;
-  double diff_odom_rad = tf::getYaw(odom.pose.pose.orientation) - tf::getYaw(old_odom.pose.pose.orientation);
+  //機体の角度を代入
+  rad = tf::getYaw(odom.pose.pose.orientation);
+  //first機体の位置を代入
+  double position_x = odom.pose.pose.position.x;
+  double position_y = odom.pose.pose.position.y;
 
-  //移動量と予測ポジションから世界座標における機体の位置の計算
-  world_position_x = estimate_position_x + diff_odom_x;
-  world_position_y = estimate_position_y + diff_odom_y;
-  world_position_rad = estimate_position_rad + diff_odom_rad;
-
-  //機体のworld座標におけるオフセット位置を計算
-  world_offset_position_x = world_position_x - (s * cos(world_position_rad));
-  world_offset_position_y = world_position_y - (s * sin(world_position_rad));
+  //機体のworld座標におけるオフセット位置を計算(first)
+  world_offset_position_x = (position_x + s + distance_multi) - (s * cos(rad));
+  world_offset_position_y = position_y - (s * sin(rad));
 
   //機体に与える速度に関する計算と速度の送信，到達したかの判定
   calc_speed();
 }
 
 //速度の計算と速度のpublish
-void icart_move_tf::calc_speed(void){
+void icart_time_control::calc_speed(void){
   //与える速度の計算
   //制御点と目標位置の差を計算
   double diff_x = (set_target_x - world_offset_position_x);
@@ -231,24 +211,8 @@ void icart_move_tf::calc_speed(void){
   //ROS_INFO("y_flag=%d",y_flag);
 }
 
-//推定したポジションを取得
-void icart_move_tf::receive_estimate_odom(const nav_msgs::Odometry::ConstPtr &msg){
-  //推定ポジションを受信
-  estimate_odom = *msg;
-
-  //推定ポジションの計算
-  estimate_position_x = estimate_odom.pose.pose.position.x;
-  estimate_position_y = estimate_odom.pose.pose.position.y;
-  estimate_position_rad = tf::getYaw(estimate_odom.pose.pose.orientation);
-
-
-  //old_odomを設定
-  old_odom = odom;
-
-}
-
 //目標地点の更新とflag処理
-void icart_move_tf::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
+void icart_time_control::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   //目標地点データを受信
   nav_msgs::Odometry target_point=*data;
 
@@ -268,8 +232,8 @@ void icart_move_tf::receive_target_point(const nav_msgs::Odometry::ConstPtr &dat
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "icart_move_tf");
-	icart_move_tf icart_move_tf;
+	ros::init(argc, argv, "icart_time_control");
+	icart_time_control icart_time_control;
 	ros::spin();
 	return 0;
 }

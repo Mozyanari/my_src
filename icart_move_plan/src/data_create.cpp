@@ -12,6 +12,8 @@ private:
   void cb_odom_second(const nav_msgs::Odometry::ConstPtr &msg);
   //距離取得
   void cb_tf_distance(const std_msgs::Float32 &distance);
+  //目標位置を取得
+  void cb_target_point(const nav_msgs::Odometry::ConstPtr &position);
 
   //一秒ごとにデバックするための関数
   void pub_send_data(const ros::TimerEvent&);
@@ -22,6 +24,7 @@ private:
   ros::Subscriber sub_odom_first;
   ros::Subscriber sub_odom_second;
   ros::Subscriber sub_tf_distance;
+  ros::Subscriber sub_target_point;
 
   ros::Publisher pub_data;
 
@@ -50,6 +53,11 @@ private:
   //tf_distance
   double tf_distance;
 
+  //target_point
+  double target_point_x;
+  double target_point_y;
+  double target_point_yaw;
+
   //オフセット距離
   double s;
   //機体間距離[m]
@@ -62,6 +70,7 @@ data_create::data_create(){
   sub_odom_first = nh.subscribe("/ypspur_ros_first/odom", 5, &data_create::cb_odom_first,this);
   sub_odom_second = nh.subscribe("/ypspur_ros_second/odom", 5, &data_create::cb_odom_second,this);
   sub_tf_distance = nh.subscribe("/tf_distance", 5, &data_create::cb_tf_distance,this);
+  sub_target_point = nh.subscribe("/target_point", 5, &data_create::cb_target_point,this);
 
 
   //配布するトピックの定義
@@ -116,6 +125,20 @@ void data_create::cb_tf_distance(const std_msgs::Float32 &distance){
   tf_distance = distance.data;
 }
 
+void data_create::cb_target_point(const nav_msgs::Odometry::ConstPtr &position){
+  nav_msgs::Odometry point = *position;
+  geometry_msgs::Quaternion data_quaternion;
+
+  target_point_x = point.pose.pose.position.x;
+  target_point_y = point.pose.pose.position.y;
+
+  data_quaternion.x = point.pose.pose.orientation.x;
+  data_quaternion.y = point.pose.pose.orientation.y;
+  data_quaternion.z = point.pose.pose.orientation.z;
+  data_quaternion.w = point.pose.pose.orientation.w;
+  target_point_yaw = tf::getYaw(data_quaternion);
+}
+
 void data_create::pub_send_data(const ros::TimerEvent&){
   world_offset_position_x_control = (world_offset_position_x_first + world_offset_position_x_second)/2.0;
   world_offset_position_y_control = (world_offset_position_y_first + world_offset_position_y_second)/2.0;
@@ -123,6 +146,11 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   odom_control.pose.pose.position.x = world_offset_position_x_control;
   odom_control.pose.pose.position.y = world_offset_position_y_control;
   odom_control.pose.pose.position.z = tf_distance;
+
+  odom_control.twist.twist.linear.x = target_point_x;
+  odom_control.twist.twist.linear.y = target_point_y;
+  odom_control.twist.twist.linear.z = target_point_yaw;
+
 
   pub_data.publish(odom_control);
 }

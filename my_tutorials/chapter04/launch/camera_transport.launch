@@ -1,0 +1,5 @@
+<launch>
+  <node name="camera_publisher"  pkg="chapter04" type="camera_publisher"  output="screen"/>
+  <node name="camera_subscriber" pkg="chapter04" type="camera_subscriber" 
+	required="true" output="screen"/>
+</launch>
