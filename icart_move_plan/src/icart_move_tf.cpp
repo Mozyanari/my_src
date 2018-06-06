@@ -119,7 +119,7 @@ icart_move_tf::icart_move_tf(){
   //odomのクオータニオンを初期化
   odom.pose.pose.orientation.w = 1.0;
 
-  //購読するトピックの定義world_position_x
+  //購読するトピックの定義
   sub_odom= nh.subscribe("/ypspur_ros/odom", 5, &icart_move_tf::cb_odom,this);
   sub_flag_receive=nh.subscribe("/target_point", 5, &icart_move_tf::receive_target_point,this);
   sub_estimate_odom=nh.subscribe("/estimate_odom", 5, &icart_move_tf::receive_estimate_odom,this);
