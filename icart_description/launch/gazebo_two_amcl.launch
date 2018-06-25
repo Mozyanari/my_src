@@ -92,7 +92,7 @@
 
   <!--firstの自己位置推定-->
   <!--amcl-->
-  <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
+  <node ns="first" name="amcl" pkg="amcl" type="amcl">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
 
@@ -120,9 +120,12 @@
     <param name="~/base_frame_id" value="/base_link_first" type="string"/>
   </node>
 
+  <!--オフセット位置の計算-->
+  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
+
   <!--secondの自己位置推定-->
   <!--amcl-->
-  <node ns="second" name="amcl" pkg="amcl" type="amcl" output="screen">
+  <node ns="second" name="amcl" pkg="amcl" type="amcl">
     <remap from="/second/scan" to="/icart_second/laser/scan" />
     <remap from="/second/map" to="/map" />
 
@@ -149,7 +152,10 @@
     <param name="~/odom_frame_id" value="/odom_second" type="string"/>
     <param name="~/base_frame_id" value="/base_link_second" type="string"/>
   </node>
+  <!--オフセット位置の計算-->
+  <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
 
+  <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
 
   <!--first_control-->
