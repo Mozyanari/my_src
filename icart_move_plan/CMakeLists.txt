@@ -145,6 +145,7 @@ add_executable(data_create src/data_create.cpp)
 add_executable(icart_move_tf src/icart_move_tf.cpp)
 add_executable(estimate_position_first src/estimate_position_first.cpp)
 add_executable(offset_position src/offset_position.cpp)
+add_executable(two_amcl_path_plan src/two_amcl_path_plan.cpp)
 
 
 
@@ -170,6 +171,7 @@ target_link_libraries(data_create ${catkin_LIBRARIES})
 target_link_libraries(icart_move_tf ${catkin_LIBRARIES})
 target_link_libraries(estimate_position_first ${catkin_LIBRARIES})
 target_link_libraries(offset_position ${catkin_LIBRARIES})
+target_link_libraries(two_amcl_path_plan ${catkin_LIBRARIES})
 
 
 

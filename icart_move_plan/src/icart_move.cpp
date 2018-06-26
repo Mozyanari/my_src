@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
+#include <geometry_msgs/Pose2D.h>
+
 
 
 class icart_move{
@@ -11,10 +13,10 @@ private:
   //ターゲットポジション取得
   void target_odom(const nav_msgs::Odometry::ConstPtr &target);
 
-  //機体のodomを取得
-  void cb_odom(const nav_msgs::Odometry::ConstPtr &msg);
+  //機体のオフセットポジションを取得
+  void cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg);
 
-  //ターゲットポジションと現在のodomからPIDによる位置制御，またフラグ処理
+  //ターゲットポジションと現在のオフセットポジションからPIDによる位置制御，またフラグ処理
   void calc_speed(void);
 
   //PC側からの目標位置の更新とフラグ処理を行う
@@ -27,7 +29,7 @@ private:
 使用するTopicの定義
 */
   //使用するpub/sebの定義
-  ros::Subscriber sub_odom;
+  ros::Subscriber sub_offset_position;
   ros::Subscriber sub_flag_receive;
   ros::Publisher pub_vel;
   ros::Publisher pub_flag_publish;
@@ -42,7 +44,7 @@ private:
 
   //機体パラメータ
   //機体のデータ受信
-  nav_msgs::Odometry odom;
+  geometry_msgs::Pose2D odom;
 
 
   //タイヤの半径[mm]
@@ -101,33 +103,27 @@ icart_move::icart_move(){
   //フラグの初期化
   last_flag=0;
 
-  //odomのクオータニオンを初期化
-  odom.pose.pose.orientation.w = 1.0;
-
   //購読するトピックの定義
-  sub_odom= nh.subscribe("/ypspur_ros_first/odom", 5, &icart_move::cb_odom,this);
-  sub_flag_receive=nh.subscribe("/target_point_first", 5, &icart_move::receive_target_point,this);
+  sub_offset_position= nh.subscribe("offset_position", 5, &icart_move::cb_offset_position,this);
+  sub_flag_receive=nh.subscribe("target_point", 5, &icart_move::receive_target_point,this);
   //配布するトピックの定義
-  pub_vel= nh.advertise<geometry_msgs::Twist>("/ypspur_ros_first/cmd_vel", 1);
-  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("/frag_data_first", 1);
+  pub_vel= nh.advertise<geometry_msgs::Twist>("ypspur_ros/cmd_vel", 1);
+  pub_flag_publish=nh.advertise<nav_msgs::Odometry>("frag_data", 1);
 
 }
 //関数定義-----------------------------------------------------------------------
-void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &msg){
+void icart_move::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体の状態データ
   //機体のデータ受信
   odom = *msg;
 
   //機体に関する計算----------------------------------------------------------
   //機体の角度を代入
-  rad = tf::getYaw(odom.pose.pose.orientation);
-  //first機体の位置を代入
-  double position_x = odom.pose.pose.position.x;
-  double position_y = odom.pose.pose.position.y;
+  rad = odom.theta;
 
-  //機体のworld座標におけるオフセット位置を計算(first)
-  world_offset_position_x = (position_x + s + distance_multi) - (s * cos(rad));
-  world_offset_position_y = position_y - (s * sin(rad));
+  //機体のworld座標におけるオフセット位置
+  world_offset_position_x = odom.x;
+  world_offset_position_y = odom.y;
 
   //機体に与える速度に関する計算と速度の送信，到達したかの判定
   calc_speed();

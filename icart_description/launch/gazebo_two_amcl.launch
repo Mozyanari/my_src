@@ -11,7 +11,7 @@
   <arg name="init_pose_first" value="-x 1.0 -y 0 -z 0.0001" />
   <arg name="init_pose_second" value="-x 0.0 -y 0 -z 0.0001" />
 
-  <arg name="rvizconfig" default="$(find icart_description)/urdf_gazebo_multi.rviz"/>
+  <arg name="rvizconfig" default="$(find icart_description)/gazebo_two_amcl.rviz"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
@@ -122,6 +122,10 @@
 
   <!--オフセット位置の計算-->
   <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
+  <!--オフセットを考慮した動作プログラム-->
+  <node ns="first" pkg="icart_move_plan" type="icart_move" name="icart_move">
+    <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+  </node>
 
   <!--secondの自己位置推定-->
   <!--amcl-->
@@ -154,23 +158,33 @@
   </node>
   <!--オフセット位置の計算-->
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
+  <!--オフセットを考慮した動作プログラム-->
+  <node ns="second" pkg="icart_move_plan" type="icart_move" name="icart_move">
+    <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
+  </node>
+
+  <!--協調搬送のパスプランプログラム-->
+  <node pkg="icart_move_plan" type="two_amcl_path_plan" name="two_amcl_path_plan"/>
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
 
   <!--first_control-->
+  <!--
   <node ns="first" pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop_first">
     <remap from="/first/mouse_vel" to="/icart_first/diff_drive_controller/cmd_vel" />
     <param name="frequency" value="10" type="double" />
   </node>
+-->
 
   <!--second_control-->
+  <!--
   <node ns="second" pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop_second">
     <remap from="/second/mouse_vel" to="/icart_second/diff_drive_controller/cmd_vel" />
     <param name="frequency" value="10" type="double" />
   </node>
+-->
 
-  <!--マップ上の位置を取得-->
-  <!--first-->
+
 
 </launch>
