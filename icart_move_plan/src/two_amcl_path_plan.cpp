@@ -167,8 +167,8 @@ two_amcl_path_plan::two_amcl_path_plan(){
   Max_speed = 0.1;
   //最低速度:0.05[m/s],50[mm/s]
   Min_speed = 0.05;
-  //機体間距離[m]570mm
-  distance_multi = 0.57;
+  //機体間距離[m]570mm,シミュレーション1m
+  distance_multi = 1.0;
   //制御点までの距離
   control_point = distance_multi / 2;
 
@@ -209,6 +209,9 @@ void two_amcl_path_plan::update_odom_first(void){
   //first機体のworld座標におけるオフセット位置を計算
   world_offset_position_x_first = position_x_first;
   world_offset_position_y_first = position_y_first;
+
+  //ROS_INFO("x_first=%f",world_offset_position_x_first);
+  //ROS_INFO("y_first=%f",world_offset_position_y_first);
 }
 //cb_odom_second関数定義
 //機体のオドメトリデータの取得
@@ -226,8 +229,11 @@ void two_amcl_path_plan::update_odom_second(void){
   double rad_second = odom_second.theta;
 
   //second機体のworld座標におけるオフセット位置を計算
-  world_offset_position_x_first = position_x_second;
-  world_offset_position_y_first = position_y_second;
+  world_offset_position_x_second = position_x_second;
+  world_offset_position_y_second = position_y_second;
+
+  //ROS_INFO("x_second=%f",world_offset_position_x_second);
+  //ROS_INFO("y_second=%f",world_offset_position_y_second);
 }
 
 
@@ -256,9 +262,13 @@ void two_amcl_path_plan::calc_machine_position(const geometry_msgs::Pose2D::Cons
 
 
   //現在の制御点の位置と姿勢を計算
-  double now_control_point_x = (world_offset_position_x_first + world_offset_position_x_second)/2;
-  double now_control_point_y = (world_offset_position_y_first + world_offset_position_y_second)/2;
+  double now_control_point_x = (world_offset_position_x_first + world_offset_position_x_second)/2.0;
+  double now_control_point_y = (world_offset_position_y_first + world_offset_position_y_second)/2.0;
   double now_control_point_rad = asin((world_offset_position_y_first - world_offset_position_y_second) / distance_multi);
+
+  //ROS_INFO("now_control_point_x=%f",now_control_point_x);
+  //ROS_INFO("now_control_point_y=%f",now_control_point_y);
+  //ROS_INFO("now_control_point_rad=%f",now_control_point_rad);
 
   //現在機体の位置と姿勢を取得
   //現在の制御点と目標の制御点までの違いを計算
@@ -309,8 +319,8 @@ void two_amcl_path_plan::calc_machine_position(const geometry_msgs::Pose2D::Cons
 
 
   for(int k=0;k<split_number;k++){
-    ROS_INFO("sub_goal_first_x[%d]=%f",k,sub_goal_first_x[k]);
-    ROS_INFO("sub_goal_first_y[%d]=%f",k,sub_goal_first_y[k]);
+    //ROS_INFO("sub_goal_first_x[%d]=%f",k,sub_goal_first_x[k]);
+    //ROS_INFO("sub_goal_first_y[%d]=%f",k,sub_goal_first_y[k]);
   }
   //番号を初期化
   first_number = -1;

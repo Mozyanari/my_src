@@ -158,13 +158,14 @@
   </node>
   <!--オフセット位置の計算-->
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
+
   <!--オフセットを考慮した動作プログラム-->
   <node ns="second" pkg="icart_move_plan" type="icart_move" name="icart_move">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
   </node>
 
   <!--協調搬送のパスプランプログラム-->
-  <node pkg="icart_move_plan" type="two_amcl_path_plan" name="two_amcl_path_plan"/>
+  <node pkg="icart_move_plan" type="two_amcl_path_plan" name="two_amcl_path_plan" output="screen"/>
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>

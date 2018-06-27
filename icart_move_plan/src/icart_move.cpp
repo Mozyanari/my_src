@@ -34,7 +34,7 @@ private:
   ros::Publisher pub_vel;
   ros::Publisher pub_flag_publish;
 
-
+//
 
   //フラグデータ(ポジションのx,yに到達した場所，zにフラグデータを挿入)
   nav_msgs::Odometry flag;
@@ -101,7 +101,7 @@ icart_move::icart_move(){
   distance_multi = 0.57;
 
   //フラグの初期化
-  last_flag=0;
+  last_flag=1;
 
   //購読するトピックの定義
   sub_offset_position= nh.subscribe("offset_position", 5, &icart_move::cb_offset_position,this);
@@ -126,7 +126,9 @@ void icart_move::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   world_offset_position_y = odom.y;
 
   //機体に与える速度に関する計算と速度の送信，到達したかの判定
+  //odomのような更新頻度ではないから工夫が必要.odomをトリガーとするなど
   calc_speed();
+
 }
 
 //速度の計算と速度のpublish
@@ -201,10 +203,17 @@ void icart_move::calc_speed(void){
   twist.linear.x  = (r*(omega_r + omega_l)) / 2;
   twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
 
+  //last_flagが0つまり，最初か目標地点に到達すれば速度0
+  if(last_flag == 1){
+    twist.linear.x = 0;
+    twist.angular.z = 0;
+  }
+
   //計算したTopicを送る
   pub_vel.publish(twist);
   //ROS_INFO("x_flag=%d",x_flag);
   //ROS_INFO("y_flag=%d",y_flag);
+
 }
 
 //目標地点の更新とflag処理
@@ -217,7 +226,7 @@ void icart_move::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   set_target_y=target_point.pose.pose.position.y;
   //フラグの番号を更新
   get_frag = target_point.pose.pose.position.z;
-
+  //目標速度を受信
   set_target_speed = target_point.twist.twist.linear.z;
 
   //last_flagを0にしてフラグを折る
