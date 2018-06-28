@@ -119,12 +119,12 @@
     <param name="~/odom_frame_id" value="/odom_first" type="string"/>
     <param name="~/base_frame_id" value="/base_link_first" type="string"/>
   </node>
-
-  <!--オフセット位置の計算-->
+  <!--amclによる推定位置から推定オフセット位置の計算-->
   <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
   <!--オフセットを考慮した動作プログラム-->
   <node ns="first" pkg="icart_move_plan" type="icart_move" name="icart_move">
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+    <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
 
   <!--secondの自己位置推定-->
@@ -156,12 +156,13 @@
     <param name="~/odom_frame_id" value="/odom_second" type="string"/>
     <param name="~/base_frame_id" value="/base_link_second" type="string"/>
   </node>
-  <!--オフセット位置の計算-->
+  <!--amclによる推定位置から推定オフセット位置の計算-->
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
 
   <!--オフセットを考慮した動作プログラム-->
   <node ns="second" pkg="icart_move_plan" type="icart_move" name="icart_move">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
+    <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
   </node>
 
   <!--協調搬送のパスプランプログラム-->
