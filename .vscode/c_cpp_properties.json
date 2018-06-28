@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/masanari/catkin_ws/devel/include",
+                "/opt/ros/kinetic/include",
+                "/home/masanari/catkin_ws/src/camera/include",
+                "/home/masanari/catkin_ws/src/icart_move_plan/include",
+                "/home/masanari/catkin_ws/src/laser_geometry/include",
+                "/home/masanari/catkin_ws/src/laser_tf_nodelet/include",
+                "/home/masanari/catkin_ws/src/leap_motion/include",
+                "/home/masanari/catkin_ws/src/measure_message_passing/include",
+                "/home/masanari/catkin_ws/src/pointcloud_to_laserscan/include",
+                "/home/masanari/catkin_ws/src/ros_param_test/include",
+                "/home/masanari/catkin_ws/src/time_test/include",
+                "/home/masanari/catkin_ws/src/using_markers/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
