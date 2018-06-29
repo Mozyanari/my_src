@@ -108,7 +108,7 @@
   -->
 
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 3.14"/>
       <geometry>
         <mesh filename="package://rrbot_description/meshes/hokuyo.dae"/>
       </geometry>
@@ -116,7 +116,7 @@
 
     <inertial>
       <mass value="1e-5" />
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 3.14"/>
       <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
     </inertial>
   </link>
@@ -148,8 +148,8 @@
 
   <!--base_link to hokuyo-->
   <joint name="hokuyo_joint_second" type="fixed">
-    <axis xyz="0 1 0" />
-    <origin xyz="0.105 0 0.035" rpy="0 0 0"/>
+    <axis xyz="0 0 0" />
+    <origin xyz="0.105 0 0.135" rpy="0 0 3.14"/>
     <parent link="base_link_second"/>
     <child link="hokuyo_link_second"/>
   </joint>
@@ -199,7 +199,7 @@
   </gazebo>
 
  <gazebo reference="base_link_second">
-   <selfCollide>true</selfCollide>
+   <selfCollide>false</selfCollide>
     <mu1 value="0.05" />
     <mu2 value="0.05" />
   </gazebo>

@@ -149,8 +149,8 @@
 
   <!--base_link to hokuyo-->
   <joint name="hokuyo_joint_first" type="fixed">
-    <axis xyz="0 1 0" />
-    <origin xyz="0.105 0 0.035" rpy="0 0 0"/>
+    <axis xyz="0 0 0" />
+    <origin xyz="0.105 0 0.135" rpy="0 0 3.14"/>
     <parent link="base_link_first"/>
     <child link="hokuyo_link_first"/>
   </joint>
@@ -228,7 +228,7 @@
   <gazebo reference="hokuyo_link_first">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
-      <visualize>true</visualize>
+      <visualize>false</visualize>
       <update_rate>10</update_rate>
       <ray>
         <scan>
