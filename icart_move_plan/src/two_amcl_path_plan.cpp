@@ -1,6 +1,6 @@
 //サブゴールを何分割するか
 //つまり，最終地点を含めたゴールの数
-#define split_number 20
+#define split_number 10
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>

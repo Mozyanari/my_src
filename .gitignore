@@ -1,5 +1,5 @@
 #テキストファイルは無視
-*txt
+#*txt
 
 #git cloneで取得したもの
 rsj_robot_test/

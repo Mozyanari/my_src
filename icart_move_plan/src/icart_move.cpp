@@ -83,7 +83,6 @@ private:
   double distance_multi;
 
   //それぞれの機体のオフセットとワールド座標を考慮した位置
-  //firstのオフセット位置が(0.0)になるように設定
   double world_offset_position_x;
   double world_offset_position_y;
 
@@ -144,9 +143,13 @@ void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_theta = old_odom_theta - odom_theta;
 
   //amclの推定位置とオドメトリからオフセット位置を修正
-  world_offset_position_x += diff_odom_x;  
-  world_offset_position_y += diff_odom_y;
-  rad += diff_odom_theta;
+  //world_offset_position_x = odom_offset.x + diff_odom_x;  
+  //world_offset_position_y = odom_offset.y + diff_odom_y;
+  //rad = odom_offset.theta + diff_odom_theta;
+
+  world_offset_position_x = odom_offset.x;
+  world_offset_position_y = odom_offset.y;
+  rad = odom_offset.theta;
 
   ROS_INFO("world_offset_position_x = %f",world_offset_position_x);
   ROS_INFO("world_offset_position_y = %f",world_offset_position_y);
@@ -159,14 +162,6 @@ void icart_move::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体の状態データ
   //機体のデータ受信
   odom_offset = *msg;
-
-  //機体に関する計算----------------------------------------------------------
-  //機体の角度を代入
-  rad = odom_offset.theta;
-
-  //機体のworld座標におけるオフセット位置
-  world_offset_position_x = odom_offset.x;
-  world_offset_position_y = odom_offset.y;
 
   //odomを保存
   old_odom = odom;

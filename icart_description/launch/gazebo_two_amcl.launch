@@ -103,7 +103,7 @@
     <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="300" />
     <param name="max_particles" type="int" value="500" />
-    <param name="update_min_d" type="double" value="0.05" />
+    <param name="update_min_d" type="double" value="0.01" />
     <param name="update_min_a" type="double" value="0.08" />
 
     <param name="use_map_topic" type="bool" value="true" />
@@ -140,7 +140,7 @@
     <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="300" />
     <param name="max_particles" type="int" value="500" />
-    <param name="update_min_d" type="double" value="0.05" />
+    <param name="update_min_d" type="double" value="0.01" />
     <param name="update_min_a" type="double" value="0.08" />
 
     <param name="use_map_topic" type="bool" value="true" />
@@ -160,7 +160,7 @@
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
 
   <!--オフセットを考慮した動作プログラム-->
-  <node ns="second" pkg="icart_move_plan" type="icart_move" name="icart_move">
+  <node ns="second" pkg="icart_move_plan" type="icart_move" name="icart_move" output="screen">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
   </node>
