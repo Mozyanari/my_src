@@ -150,7 +150,7 @@
   <!--base_link to hokuyo-->
   <joint name="hokuyo_joint_first" type="fixed">
     <axis xyz="0 0 0" />
-    <origin xyz="0.105 0 0.135" rpy="0 0 3.14"/>
+    <origin xyz="0.105 0 0.135" rpy="0 0 0"/>
     <parent link="base_link_first"/>
     <child link="hokuyo_link_first"/>
   </joint>
