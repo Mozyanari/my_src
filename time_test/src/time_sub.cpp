@@ -29,7 +29,7 @@ time_sub::time_sub(){
 //関数定義-----------------------------------------------------------------------
 void time_sub::sub_future_time(const geometry_msgs::PoseStamped::ConstPtr &msg){
   target_point = *msg;
-  double future_time = target_point.header.stamp.sec - ros::Time::now().toSec();
+  double future_time = (target_point.header.stamp - ros::Time::now()).toSec();
 
   ROS_INFO("time=%f",future_time);
   //ros::Time future_time = ros::Time::now();
