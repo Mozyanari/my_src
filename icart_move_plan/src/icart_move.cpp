@@ -37,6 +37,7 @@ private:
   ros::Subscriber sub_flag_receive;
   ros::Publisher pub_vel;
   ros::Publisher pub_flag_publish;
+  ros::Publisher pub_odom_true;
 
 //
 
@@ -55,6 +56,8 @@ private:
   //amclによる機体のオフセット位置のデータ受信
   geometry_msgs::Pose2D odom_offset;
 
+  //オドメトリを用いて修正した位置のデータ送信
+  geometry_msgs::Pose2D odom_offset_true;
 
   //タイヤの半径[mm]
   double r;
@@ -89,6 +92,9 @@ private:
   //オフセット距離
   double s;
 
+  //シミュレーション時のオドメトリからオフセットまでの距離
+  double ss;
+
   //目標位置
   double target_x;
   double target_y;
@@ -102,6 +108,8 @@ icart_move::icart_move(){
   d = 0.178;
   //オフセット距離[m]160mm
   s = 0.16;
+  //シミュレーション時のオドメトリからオフセットまでの距離
+  ss = 0.055;
   //機体の角度
   rad = 0.0;
 
@@ -118,6 +126,7 @@ icart_move::icart_move(){
   //配布するトピックの定義
   pub_vel= nh.advertise<geometry_msgs::Twist>("ypspur_ros/cmd_vel", 1);
   pub_flag_publish=nh.advertise<nav_msgs::Odometry>("frag_data", 1);
+  pub_odom_true=nh.advertise<geometry_msgs::Pose2D>("odom_true",1,true);
 
 }
 //関数定義-----------------------------------------------------------------------
@@ -129,13 +138,13 @@ void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   //amclで推定位置は分かるが更新頻度が少ないため，更新するまでの間はオドメトリで位置を補完する
   //まず，過去データからオフセット位置を計算
   double old_odom_theta = tf::getYaw(old_odom.pose.pose.orientation);
-  double old_odom_x = old_odom.pose.pose.position.x - (s * cos(old_odom_theta));
-  double old_odom_y = old_odom.pose.pose.position.y - (s * sin(old_odom_theta));
+  double old_odom_x = old_odom.pose.pose.position.x - (ss * cos(old_odom_theta));
+  double old_odom_y = old_odom.pose.pose.position.y - (ss * sin(old_odom_theta));
 
   //現在のオドメトリのオフセット位置を計算
   double odom_theta = tf::getYaw(odom.pose.pose.orientation);
-  double odom_x = odom.pose.pose.position.x - (s * cos(odom_theta));
-  double odom_y = odom.pose.pose.position.y - (s * sin(odom_theta));
+  double odom_x = odom.pose.pose.position.x - (ss * cos(odom_theta));
+  double odom_y = odom.pose.pose.position.y - (ss * sin(odom_theta));
 
   //オフセット位置の進み具合を計算
   double diff_odom_x = old_odom_x - odom_x;
@@ -143,17 +152,23 @@ void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_theta = old_odom_theta - odom_theta;
 
   //amclの推定位置とオドメトリからオフセット位置を修正
-  //world_offset_position_x = odom_offset.x + diff_odom_x;  
-  //world_offset_position_y = odom_offset.y + diff_odom_y;
-  //rad = odom_offset.theta + diff_odom_theta;
+  world_offset_position_x = odom_offset.x + diff_odom_x;  
+  world_offset_position_y = odom_offset.y + diff_odom_y;
+  rad = odom_offset.theta + diff_odom_theta;
 
-  world_offset_position_x = odom_offset.x;
-  world_offset_position_y = odom_offset.y;
-  rad = odom_offset.theta;
+  //world_offset_position_x = odom_offset.x;
+  //world_offset_position_y = odom_offset.y;
+  //rad = odom_offset.theta;
 
-  ROS_INFO("world_offset_position_x = %f",world_offset_position_x);
-  ROS_INFO("world_offset_position_y = %f",world_offset_position_y);
-  ROS_INFO("rad = %f",rad);
+  //ROS_INFO("world_offset_position_x = %f",world_offset_position_x);
+  //ROS_INFO("world_offset_position_y = %f",world_offset_position_y);
+  //ROS_INFO("rad = %f",rad);
+  odom_offset_true.x = world_offset_position_x;
+  odom_offset_true.y = world_offset_position_y;
+  odom_offset_true.theta = rad;
+
+  pub_odom_true.publish(odom_offset_true);
+  
 
   //odomをトリガーとして速度を生成
   calc_speed();
@@ -163,7 +178,7 @@ void icart_move::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体のデータ受信
   odom_offset = *msg;
 
-  //odomを保存
+  //補間するためのodomを保存
   old_odom = odom;
 }
 
