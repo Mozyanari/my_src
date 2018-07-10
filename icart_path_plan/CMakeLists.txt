@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(icart_move_plan)
+project(icart_path_plan)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -105,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES icart_move_plan
+#  LIBRARIES icart_path_plan
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -123,7 +123,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/icart_move_plan.cpp
+#   src/${PROJECT_NAME}/icart_path_plan.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -134,18 +134,12 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(icart_move src/icart_move.cpp)
-add_executable(icart_move_first src/icart_move_first.cpp)
-add_executable(icart_move_second src/icart_move_second.cpp)
-
-add_executable(data_create src/data_create.cpp)
-add_executable(icart_move_tf src/icart_move_tf.cpp)
-add_executable(estimate_position_first src/estimate_position_first.cpp)
-add_executable(offset_position src/offset_position.cpp)
-
-add_executable(icart_time src/icart_time.cpp)
-
-
+# add_executable(${PROJECT_NAME}_node src/icart_path_plan_node.cpp)
+add_executable(path_planning src/path_planning.cpp)
+add_executable(path_planning_speed_control src/path_planning_speed_control.cpp)
+add_executable(single_path_plan src/single_path_plan.cpp)
+add_executable(single_path_plan_map src/single_path_plan_map.cpp)
+add_executable(two_amcl_path_plan src/two_amcl_path_plan.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -158,18 +152,14 @@ add_executable(icart_time src/icart_time.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(icart_move ${catkin_LIBRARIES})
-target_link_libraries(icart_move_first ${catkin_LIBRARIES})
-target_link_libraries(icart_move_second ${catkin_LIBRARIES})
-
-target_link_libraries(data_create ${catkin_LIBRARIES})
-target_link_libraries(icart_move_tf ${catkin_LIBRARIES})
-target_link_libraries(estimate_position_first ${catkin_LIBRARIES})
-target_link_libraries(offset_position ${catkin_LIBRARIES})
-
-target_link_libraries(icart_time ${catkin_LIBRARIES})
-
-
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+# )
+target_link_libraries(path_planning ${catkin_LIBRARIES})
+target_link_libraries(path_planning_speed_control ${catkin_LIBRARIES})
+target_link_libraries(single_path_plan ${catkin_LIBRARIES})
+target_link_libraries(single_path_plan_map ${catkin_LIBRARIES})
+target_link_libraries(two_amcl_path_plan ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -211,7 +201,7 @@ target_link_libraries(icart_time ${catkin_LIBRARIES})
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_icart_move_plan.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_icart_path_plan.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
