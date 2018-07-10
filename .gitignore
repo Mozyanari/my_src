@@ -17,4 +17,4 @@ using_markers/
 #CMakeFiles/
 
 #他のPCだとmakeできない
-my_tutorials/
+~/catkin_ws/src/my_tutorials/

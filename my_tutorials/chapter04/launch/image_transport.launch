@@ -1,5 +1,0 @@
-<launch>
-  <param name="pixel_format" value="mjpeg" />
-  <node name="image_publisher"  pkg="chapter04" type="image_publisher"  output="screen"/>
-  <node name="image_subscriber" pkg="chapter04" type="image_subscriber" output="screen"/>
-</launch>
