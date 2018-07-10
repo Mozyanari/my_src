@@ -15,3 +15,6 @@ using_markers/
 
 #gitで保管しても意味がないもの
 #CMakeFiles/
+
+#他のPCだとmakeできない
+my_tutorials/
