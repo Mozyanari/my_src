@@ -140,6 +140,7 @@ add_executable(path_planning_speed_control src/path_planning_speed_control.cpp)
 add_executable(single_path_plan src/single_path_plan.cpp)
 add_executable(single_path_plan_map src/single_path_plan_map.cpp)
 add_executable(two_amcl_path_plan src/two_amcl_path_plan.cpp)
+add_executable(path_plan_time src/path_plan_time.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,6 +161,7 @@ target_link_libraries(path_planning_speed_control ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan ${catkin_LIBRARIES})
 target_link_libraries(single_path_plan_map ${catkin_LIBRARIES})
 target_link_libraries(two_amcl_path_plan ${catkin_LIBRARIES})
+target_link_libraries(path_plan_time ${catkin_LIBRARIES})
 
 #############
 ## Install ##
