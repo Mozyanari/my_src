@@ -25,7 +25,7 @@ time_pub::time_pub(){
   pub_time = nh.advertise<geometry_msgs::PoseStamped>("/future_posi",1000);
 
   //timer定義
-  timer = nh.createTimer(ros::Duration(10.0), &time_pub::send_future_time,this);
+  timer = nh.createTimer(ros::Duration(0.001), &time_pub::send_future_time,this);
 }
 
 //関数定義-----------------------------------------------------------------------
