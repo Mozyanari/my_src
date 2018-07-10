@@ -1,11 +1,13 @@
-//サブゴールを何分割するか
-//つまり，最終地点を含めたゴールの数
+//搬送物のサブゴール間の距離
 #define separete_distance 1.0
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
 #include <geometry_msgs/Pose2D.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Header.h>
+
 
 #include <visualization_msgs/Marker.h>
 #include <string>
@@ -30,7 +32,7 @@ private:
   void send_machine_speed(void);
 
   //目標位置へ到達する時間
-  void calc_arrived_time(void);
+  void calc_arrived_time(const std_msgs::Int32::ConstPtr &number);
 
   //機体のオフセット位置のオドメトリ取得
   void cb_odom_first(const geometry_msgs::Pose2D::ConstPtr &msg);
@@ -52,10 +54,15 @@ private:
   //機体の到着位置を取得
   ros::Subscriber sub_arrive_position_first;
   ros::Subscriber sub_arrive_position_second;
+  //time_contorolerから番号を取得
+  ros::Subscriber sub_time_controler;
 
   //機体の目標位置と速度を送信
   ros::Publisher pub_target_point_first;
   ros::Publisher pub_target_point_second;
+
+  //目標時間単体を送信
+  ros::Publisher pub_time;
 
   //Marker_define
   ros::Publisher marker_pub;
@@ -127,10 +134,16 @@ path_plan_time::path_plan_time(){
   sub_offset_odom_first = nh.subscribe("/first/offset_odom_true", 5, &path_plan_time::cb_odom_first,this);
   //second
   sub_offset_odom_second = nh.subscribe("/second/offset_odom_true", 5, &path_plan_time::cb_odom_second,this);
+  //サブゴールのnumberを取得する
+  sub_time_controler = nh.subscribe("/time_result", 5, &path_plan_time::calc_arrived_time,this);
 
   //配布するトピックの定義
+  //それぞれの機体に目標位置と時間を送信
   pub_target_point_first = nh.advertise<nav_msgs::Odometry>("/first/target_point", 1);
   pub_target_point_second = nh.advertise<nav_msgs::Odometry>("/second/target_point", 1);
+
+  //時間と番号を送信
+  pub_time = nh.advertise<std_msgs::Header>("/time_check", 1);
 
   marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
@@ -315,35 +328,108 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
   double time = 2;
   while(1){
-
+    if(((diff_distance_first / time) < 0.08) && ((diff_distance_second / time) < 0.08)){
+      //時間は十分と判定
+      break;
+    } 
     time++;
   }
+  //時間をデバック
+  ROS_INFO("time=%f",time);
   //位置と時間と番号を代入
   sub_goal_first.pose.pose.position.x = sub_goal_first_x[0];
   sub_goal_first.pose.pose.position.y = sub_goal_first_y[0];
+  sub_goal_first.pose.pose.position.z = 0;
+  sub_goal_first.header.stamp = ros::Time::now() + ros::Duration(time);
 
   sub_goal_second.pose.pose.position.x = sub_goal_second_x[0];
   sub_goal_second.pose.pose.position.y = sub_goal_second_y[0];
-  calc_arrived_time();
+  sub_goal_second.pose.pose.position.z = 0;
+  sub_goal_second.header.stamp = ros::Time::now() + ros::Duration(time);
 
   //データを送信
   pub_target_point_first.publish(sub_goal_first);
   pub_target_point_second.publish(sub_goal_second);
 
+  //時間を送信
+  //stampに時間、frame_idにnumberを入れる
+  std_msgs::Header time_pub;
+  time_pub.stamp = ros::Time::now() + ros::Duration(time);
+  time_pub.seq = 0;
+  pub_time.publish(time_pub);
+
   //マーカを送信
+
   send_target_marker();
 
 }
 //位置データと時間を計算
-void path_plan_time::calc_arrived_time(void){
-  double diff_distance = sqrt( (pow((sub_goal_first_x[0] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[0] - world_offset_position_y_first,2)) );
-  sub_goal_first.pose.pose.position.x = sub_goal_first_x[0];
-  sub_goal_first.pose.pose.position.y = sub_goal_first_y[0];
+void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
+  //intに変換するためにnumberに代入
+  int number = data->data;
+  //sub_goal_number-1が来たらストップ信号を出す
+  if(number == (sub_goal_number-1)){
+    //first
+    sub_goal_first.pose.pose.position.x = 0;
+    sub_goal_first.pose.pose.position.y = 0;
+    sub_goal_first.pose.pose.position.z = -1;
+    sub_goal_first.header.stamp = ros::Time::now();
 
-  sub_goal_second.pose.pose.position.x = sub_goal_second_x[0];
-  sub_goal_second.pose.pose.position.y = sub_goal_second_y[0];
+    //second
+    sub_goal_second.pose.pose.position.x = 0;
+    sub_goal_second.pose.pose.position.y = 0;
+    sub_goal_second.pose.pose.position.z = -1;
+    sub_goal_second.header.stamp = ros::Time::now();
 
+    //データを送信
+    pub_target_point_first.publish(sub_goal_first);
+    pub_target_point_second.publish(sub_goal_second);
 
+    //時間を送信
+    //stampに時間、frame_idにnumberを入れる
+    std_msgs::Header time_pub;
+    time_pub.stamp = ros::Time::now();
+    time_pub.seq = -1;
+    pub_time.publish(time_pub);
+
+    return;
+  }
+
+  //時間を計算
+  double diff_distance_first = sqrt( (pow((sub_goal_first_x[number+1] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[number+1] - world_offset_position_y_first,2)) );
+  double diff_distance_second = sqrt( (pow((sub_goal_second_x[number+1] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[number+1] - world_offset_position_y_second,2)) );
+
+  //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
+  double time = 2;
+  while(1){
+    if(((diff_distance_first / time) < 0.08) && ((diff_distance_second / time) < 0.08)){
+      //時間は十分と判定
+      break;
+    } 
+    time++;
+  }
+
+  //次の場所のサブゴールと時間を送信
+  sub_goal_first.pose.pose.position.x = sub_goal_first_x[number+1];
+  sub_goal_first.pose.pose.position.y = sub_goal_first_y[number+1];
+  sub_goal_first.pose.pose.position.z = number+1;
+  sub_goal_first.header.stamp = ros::Time::now() + ros::Duration(time);
+
+  sub_goal_second.pose.pose.position.x = sub_goal_second_x[number+1];
+  sub_goal_second.pose.pose.position.y = sub_goal_second_y[number+1];
+  sub_goal_second.pose.pose.position.z = number+1;
+  sub_goal_second.header.stamp = ros::Time::now() + ros::Duration(time);
+
+  //データを送信
+  pub_target_point_first.publish(sub_goal_first);
+  pub_target_point_second.publish(sub_goal_second);
+
+  //時間を送信
+  //stampに時間、frame_idにnumberを入れる
+  std_msgs::Header time_pub;
+  time_pub.stamp = ros::Time::now() + ros::Duration(time);
+  time_pub.seq = number+1;
+  pub_time.publish(time_pub);
 }
 
 
