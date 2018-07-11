@@ -54,8 +54,9 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
 void time_controler::time_checker(const ros::TimerEvent&){
   std_msgs::Int32 time_controler;
   //seqがマイナスだと判定しない
-  if(receive_time.seq < 0){
-      return;
+  if((int)receive_time.seq < 0){
+    ROS_INFO("not judge");
+    return;
   }
 
   //到着時間に近いかどうかの判定
@@ -63,6 +64,7 @@ void time_controler::time_checker(const ros::TimerEvent&){
   //0.1s以内なら次のサブゴールを送信する信号を出す
   if(diff_time < 0.1){
     time_controler.data = receive_time.seq;
+    ROS_INFO("receive_time.seq=%d",receive_time.seq);
     pub_time_controler.publish(time_controler);
   }
 
