@@ -367,6 +367,10 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
 void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   //intに変換するためにnumberに代入
   int number = data->data;
+  //numberがマイナスなら異常値と判定
+  if(number < 0){
+    return;
+  }
   //sub_goal_number-1が来たらストップ信号を出す
   if(number == (sub_goal_number-1)){
     //first
