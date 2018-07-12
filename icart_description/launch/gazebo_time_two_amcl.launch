@@ -1,0 +1,135 @@
+<launch>
+  <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
+  <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
+
+  <arg name="paused" default="true"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <arg name="init_pose_first" value="-x 1.0 -y 0 -z 0.0001" />
+  <arg name="init_pose_second" value="-x 0.0 -y 0 -z 0.0001" />
+
+  <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+      <arg name="debug" value="$(arg debug)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+  <!--<param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>-->
+  <param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>
+  <param name="robot_description_second" command="$(find xacro)/xacro.py $(arg model_second)"/>
+
+  <include file="$(find icart_description)/launch/control_first.launch"/>
+  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_first) -urdf -model icart_first -param robot_description_first -reference_frame map">
+  </node>
+
+  <include file="$(find icart_description)/launch/control_second.launch"/>
+  <node name="urdf_spawner_second" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_second) -urdf -model icart_second -param robot_description_second -reference_frame map">
+  </node>
+
+  <!--first-->
+  <!--offset位置の出力-->
+  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.055 0 0 0 0 0 base_link_first base_link_first_offset 10" respawn="true"/>
+
+  <!--second-->
+  <!--offset位置の出力-->
+  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.055 0 0 0 0 0 base_link_second base_link_second_offset 10" respawn="true"/>
+
+  <!--rvizの表示-->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+  <!--firstの自己位置推定-->
+  <!--amcl-->
+  <node ns="first" name="amcl" pkg="amcl" type="amcl">
+    <remap from="/first/scan" to="/icart_first/laser/scan" />
+
+    <param name="odom_alpha1" type="double" value="7" />
+    <param name="odom_alpha2" type="double" value="7" />
+    <param name="odom_alpha3" type="double" value="3.5" />
+    <param name="odom_alpha4" type="double" value="3.5" />
+    <param name="laser_max_beams" type="int" value="150" />
+    <param name="min_particles" type="int" value="300" />
+    <param name="max_particles" type="int" value="500" />
+    <param name="update_min_d" type="double" value="0.03" />
+    <param name="update_min_a" type="double" value="0.08" />
+
+    <param name="initial_pose_x" type="double" value="1.0" />
+    <param name="initial_pose_y" type="double" value="0.0" />
+    <param name="initial_pose_a" type="double" value="0.0" />
+
+    <param name="initial_cov_xx" type="double" value="0.0" />
+    <param name="initial_cov_yy" type="double" value="0.0" />
+    <param name="initial_cov_aa" type="double" value="0.0" />
+
+    <param name="odom_frame_id" value="odom_first" type="string"/>
+    <param name="base_frame_id" value="base_link_first" type="string"/>
+    <param name="global_frame_id" value="map" type="string"/>
+  </node>
+  <!--amclによる推定位置から推定オフセット位置の計算-->
+  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
+  <!--オフセットを考慮した動作プログラム-->
+  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time">
+    <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+    <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
+  </node>
+  <!--map_serverを立ち上げてマップを出力-->
+  <node ns="first" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+
+  <!--secondの自己位置推定-->
+  <!--amcl-->
+  <node ns="second" name="amcl" pkg="amcl" type="amcl">
+    <remap from="/second/scan" to="/icart_second/laser/scan" />
+
+    <param name="odom_alpha1" type="double" value="7" />
+    <param name="odom_alpha2" type="double" value="7" />
+    <param name="odom_alpha3" type="double" value="3.5" />
+    <param name="odom_alpha4" type="double" value="3.5" />
+    <param name="laser_max_beams" type="int" value="150" />
+    <param name="min_particles" type="int" value="300" />
+    <param name="max_particles" type="int" value="500" />
+    <param name="update_min_d" type="double" value="0.03" />
+    <param name="update_min_a" type="double" value="0.08" />
+
+    <param name="initial_pose_x" type="double" value="0.0" />
+    <param name="initial_pose_y" type="double" value="0.0" />
+    <param name="initial_pose_a" type="double" value="0.0" />
+
+    <param name="initial_cov_xx" type="double" value="0.0" />
+    <param name="initial_cov_yy" type="double" value="0.0" />
+    <param name="initial_cov_aa" type="double" value="0.0" />
+
+    <param name="odom_frame_id" value="odom_second" type="string"/>
+    <param name="base_frame_id" value="base_link_second" type="string"/>
+    <param name="global_frame_id" value="map" type="string"/>
+
+  </node>
+  <!--amclによる推定位置から推定オフセット位置の計算-->
+  <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
+
+  <!--オフセットを考慮した動作プログラム-->
+  <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time">
+    <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
+    <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
+  </node>
+
+  <!--map_serverを立ち上げてマップを出力-->
+  <node ns="second" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+
+  <!--協調搬送のパスプランプログラム-->
+  <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time"/>
+  <!--time_controlerノード-->
+  <node pkg="icart_path_plan" type="time_controler" name="time_controler"/>
+
+  <!--map_serverを立ち上げてマップを出力-->
+  <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+
+</launch>
