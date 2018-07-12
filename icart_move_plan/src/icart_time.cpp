@@ -73,6 +73,9 @@ private:
   //機体の姿勢角度[rad]
   double rad;
 
+  //最高速度[m/s]
+  double Max_speed;
+
   //機体の目標位置
   double set_target_x;
   double set_target_y;
@@ -116,11 +119,20 @@ icart_time::icart_time(){
   //機体の角度
   rad = 0.0;
 
+  //最高速度:0.1[m/s],100[mm/s]
+  Max_speed = 0.1;
+
   //機体間距離[m]570mm
   distance_multi = 0.57;
 
   //フラグは-1で初期化
   get_frag = -1;
+
+  //速度も0で初期化
+  set_target_speed = 0;
+
+  //暴走を防ぐための初期化
+  old_odom.pose.pose.orientation.w = 1.0;
 
   //購読するトピックの定義
   sub_odom=nh.subscribe("ypspur_ros/odom", 5, &icart_time::cb_odom,this);
@@ -203,8 +215,17 @@ void icart_time::calc_target_speed(void){
 
     //目標位置までの直線距離
     double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
+    //直線距離が5cm以内ならもう速度の更新は行わない
+    if(diff_distance<0.05){
+      return;
+    }
     //目標時間で到達するための速度を計算
     set_target_speed = (diff_distance / diff_time);
+
+    //実機での想定最高スピードを超えないようにする
+    if(Max_speed < set_target_speed){
+      set_target_speed = Max_speed;
+    }
 }
 
 //ホイール速度の計算と速度のpublish
@@ -234,6 +255,7 @@ void icart_time::calc_wheel_speed(void){
   twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
 
   //計算したTopicを送る
+  ROS_INFO("get_frag=%d",get_frag);
   pub_vel.publish(twist);
   //ROS_INFO("x_flag=%d",x_flag);
   //ROS_INFO("y_flag=%d",y_flag);

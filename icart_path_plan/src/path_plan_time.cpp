@@ -1,5 +1,7 @@
 //搬送物のサブゴール間の距離
 #define separete_distance 1.0
+//搬送物の角度の間隔
+#define separate_theta 0.174532
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -90,6 +92,8 @@ private:
   double Max_speed;
   //最低速度
   double Min_speed;
+  //基準となる使用する速度
+  double use_speed;
   //オフセット距離
   double s;
   //機体間距離[m]
@@ -158,6 +162,8 @@ path_plan_time::path_plan_time(){
   Max_speed = 0.1;
   //最低速度:0.05[m/s],50[mm/s]
   Min_speed = 0.05;
+  //使用速度:0.04[m/s]
+  use_speed = 0.04;
   //機体間距離[m]570mm,シミュレーション1m
   distance_multi = 1.0;
   //制御点までの距離
@@ -178,6 +184,12 @@ path_plan_time::path_plan_time(){
   //second機体に関して
   sub_goal_second_x = 0;
   sub_goal_second_y = 0;
+
+  //デバック用に搬送物の制御点の初期化
+  world_offset_position_x_first = 1;
+  world_offset_position_y_first = 0;
+  world_offset_position_x_second = 0;
+  world_offset_position_y_second = 0;
 }
 
 //関数定義-----------------------------------------------------------------------
@@ -244,7 +256,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
     among_sub_goal_y=diff_machine_position_y/(double)(sub_goal_number);
     among_sub_goal_rad=diff_machine_rad/(double)(sub_goal_number);
 
-    if((among_sub_goal_x <separete_distance)&&(among_sub_goal_y <separete_distance)){
+    if((among_sub_goal_x <separete_distance)&&(among_sub_goal_y <separete_distance)&&(among_sub_goal_rad < separate_theta)){
       break;
     }
   }
@@ -328,10 +340,10 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
   double time = 2;
   while(1){
-    if(((diff_distance_first / time) < 0.08) && ((diff_distance_second / time) < 0.08)){
+    if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
       //時間は十分と判定
       break;
-    } 
+    }
     time++;
   }
   //時間をデバック
@@ -367,8 +379,8 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
 void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   //intに変換するためにnumberに代入
   int number = data->data;
-  //numberがマイナスなら異常値と判定
-  if(number < 0){
+  //numberがマイナスもしくは，sub_goal_number-1以上だと異常値と判定
+  if((number < 0) && (number > (sub_goal_number-1))){
     return;
   }
   //sub_goal_number-1が来たらストップ信号を出す
@@ -404,14 +416,17 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[number+1] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[number+1] - world_offset_position_y_second,2)) );
 
   //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
-  double time = 2;
+  int time = 2;
   while(1){
-    if(((diff_distance_first / time) < 0.08) && ((diff_distance_second / time) < 0.08)){
+    if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
       //時間は十分と判定
       break;
     } 
     time++;
   }
+
+  //時間のデバック
+  ROS_INFO("time=%d",time);
 
   //次の場所のサブゴールと時間を送信
   sub_goal_first.pose.pose.position.x = sub_goal_first_x[number+1];
