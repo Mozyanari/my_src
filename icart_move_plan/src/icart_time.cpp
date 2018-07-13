@@ -84,6 +84,8 @@ private:
   double set_target_time;
   //機体の目標速度
   double set_target_speed;
+  //機体の一つ前の目標速度
+  double old_set_target_speed;
 
   //何番目のフラグ
   int get_frag;
@@ -130,6 +132,7 @@ icart_time::icart_time(){
 
   //速度も0で初期化
   set_target_speed = 0;
+  old_set_target_speed = 0;
 
   //暴走を防ぐための初期化
   old_odom.pose.pose.orientation.w = 1.0;
@@ -152,13 +155,13 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   //amclで推定位置は分かるが更新頻度が少ないため，更新するまでの間はオドメトリで位置を補完する
   //まず，過去データからオフセット位置を計算
   double old_odom_theta = tf::getYaw(old_odom.pose.pose.orientation);
-  double old_odom_x = old_odom.pose.pose.position.x - (ss * cos(old_odom_theta));
-  double old_odom_y = old_odom.pose.pose.position.y - (ss * sin(old_odom_theta));
+  double old_odom_x = old_odom.pose.pose.position.x - (s * cos(old_odom_theta));
+  double old_odom_y = old_odom.pose.pose.position.y - (s * sin(old_odom_theta));
 
   //現在のオドメトリのオフセット位置を計算
   double odom_theta = tf::getYaw(odom.pose.pose.orientation);
-  double odom_x = odom.pose.pose.position.x - (ss * cos(odom_theta));
-  double odom_y = odom.pose.pose.position.y - (ss * sin(odom_theta));
+  double odom_x = odom.pose.pose.position.x - (s * cos(odom_theta));
+  double odom_y = odom.pose.pose.position.y - (s * sin(odom_theta));
 
   //オフセット位置の進み具合を計算
   double diff_odom_x = old_odom_x - odom_x;
@@ -215,17 +218,31 @@ void icart_time::calc_target_speed(void){
 
     //目標位置までの直線距離
     double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
-    //直線距離が5cm以内ならもう速度の更新は行わない
-    if(diff_distance<0.05){
-      return;
-    }
+
     //目標時間で到達するための速度を計算
-    set_target_speed = (diff_distance / diff_time);
+    double calc_target_speed = (diff_distance / diff_time);
 
     //実機での想定最高スピードを超えないようにする
-    if(Max_speed < set_target_speed){
-      set_target_speed = Max_speed;
+    if(Max_speed < calc_target_speed){
+      calc_target_speed = Max_speed;
     }
+    //速度更新の判定
+    //直線距離が10cm以内ならもう速度を上げることは行わない
+    if(diff_distance<0.10){
+      //速度が一つ前より早いかどうかを判定
+      if(old_set_target_speed < calc_target_speed){
+        //早いなら更新なし
+        set_target_speed = old_set_target_speed;
+      }else{
+        //遅いなら更新
+        set_target_speed = calc_target_speed;
+      }
+    }else{
+      //10cmより離れているなら速度の更新
+      set_target_speed = calc_target_speed;
+    }
+    //一つ前の速度を保存
+    old_set_target_speed = set_target_speed;
 }
 
 //ホイール速度の計算と速度のpublish
