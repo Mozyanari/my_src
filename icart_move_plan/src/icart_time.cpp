@@ -76,6 +76,9 @@ private:
   //最高速度[m/s]
   double Max_speed;
 
+  //制限加速度
+  double Reg_acc;
+
   //機体の目標位置
   double set_target_x;
   double set_target_y;
@@ -124,6 +127,10 @@ icart_time::icart_time(){
   //最高速度:0.1[m/s],100[mm/s]
   Max_speed = 0.1;
 
+  //制限加速度
+  Reg_acc = 0.01;
+
+
   //機体間距離[m]570mm
   distance_multi = 0.57;
 
@@ -169,7 +176,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_theta = old_odom_theta - odom_theta;
 
   //amclの推定位置とオドメトリからオフセット位置を修正
-  world_offset_position_x = odom_offset.x + diff_odom_x;  
+  world_offset_position_x = odom_offset.x + diff_odom_x;
   world_offset_position_y = odom_offset.y + diff_odom_y;
   rad = odom_offset.theta + diff_odom_theta;
 
@@ -186,7 +193,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   odom_offset_true.y = world_offset_position_y;
   odom_offset_true.theta = rad;
   pub_odom_true.publish(odom_offset_true);
-
+  
   //目標時間と現在の位置からマシンの速度を計算
   calc_target_speed();
   //ホイールの速度を生成
@@ -219,13 +226,22 @@ void icart_time::calc_target_speed(void){
     //目標位置までの直線距離
     double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
 
+    //目標
+    double a = 2*Reg_acc*diff_time*old_set_target_speed + (pow(Reg_acc,2))*(pow(diff_time,2)) - 2*Reg_acc*diff_distance;
+    //ここが負になるのは目標時間内にこのままの制限加速度だと到着が不可能なので，満たす制限加速度にする
+    if(a<0){
+      //求めなくても満たす制限加速度を与えるとa=0になる
+      a=0;
+    }
     //目標時間で到達するための速度を計算
-    double calc_target_speed = (diff_distance / diff_time);
+    double calc_target_speed = old_set_target_speed + (Reg_acc * diff_time) - sqrt(a);
 
+    ROS_INFO("calc_target_speed=%f",calc_target_speed);
     //実機での想定最高スピードを超えないようにする
     if(Max_speed < calc_target_speed){
       calc_target_speed = Max_speed;
     }
+    /*
     //速度更新の判定
     //直線距離が10cm以内ならもう速度を上げることは行わない
     if(diff_distance<0.10){
@@ -241,7 +257,9 @@ void icart_time::calc_target_speed(void){
       //10cmより離れているなら速度の更新
       set_target_speed = calc_target_speed;
     }
-    //一つ前の速度を保存
+    */
+   set_target_speed = calc_target_speed;
+    //次回使用する一つ前の速度を保存
     old_set_target_speed = set_target_speed;
 }
 
@@ -272,7 +290,7 @@ void icart_time::calc_wheel_speed(void){
   twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
 
   //計算したTopicを送る
-  ROS_INFO("get_frag=%d",get_frag);
+  //ROS_INFO("get_frag=%d",get_frag);
   pub_vel.publish(twist);
   //ROS_INFO("x_flag=%d",x_flag);
   //ROS_INFO("y_flag=%d",y_flag);

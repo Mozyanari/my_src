@@ -77,7 +77,7 @@
   <!--amclによる推定位置から推定オフセット位置の計算-->
   <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
   <!--オフセットを考慮した動作プログラム-->
-  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time">
+  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time" output="screen">
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
@@ -116,7 +116,7 @@
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
 
   <!--オフセットを考慮した動作プログラム-->
-  <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time">
+  <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time" output="screen">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
   </node>
@@ -131,5 +131,6 @@
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+
 
 </launch>
