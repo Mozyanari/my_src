@@ -11,7 +11,7 @@
     <remap from="/ypspur_ros_second/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
   </node>
   <!--move_node-->
-  <node pkg="icart_move_plan" type="path_planning_speed_control" name="path_planning">
+  <node pkg="icart_path_plan" type="path_planning_speed_control" name="path_planning">
     <remap from="/ypspur_ros_first/odom" to="/icart_first/diff_drive_controller/odom"/>
     <remap from="/ypspur_ros_second/odom" to="/icart_second/diff_drive_controller/odom"/>
   </node>
