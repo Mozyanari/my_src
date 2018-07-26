@@ -57,6 +57,8 @@ private:
 
   //amclによる機体のオフセット位置のデータ受信
   geometry_msgs::Pose2D odom_offset;
+  //amclによる機体のオフセット位置の一時保管
+  geometry_msgs::Pose2D odom_offset_storege;
 
   //オドメトリを用いて修正した位置のデータ送信
   geometry_msgs::Pose2D odom_offset_true;
@@ -169,9 +171,9 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double odom_y = odom.pose.pose.position.y - (s * sin(odom_theta));
 
   //オフセット位置の進み具合を計算
-  double diff_odom_x = old_odom_x - odom_x;
-  double diff_odom_y = old_odom_y - odom_y;
-  double diff_odom_theta = old_odom_theta - odom_theta;
+  double diff_odom_x = odom_x - old_odom_x;
+  double diff_odom_y = odom_y - old_odom_y;
+  double diff_odom_theta = odom_theta - old_odom_theta;
 
   //amclの推定位置とオドメトリからオフセット位置を修正
   world_offset_position_x = odom_offset.x + diff_odom_x;
@@ -199,11 +201,20 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
 }
 void icart_time::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体の状態データ
-  //機体のデータ受信
-  odom_offset = *msg;
+  //機体の位置情報を一時保管
+  odom_offset_storege = *msg;
 
-  //補間するためのodomを保存
-  old_odom = odom;
+  //最初だけodom_offset_storegeを使って初期位置を更新
+  static bool initialized = false;
+    if (!initialized)
+    {
+      //amclの自己位置推定の更新
+      odom_offset = odom_offset_storege;
+      //補間するためのodomを保存
+      old_odom = odom;
+
+      initialized = true;
+    }
 }
 //目標時間と現在の位置からマシンの速度を計算
 void icart_time::calc_target_speed(void){
@@ -315,6 +326,12 @@ void icart_time::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   set_target_y=target_point.pose.pose.position.y;
   //フラグの番号を更新
   get_frag = target_point.pose.pose.position.z;
+
+  //amclの自己位置推定の更新
+  odom_offset = odom_offset_storege;
+  //補間するためのodomを保存
+  old_odom = odom;
+
   //目標時間の受信はその都度計算する
   //set_target_time = target_point.header.stamp.toSec();
 
