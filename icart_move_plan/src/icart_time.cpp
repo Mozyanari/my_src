@@ -119,8 +119,6 @@ icart_time::icart_time(){
   d = 0.178;
   //オフセット距離[m]160mm
   s = 0.16;
-  //シミュレーション時のオドメトリからオフセットまでの距離
-  ss = 0.055;
   //機体の角度
   rad = 0.0;
 
@@ -128,7 +126,7 @@ icart_time::icart_time(){
   Max_speed = 0.1;
 
   //制限加速度
-  Reg_acc = 0.01;
+  Reg_acc = 0.1;
 
 
   //機体間距離[m]570mm
@@ -284,10 +282,20 @@ void icart_time::calc_wheel_speed(void){
   //左の車輪計算
   double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
 
+  ROS_INFO("omega_r=%f",omega_r);
+  ROS_INFO("omega_l=%f",omega_l);
+
   //速度のpublish
   //車輪の計算からx方向とω方向の速度計算
   twist.linear.x  = (r*(omega_r + omega_l)) / 2;
   twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
+
+  //関連する速度のデバック
+  twist.angular.x = x_vel;
+  twist.angular.y = y_vel;
+
+  twist.linear.y = omega_l;
+  twist.linear.z = omega_r;
 
   //計算したTopicを送る
   //ROS_INFO("get_frag=%d",get_frag);
