@@ -51,6 +51,7 @@
   <!--amcl-->
   <node ns="first" name="amcl" pkg="amcl" type="amcl">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
+    <remap from="/first/map" to="/map" />
 
     <param name="odom_alpha1" type="double" value="7" />
     <param name="odom_alpha2" type="double" value="7" />
@@ -61,6 +62,8 @@
     <param name="max_particles" type="int" value="500" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.08" />
+
+    <param name="use_map_topic" type="bool" value="true" />
 
     <param name="initial_pose_x" type="double" value="1.0" />
     <param name="initial_pose_y" type="double" value="0.0" />
@@ -72,7 +75,7 @@
 
     <param name="odom_frame_id" value="odom_first" type="string"/>
     <param name="base_frame_id" value="base_link_first" type="string"/>
-    <param name="global_frame_id" value="map" type="string"/>
+    <param name="global_frame_id" value="/map" type="string"/>
   </node>
   <!--amclによる推定位置から推定オフセット位置の計算-->
   <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
@@ -81,13 +84,12 @@
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
-  <!--map_serverを立ち上げてマップを出力-->
-  <node ns="first" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
 
   <!--secondの自己位置推定-->
   <!--amcl-->
   <node ns="second" name="amcl" pkg="amcl" type="amcl">
     <remap from="/second/scan" to="/icart_second/laser/scan" />
+    <remap from="/second/map" to="/map" />
 
     <param name="odom_alpha1" type="double" value="7" />
     <param name="odom_alpha2" type="double" value="7" />
@@ -99,6 +101,8 @@
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.08" />
 
+    <param name="use_map_topic" type="bool" value="true" />
+
     <param name="initial_pose_x" type="double" value="0.0" />
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
@@ -109,25 +113,24 @@
 
     <param name="odom_frame_id" value="odom_second" type="string"/>
     <param name="base_frame_id" value="base_link_second" type="string"/>
-    <param name="global_frame_id" value="map" type="string"/>
+    <param name="global_frame_id" value="/map" type="string"/>
 
   </node>
   <!--amclによる推定位置から推定オフセット位置の計算-->
   <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
 
   <!--オフセットを考慮した動作プログラム-->
-  <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time" output="screen">
+  <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
   </node>
-
-  <!--map_serverを立ち上げてマップを出力-->
-  <node ns="second" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
 
   <!--協調搬送のパスプランプログラム-->
   <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time"/>
   <!--time_controlerノード-->
   <node pkg="icart_path_plan" type="time_controler" name="time_controler"/>
+  <!--data収集-->
+  <node pkg="icart_move_plan" type="data_create" name="data_create" />
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
