@@ -1,7 +1,8 @@
 //搬送物のサブゴール間の距離
-#define separete_distance 1.0
+#define separete_distance 0.5
 //搬送物の角度の間隔
 #define separate_theta 0.174532
+
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -100,6 +101,9 @@ private:
   double distance_multi;
   //制御点までの距離
   double control_point;
+  //一つ前の目標スピード
+  double old_target_speed_first;
+  double old_target_speed_second;
 
 /*
 目標位置データ関係
@@ -169,6 +173,9 @@ path_plan_time::path_plan_time(){
   //制御点までの距離
   control_point = distance_multi / 2;
 
+  //一つ前の目標スピード
+  old_target_speed_first=0;
+  old_target_speed_second=0;
 /*
 目標位置データ関係
 */
@@ -337,8 +344,9 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //まずは今の位置からサブゴールまでの距離
   double diff_distance_first = sqrt( (pow((sub_goal_first_x[0] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[0] - world_offset_position_y_first,2)) );
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[0] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[0] - world_offset_position_y_second,2)) );
+  
   //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
-  double time = 2;
+  double time = 10;
   while(1){
     if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
       //時間は十分と判定
@@ -346,6 +354,35 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
     }
     time++;
   }
+/*
+  //できるだけ一定の速度で走って欲しい
+  double v = 0.04;
+  while(1){
+    if(((diff_distance_first / v) > 2) && ((diff_distance_second / v) > 2)){
+      break;
+    }
+    //速度を小さくする
+    if(v>0){
+      v-=0.01;
+    }else{
+      break;
+    }
+  }
+  //時間が長くかかる方を取る
+  double first_time = diff_distance_first / v;
+  double second_time = diff_distance_second / v;
+
+  //時間を設定
+  double time = 0;
+  if(first_time > second_time){
+    time = first_time;
+  }else{
+    time = second_time;
+  }
+  */
+
+
+  
   //時間をデバック
   ROS_INFO("time=%f",time);
   //位置と時間と番号を代入
@@ -414,16 +451,41 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   //時間を計算
   double diff_distance_first = sqrt( (pow((sub_goal_first_x[number+1] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[number+1] - world_offset_position_y_first,2)) );
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[number+1] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[number+1] - world_offset_position_y_second,2)) );
-
-  //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
-  int time = 2;
+  //遅延が1秒あると考えて，最高速度は0.04m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
+  int time = 10;
   while(1){
-    if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
+    if(((diff_distance_first / (double)time) < use_speed) && ((diff_distance_second / (double)time) < use_speed)){
       //時間は十分と判定
       break;
-    } 
+    }
     time++;
   }
+ /*
+  //できるだけ一定の速度で走って欲しい
+  double v = 0.04;
+  while(1){
+    if(((diff_distance_first / v) > 2) && ((diff_distance_second / v) > 2)){
+      break;
+    }
+    //速度を小さくする
+    if(v>0){
+      v-=0.01;
+    }else{
+      break;
+    }
+  }
+  //時間が長くかかる方を取る
+  double first_time = diff_distance_first / v;
+  double second_time = diff_distance_second / v;
+
+  //時間を設定
+  double time = 0;
+  if(first_time > second_time){
+    time = first_time;
+  }else{
+    time = second_time;
+  }
+  */
 
   //時間のデバック
   ROS_INFO("time=%d",time);

@@ -76,6 +76,9 @@ private:
   //最高速度[m/s]
   double Max_speed;
 
+  //制限加速度
+  double Reg_acc;
+
   //機体の目標位置
   double set_target_x;
   double set_target_y;
@@ -84,6 +87,8 @@ private:
   double set_target_time;
   //機体の目標速度
   double set_target_speed;
+  //機体の一つ前の目標速度
+  double old_set_target_speed;
 
   //何番目のフラグ
   int get_frag;
@@ -114,13 +119,15 @@ icart_time::icart_time(){
   d = 0.178;
   //オフセット距離[m]160mm
   s = 0.16;
-  //シミュレーション時のオドメトリからオフセットまでの距離
-  ss = 0.055;
   //機体の角度
   rad = 0.0;
 
   //最高速度:0.1[m/s],100[mm/s]
   Max_speed = 0.1;
+
+  //制限加速度
+  Reg_acc = 0.1;
+
 
   //機体間距離[m]570mm
   distance_multi = 0.57;
@@ -130,6 +137,7 @@ icart_time::icart_time(){
 
   //速度も0で初期化
   set_target_speed = 0;
+  old_set_target_speed = 0;
 
   //暴走を防ぐための初期化
   old_odom.pose.pose.orientation.w = 1.0;
@@ -152,13 +160,13 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   //amclで推定位置は分かるが更新頻度が少ないため，更新するまでの間はオドメトリで位置を補完する
   //まず，過去データからオフセット位置を計算
   double old_odom_theta = tf::getYaw(old_odom.pose.pose.orientation);
-  double old_odom_x = old_odom.pose.pose.position.x - (ss * cos(old_odom_theta));
-  double old_odom_y = old_odom.pose.pose.position.y - (ss * sin(old_odom_theta));
+  double old_odom_x = old_odom.pose.pose.position.x - (s * cos(old_odom_theta));
+  double old_odom_y = old_odom.pose.pose.position.y - (s * sin(old_odom_theta));
 
   //現在のオドメトリのオフセット位置を計算
   double odom_theta = tf::getYaw(odom.pose.pose.orientation);
-  double odom_x = odom.pose.pose.position.x - (ss * cos(odom_theta));
-  double odom_y = odom.pose.pose.position.y - (ss * sin(odom_theta));
+  double odom_x = odom.pose.pose.position.x - (s * cos(odom_theta));
+  double odom_y = odom.pose.pose.position.y - (s * sin(odom_theta));
 
   //オフセット位置の進み具合を計算
   double diff_odom_x = old_odom_x - odom_x;
@@ -166,7 +174,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_theta = old_odom_theta - odom_theta;
 
   //amclの推定位置とオドメトリからオフセット位置を修正
-  world_offset_position_x = odom_offset.x + diff_odom_x;  
+  world_offset_position_x = odom_offset.x + diff_odom_x;
   world_offset_position_y = odom_offset.y + diff_odom_y;
   rad = odom_offset.theta + diff_odom_theta;
 
@@ -183,7 +191,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   odom_offset_true.y = world_offset_position_y;
   odom_offset_true.theta = rad;
   pub_odom_true.publish(odom_offset_true);
-
+  
   //目標時間と現在の位置からマシンの速度を計算
   calc_target_speed();
   //ホイールの速度を生成
@@ -215,17 +223,42 @@ void icart_time::calc_target_speed(void){
 
     //目標位置までの直線距離
     double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
-    //直線距離が5cm以内ならもう速度の更新は行わない
-    if(diff_distance<0.05){
-      return;
+
+    //目標
+    double a = 2*Reg_acc*diff_time*old_set_target_speed + (pow(Reg_acc,2))*(pow(diff_time,2)) - 2*Reg_acc*diff_distance;
+    //ここが負になるのは目標時間内にこのままの制限加速度だと到着が不可能なので，満たす制限加速度にする
+    if(a<0){
+      //求めなくても満たす制限加速度を与えるとa=0になる
+      a=0;
     }
     //目標時間で到達するための速度を計算
-    set_target_speed = (diff_distance / diff_time);
+    double calc_target_speed = old_set_target_speed + (Reg_acc * diff_time) - sqrt(a);
 
+    ROS_INFO("calc_target_speed=%f",calc_target_speed);
     //実機での想定最高スピードを超えないようにする
-    if(Max_speed < set_target_speed){
-      set_target_speed = Max_speed;
+    if(Max_speed < calc_target_speed){
+      calc_target_speed = Max_speed;
     }
+    /*
+    //速度更新の判定
+    //直線距離が10cm以内ならもう速度を上げることは行わない
+    if(diff_distance<0.10){
+      //速度が一つ前より早いかどうかを判定
+      if(old_set_target_speed < calc_target_speed){
+        //早いなら更新なし
+        set_target_speed = old_set_target_speed;
+      }else{
+        //遅いなら更新
+        set_target_speed = calc_target_speed;
+      }
+    }else{
+      //10cmより離れているなら速度の更新
+      set_target_speed = calc_target_speed;
+    }
+    */
+   set_target_speed = calc_target_speed;
+    //次回使用する一つ前の速度を保存
+    old_set_target_speed = set_target_speed;
 }
 
 //ホイール速度の計算と速度のpublish
@@ -249,13 +282,23 @@ void icart_time::calc_wheel_speed(void){
   //左の車輪計算
   double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
 
+  ROS_INFO("omega_r=%f",omega_r);
+  ROS_INFO("omega_l=%f",omega_l);
+
   //速度のpublish
   //車輪の計算からx方向とω方向の速度計算
   twist.linear.x  = (r*(omega_r + omega_l)) / 2;
   twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
 
+  //関連する速度のデバック
+  twist.angular.x = x_vel;
+  twist.angular.y = y_vel;
+
+  twist.linear.y = omega_l;
+  twist.linear.z = omega_r;
+
   //計算したTopicを送る
-  ROS_INFO("get_frag=%d",get_frag);
+  //ROS_INFO("get_frag=%d",get_frag);
   pub_vel.publish(twist);
   //ROS_INFO("x_flag=%d",x_flag);
   //ROS_INFO("y_flag=%d",y_flag);

@@ -62,7 +62,7 @@ void time_controler::time_checker(const ros::TimerEvent&){
   //到着時間に近いかどうかの判定
   double diff_time = (receive_time.stamp - ros::Time::now()).toSec();
   //0.1s以内なら次のサブゴールを送信する信号を出す
-  if(diff_time < 0.1){
+  if(diff_time < 1.0){
     time_controler.data = receive_time.seq;
     ROS_INFO("receive_time.seq=%d",receive_time.seq);
     pub_time_controler.publish(time_controler);
