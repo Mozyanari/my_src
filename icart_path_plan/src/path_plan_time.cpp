@@ -166,8 +166,8 @@ path_plan_time::path_plan_time(){
   Max_speed = 0.1;
   //最低速度:0.05[m/s],50[mm/s]
   Min_speed = 0.05;
-  //使用速度:0.04[m/s]
-  use_speed = 0.04;
+  //使用速度:0.01[m/s]
+  use_speed = 0.01;
   //機体間距離[m]570mm,シミュレーション1m
   distance_multi = 1.0;
   //制御点までの距離
@@ -390,11 +390,13 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   sub_goal_first.pose.pose.position.y = sub_goal_first_y[0];
   sub_goal_first.pose.pose.position.z = 0;
   sub_goal_first.header.stamp = ros::Time::now() + ros::Duration(time);
+  sub_goal_first.pose.pose.orientation.w = time;
 
   sub_goal_second.pose.pose.position.x = sub_goal_second_x[0];
   sub_goal_second.pose.pose.position.y = sub_goal_second_y[0];
   sub_goal_second.pose.pose.position.z = 0;
   sub_goal_second.header.stamp = ros::Time::now() + ros::Duration(time);
+  sub_goal_second.pose.pose.orientation.w = time;
 
   //データを送信
   pub_target_point_first.publish(sub_goal_first);
