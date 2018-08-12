@@ -80,11 +80,13 @@ private:
   double target_point_first_x;
   double target_point_first_y;
   double target_point_first_yaw;
+  double target_time_first;
 
   //target_point_second
   double target_point_second_x;
   double target_point_second_y;
   double target_point_second_yaw;
+  double target_time_second;
 
   //first_speed
   double x_vel_first;
@@ -185,16 +187,18 @@ void data_create::cb_target_point(const geometry_msgs::Pose2D::ConstPtr &positio
 void data_create::cb_target_point_first(const nav_msgs::Odometry::ConstPtr &position){
   target_point_first_x = position->pose.pose.position.x;
   target_point_first_y = position->pose.pose.position.y;
+  target_time_first = position->pose.pose.orientation.w;
 }
 
 void data_create::cb_target_point_second(const nav_msgs::Odometry::ConstPtr &position){
   target_point_second_x = position->pose.pose.position.x;
   target_point_second_y = position->pose.pose.position.y;
+  target_time_second = position->pose.pose.orientation.w;
 }
 
 void data_create::cb_vel_first(const geometry_msgs::Twist::ConstPtr &speed){
   x_vel_first=speed->angular.x;
-  x_vel_first=speed->angular.y;
+  y_vel_first=speed->angular.y;
   omega_r_first=speed->linear.z;
   omega_l_first=speed->linear.y;
   machine_x_first=speed->linear.x;
@@ -203,7 +207,7 @@ void data_create::cb_vel_first(const geometry_msgs::Twist::ConstPtr &speed){
 
 void data_create::cb_vel_second(const geometry_msgs::Twist::ConstPtr &speed){
   x_vel_second=speed->angular.x;
-  x_vel_second=speed->angular.y;
+  y_vel_second=speed->angular.y;
   omega_r_second=speed->linear.z;
   omega_l_second=speed->linear.y;
   machine_x_second=speed->linear.x;
