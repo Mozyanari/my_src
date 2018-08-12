@@ -57,8 +57,6 @@ private:
 
   //amclによる機体のオフセット位置のデータ受信
   geometry_msgs::Pose2D odom_offset;
-  //amclによる機体のオフセット位置の一時保管
-  geometry_msgs::Pose2D odom_offset_storege;
 
   //オドメトリを用いて修正した位置のデータ送信
   geometry_msgs::Pose2D odom_offset_true;
@@ -128,7 +126,7 @@ icart_time::icart_time(){
   Max_speed = 0.1;
 
   //制限加速度
-  Reg_acc = 0.1;
+  Reg_acc = 0.01;
 
 
   //機体間距離[m]570mm
@@ -201,20 +199,11 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
 }
 void icart_time::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体の状態データ
-  //機体の位置情報を一時保管
-  odom_offset_storege = *msg;
+  //機体のデータ受信
+  odom_offset = *msg;
 
-  //最初だけodom_offset_storegeを使って初期位置を更新
-  static bool initialized = false;
-    if (!initialized)
-    {
-      //amclの自己位置推定の更新
-      odom_offset = odom_offset_storege;
-      //補間するためのodomを保存
-      old_odom = odom;
-
-      initialized = true;
-    }
+  //補間するためのodomを保存
+  old_odom = odom;
 }
 //目標時間と現在の位置からマシンの速度を計算
 void icart_time::calc_target_speed(void){
@@ -287,26 +276,29 @@ void icart_time::calc_wheel_speed(void){
   double x_vel = set_target_speed * cos(target_rad);
   double y_vel = set_target_speed * sin(target_rad);
 
-  //左右の車輪の速度を計算
+    //左右の車輪の速度を計算
   //右の車輪計算
-  double omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
+  //double omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
   //左の車輪計算
-  double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
+  //double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
 
-  ROS_INFO("omega_r=%f",omega_r);
-  ROS_INFO("omega_l=%f",omega_l);
+  //ROS_INFO("omega_r=%f",omega_r);
+  //ROS_INFO("omega_l=%f",omega_l);
 
   //速度のpublish
   //車輪の計算からx方向とω方向の速度計算
-  twist.linear.x  = (r*(omega_r + omega_l)) / 2;
-  twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
+  //twist.linear.x  = (r*(omega_r + omega_l)) / 2;
+  //twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
+
+  twist.linear.x = x_vel * cos(rad) + y_vel * sin(rad);
+  twist.angular.z = 1/s * (x_vel * sin(rad) - y_vel * cos(rad));
 
   //関連する速度のデバック
   twist.angular.x = x_vel;
   twist.angular.y = y_vel;
 
-  twist.linear.y = omega_l;
-  twist.linear.z = omega_r;
+  //twist.linear.y = omega_l;
+  //twist.linear.z = omega_r;
 
   //計算したTopicを送る
   //ROS_INFO("get_frag=%d",get_frag);
@@ -326,12 +318,6 @@ void icart_time::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   set_target_y=target_point.pose.pose.position.y;
   //フラグの番号を更新
   get_frag = target_point.pose.pose.position.z;
-
-  //amclの自己位置推定の更新
-  odom_offset = odom_offset_storege;
-  //補間するためのodomを保存
-  old_odom = odom;
-
   //目標時間の受信はその都度計算する
   //set_target_time = target_point.header.stamp.toSec();
 
