@@ -8,8 +8,8 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
-  <arg name="init_pose_first" value="-x 1.0 -y 0 -z 0.0001" />
-  <arg name="init_pose_second" value="-x 0.0 -y 0 -z 0.0001" />
+  <arg name="init_pose_first" value="-x 1.0 -y 0.0 -z 0.0001" />
+  <arg name="init_pose_second" value="-x 0.0 -y 0.0 -z 0.0001" />
 
   <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
 
