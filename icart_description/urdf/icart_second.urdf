@@ -259,4 +259,18 @@
       </plugin>
     </sensor>
   </gazebo>
+
+  <!-- ground_truth_position -->
+  <gazebo>
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+     <alwaysOn>true</alwaysOn>
+     <updateRate>100.0</updateRate>
+     <bodyName>base_link_second</bodyName>
+     <topicName>/icart_second/pose_ground_truth</topicName>
+     <gaussianNoise>0</gaussianNoise>
+     <frameName>map</frameName>
+     <xyzOffsets>0 0 0</xyzOffsets>
+     <rpyOffsets>0 0 0</rpyOffsets>
+   </plugin>
+ </gazebo>
 </robot>
