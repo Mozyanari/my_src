@@ -307,7 +307,7 @@
     <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
      <alwaysOn>true</alwaysOn>
      <updateRate>10.0</updateRate>
-     <bodyName>base_link_second_offset</bodyName>
+     <bodyName>base_foot_print_second</bodyName>
      <topicName>/icart_second/pose_ground_truth</topicName>
      <gaussianNoise>0</gaussianNoise>
      <frameName>map</frameName>
