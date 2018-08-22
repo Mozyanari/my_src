@@ -6,13 +6,23 @@
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Odometry.h>
 
+//2次元のデータ構造体
+struct data_2D{
+    double x;
+    double y;
+    double thata;
+};
+
 class data_create{
 public:
   data_create();
 private:
-  //機体からのオドメトリ取得
+  //推定した機体のオフセット位置
   void cb_odom_first(const geometry_msgs::Pose2D::ConstPtr &msg);
   void cb_odom_second(const geometry_msgs::Pose2D::ConstPtr &msg);
+  //シミュレーション上の真値のオフセット位置
+  void cb_gazebo_odom_first(const geometry_msgs::Pose2D::ConstPtr &msg);
+  void cb_gazebo_odom_second(const geometry_msgs::Pose2D::ConstPtr &msg);
   //目標位置を取得
   void cb_target_point(const geometry_msgs::Pose2D::ConstPtr &position);
   //機体の目標位置
@@ -21,6 +31,7 @@ private:
   //機体の速度
   void cb_vel_first(const geometry_msgs::Twist::ConstPtr &speed);
   void cb_vel_second(const geometry_msgs::Twist::ConstPtr &speed);
+  
 
 
   //一秒ごとにデバックするための関数
@@ -31,6 +42,8 @@ private:
 
   ros::Subscriber sub_odom_first;
   ros::Subscriber sub_odom_second;
+  ros::Subscriber sub_gazebo_odom_first;
+  ros::Subscriber sub_gazebo_odom_second;
   ros::Subscriber sub_tf_distance;
   ros::Subscriber sub_target_point;
   ros::Subscriber sub_target_point_first;
@@ -64,6 +77,13 @@ private:
   double world_offset_position_x_control;
   double world_offset_position_y_control;
   double world_offset_position_theta_control;
+
+  //gazebo上の真値
+  geometry_msgs::Pose2D gazebo_first;
+
+  geometry_msgs::Pose2D gazebo_second;
+
+  geometry_msgs::Pose2D gazebo_control;
 
   //送信データ型
   geometry_msgs::PoseArray senddata;
@@ -116,6 +136,8 @@ data_create::data_create(){
   //購読するトピックの定義
   sub_odom_first = nh.subscribe("/first/offset_odom_true", 5, &data_create::cb_odom_first,this);
   sub_odom_second = nh.subscribe("/second/offset_odom_true", 5, &data_create::cb_odom_second,this);
+  sub_gazebo_odom_first = nh.subscribe("/first/pose_offset_truth", 5, &data_create::cb_gazebo_odom_first,this);
+  sub_gazebo_odom_second = nh.subscribe("/second/pose_offset_truth", 5, &data_create::cb_gazebo_odom_second,this);
   sub_target_point = nh.subscribe("/target_point", 5, &data_create::cb_target_point,this);
   sub_target_point_first = nh.subscribe("/first/target_point", 5, &data_create::cb_target_point_first,this);
   sub_target_point_second = nh.subscribe("/second/target_point", 5, &data_create::cb_target_point_second,this);
@@ -176,6 +198,18 @@ void data_create::cb_odom_second(const geometry_msgs::Pose2D::ConstPtr &msg){
   world_offset_position_theta_second = rad_second;
 }
 
+//gazebo_true_position
+//cb_gazebo_odom_first関数定義
+void data_create::cb_gazebo_odom_first(const geometry_msgs::Pose2D::ConstPtr &msg){
+  gazebo_first = *msg;
+}
+
+//cb_gazebo_odom_second関数定義
+//機体のオドメトリデータの取得
+void data_create::cb_gazebo_odom_second(const geometry_msgs::Pose2D::ConstPtr &msg){
+  gazebo_second = *msg;
+}
+
 void data_create::cb_target_point(const geometry_msgs::Pose2D::ConstPtr &position){
   geometry_msgs::Pose2D point = *position;
 
@@ -222,6 +256,14 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   //制御点間の計算
   tf_distance = sqrt( (pow((world_offset_position_x_first - world_offset_position_x_second),2)) + (pow((world_offset_position_y_first - world_offset_position_y_second),2)) );
   
+  //gazebo上の搬送物の制御点の位置と姿勢
+  gazebo_control.x = (gazebo_first.x + gazebo_second.x)/2.0;
+  gazebo_control.y = (gazebo_first.y + gazebo_second.y)/2.0;
+  gazebo_control.theta = atan2(gazebo_first.y - gazebo_second.y, gazebo_first.x - gazebo_second.x);
+
+  //gazebo上の制御点間の計算
+  double gazebo_tf_distance = sqrt( (pow((gazebo_first.x - gazebo_second.x),2)) + (pow((gazebo_first.y - gazebo_second.y),2)) );
+
   geometry_msgs::Pose data;
   //送信のために値を代入
   senddata.poses.clear();
@@ -245,27 +287,47 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   data.position.z = world_offset_position_theta_second;
   senddata.poses.push_back(data);
 
-  //目標位置
+  //gazebo上の真値
   //3(搬送物)
+  data.position.x = gazebo_control.x;
+  data.position.y = gazebo_control.y;
+  data.position.z = gazebo_control.theta;
+  data.orientation.x = gazebo_tf_distance;
+  senddata.poses.push_back(data);
+
+  //4(first)
+  data.position.x = gazebo_first.x;
+  data.position.y = gazebo_first.y;
+  data.position.z = gazebo_first.theta;
+  senddata.poses.push_back(data);
+
+  //5(second)
+  data.position.x = gazebo_second.x;
+  data.position.y = gazebo_second.y;
+  data.position.z = gazebo_second.theta;
+  senddata.poses.push_back(data);
+
+  //目標位置
+  //6(搬送物)
   data.position.x = target_point_x;
   data.position.y = target_point_y;
   data.position.z = target_point_yaw;
   senddata.poses.push_back(data);
 
-  //4(first)
+  //7(first)
   data.position.x = target_point_first_x;
   data.position.y = target_point_first_y;
   data.position.z = 0;
   senddata.poses.push_back(data);
 
-  //5(second)
+  //8(second)
   data.position.x = target_point_second_x;
   data.position.y = target_point_second_y;
   data.position.z = 0;
   senddata.poses.push_back(data);
 
   //速度
-  //6(first)
+  //9(first)
   data.position.x=x_vel_first;
   data.position.y=y_vel_first;
   data.orientation.x=machine_x_first;
@@ -274,7 +336,7 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   data.orientation.y=omega_r_first;
   senddata.poses.push_back(data);
 
-  //7(second)
+  //10(second)
   data.position.x=x_vel_second;
   data.position.y=y_vel_second;
   data.orientation.x=machine_x_second;
