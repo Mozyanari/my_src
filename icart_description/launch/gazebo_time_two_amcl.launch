@@ -3,13 +3,13 @@
   <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
 
   <arg name="paused" default="true"/>
-  <arg name="use_sim_time" default="true"/>
+  <arg name="use_sim_time" default="false"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
-  <arg name="init_pose_first" value="-x  0.5 -y 0.0 -z 0.0001" />
-  <arg name="init_pose_second" value="-x -0.5 -y 0.0 -z 0.0001" />
+  <arg name="init_pose_first" value="-x  0.66 -y 0.0 -z 0.0" />
+  <arg name="init_pose_second" value="-x -0.34 -y 0.0 -z 0.0" />
 
   <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
 
@@ -36,64 +36,17 @@
     args="$(arg init_pose_second) -urdf -model icart_second -param robot_description_second -reference_frame map">
   </node>
 
-  <!--first-->
-  <!--offset位置の出力-->
-  <node ns="first" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.055 0 0 0 0 0 base_link_first base_link_first_offset 10" respawn="true"/>
-
-  <!--second-->
-  <!--offset位置の出力-->
-  <node ns="second" pkg="tf" type="static_transform_publisher" name="offset_publisher" args="-0.055 0 0 0 0 0 base_link_second base_link_second_offset 10" respawn="true"/>
-
   <!--rvizの表示-->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
 
   <!--firstの自己位置推定-->
   <!--amcl-->
-  <node ns="first" name="amcl" pkg="amcl" type="amcl">
+  <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
 
-    <param name="odom_alpha1" type="double" value="7" />
-    <param name="odom_alpha2" type="double" value="7" />
-    <param name="odom_alpha3" type="double" value="3.5" />
-    <param name="odom_alpha4" type="double" value="3.5" />
-    <param name="laser_max_beams" type="int" value="150" />
-    <param name="min_particles" type="int" value="500" />
-    <param name="max_particles" type="int" value="2000" />
-    <param name="update_min_d" type="double" value="0.03" />
-    <param name="update_min_a" type="double" value="0.08" />
-
-
-    <param name="use_map_topic" type="bool" value="true" />
-
-    <param name="initial_pose_x" type="double" value="0.5" />
-    <param name="initial_pose_y" type="double" value="0.0" />
-    <param name="initial_pose_a" type="double" value="0.0" />
-
-    <param name="initial_cov_xx" type="double" value="0.0" />
-    <param name="initial_cov_yy" type="double" value="0.0" />
-    <param name="initial_cov_aa" type="double" value="0.0" />
-
-    <param name="odom_frame_id" value="odom_first" type="string"/>
-    <param name="base_frame_id" value="base_link_first" type="string"/>
-    <param name="global_frame_id" value="/map" type="string"/>
-  </node>
-  <!--amclによる推定位置から推定オフセット位置の計算-->
-  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position" output="screen"/>
-  <!--オフセットを考慮した動作プログラム-->
-  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time" output="screen">
-    <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
-    <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
-  </node>
-
-  <!--secondの自己位置推定-->
-  <!--amcl-->
-  <node ns="second" name="amcl" pkg="amcl" type="amcl">
-    <remap from="/second/scan" to="/icart_second/laser/scan" />
-    <remap from="/second/map" to="/map" />
-
-    <param name="odom_alpha1" type="double" value="7" />
-    <param name="odom_alpha2" type="double" value="7" />
+    <param name="odom_alpha1" type="double" value="7.0" />
+    <param name="odom_alpha2" type="double" value="7.0" />
     <param name="odom_alpha3" type="double" value="3.5" />
     <param name="odom_alpha4" type="double" value="3.5" />
     <param name="laser_max_beams" type="int" value="150" />
@@ -105,7 +58,46 @@
 
     <param name="use_map_topic" type="bool" value="true" />
 
-    <param name="initial_pose_x" type="double" value="-0.5" />
+    <param name="initial_pose_x" type="double" value="0.66" />
+    <param name="initial_pose_y" type="double" value="0.0" />
+    <param name="initial_pose_a" type="double" value="0.0" />
+
+    <param name="initial_cov_xx" type="double" value="0.0" />
+    <param name="initial_cov_yy" type="double" value="0.0" />
+    <param name="initial_cov_aa" type="double" value="0.0" />
+
+    <param name="odom_frame_id" value="odom_first" type="string"/>
+    <param name="base_frame_id" value="base_foot_print_first" type="string"/>
+    <param name="global_frame_id" value="/map" type="string"/>
+  </node>
+  <!--amclによる推定位置から推定オフセット位置の計算-->
+  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
+  <!--オフセットを考慮した動作プログラム-->
+  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time">
+    <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
+    <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
+  </node>
+
+  <!--secondの自己位置推定-->
+  <!--amcl-->
+  <node ns="second" name="amcl" pkg="amcl" type="amcl">
+    <remap from="/second/scan" to="/icart_second/laser/scan" />
+    <remap from="/second/map" to="/map" />
+
+    <param name="odom_alpha1" type="double" value="7.0" />
+    <param name="odom_alpha2" type="double" value="7.0" />
+    <param name="odom_alpha3" type="double" value="3.5" />
+    <param name="odom_alpha4" type="double" value="3.5" />
+    <param name="laser_max_beams" type="int" value="10" />
+    <param name="min_particles" type="int" value="500" />
+    <param name="max_particles" type="int" value="2000" />
+    <param name="update_min_d" type="double" value="0.03" />
+    <param name="update_min_a" type="double" value="0.06" />
+
+
+    <param name="use_map_topic" type="bool" value="true" />
+
+    <param name="initial_pose_x" type="double" value="-0.34" />
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
 
@@ -114,7 +106,7 @@
     <param name="initial_cov_aa" type="double" value="0.0" />
 
     <param name="odom_frame_id" value="odom_second" type="string"/>
-    <param name="base_frame_id" value="base_link_second" type="string"/>
+    <param name="base_frame_id" value="base_foot_print_second" type="string"/>
     <param name="global_frame_id" value="/map" type="string"/>
 
   </node>
@@ -136,6 +128,16 @@
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+
+  <!--gazebo上のロボットの真値を取得して，オフセットの位置を取得-->
+  <!--icart_first-->
+  <node ns="first" pkg="icart_move_plan" type="Odometry_offset" name="Odometry_offset_first">
+    <remap from="pose_ground_truth" to="/icart_first/pose_ground_truth"/>
+  </node>
+  <!--icart_second-->
+  <node ns="second" pkg="icart_move_plan" type="Odometry_offset" name="Odometry_offset_second">
+    <remap from="pose_ground_truth" to="/icart_second/pose_ground_truth"/>
+  </node>
 
 
 </launch>
