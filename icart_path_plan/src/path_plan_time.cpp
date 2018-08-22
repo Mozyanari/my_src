@@ -1,5 +1,6 @@
 //搬送物のサブゴール間の距離
 #define separete_distance 0.5
+
 //搬送物の角度の間隔
 #define separate_theta 0.174532
 
@@ -10,7 +11,6 @@
 #include <geometry_msgs/Pose2D.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Header.h>
-
 
 #include <visualization_msgs/Marker.h>
 #include <string>
@@ -548,7 +548,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.01).sleep();
+    ros::Duration(0.1).sleep();
 
     //ROS_INFO("i=%d",i);
   }
@@ -583,7 +583,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.01).sleep();
+    ros::Duration(0.1).sleep();
 
     //ROS_INFO("i=%d",i);
   }
@@ -618,7 +618,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.01).sleep();
+    ros::Duration(0.1).sleep();
 
     //ROS_INFO("i=%d",i);
   }
