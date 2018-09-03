@@ -6,12 +6,6 @@
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Odometry.h>
 
-//2次元のデータ構造体
-struct data_2D{
-    double x;
-    double y;
-    double thata;
-};
 
 class data_create{
 public:
@@ -150,7 +144,7 @@ data_create::data_create(){
   pub_data = nh.advertise<geometry_msgs::PoseArray>("/send_data", 1000);
 
   //timer定義
-  timer = nh.createTimer(ros::Duration(0.1), &data_create::pub_send_data,this);
+  timer = nh.createTimer(ros::Duration(1.0), &data_create::pub_send_data,this);
 
   //オフセット距離[m]160mm
   s = 0.16;
