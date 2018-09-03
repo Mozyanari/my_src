@@ -191,7 +191,7 @@
   <!--base_link to hokuyo-->
   <joint name="hokuyo_joint_second" type="fixed">
     <axis xyz="0 0 0" />
-    <origin xyz="0 0 0.135" rpy="0 0 0"/>
+    <origin xyz="0 0 0.0825" rpy="0 0 3.141592"/>
     <parent link="base_foot_print_second"/>
     <child link="hokuyo_link_second"/>
   </joint>
@@ -270,7 +270,7 @@
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>
-      <update_rate>10</update_rate>
+      <update_rate>10.0</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -283,7 +283,7 @@
         <range>
           <min>0.8</min>
           <max>5.6</max>
-          <resolution>0.36</resolution>
+          <resolution>0.1</resolution>
         </range>
         <noise>
           <type>gaussian</type>
