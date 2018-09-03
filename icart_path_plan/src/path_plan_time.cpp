@@ -44,6 +44,7 @@ private:
   //使用関数
   void send_target_point(void);
   void send_target_marker(void);
+  void time_calc(void);
 
 
 /*
@@ -89,10 +90,10 @@ private:
   /*path_plan_time::path_plan_time()*/
   //機体の最高加速度[m/s^2]
   double acc_max;
+  //制限加速度
+  double Reg_acc;
   //最高速度[m/s]
   double Max_speed;
-  //最低速度
-  double Min_speed;
   //基準となる使用する速度
   double use_speed;
   //オフセット距離
@@ -101,6 +102,9 @@ private:
   double distance_multi;
   //制御点までの距離
   double control_point;
+  //今の目標スピード
+  double target_speed_first;
+  double target_speed_second;
   //一つ前の目標スピード
   double old_target_speed_first;
   double old_target_speed_second;
@@ -162,10 +166,11 @@ path_plan_time::path_plan_time(){
   s = 0.16;
   //機体の最高加速度:80[mm/s^2]
   acc_max = 0.08;
+  //制限加速度
+  Reg_acc = 0.01;
   //最高速度:0.1[m/s],100[mm/s]
   Max_speed = 0.1;
-  //最低速度:0.05[m/s],50[mm/s]
-  Min_speed = 0.05;
+
   //使用速度:0.01[m/s]
   use_speed = 0.01;
   //機体間距離[m]570mm,シミュレーション1m
@@ -344,9 +349,45 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //まずは今の位置からサブゴールまでの距離
   double diff_distance_first = sqrt( (pow((sub_goal_first_x[0] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[0] - world_offset_position_y_first,2)) );
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[0] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[0] - world_offset_position_y_second,2)) );
-  
-  //遅延が1秒あると考えて，最高速度は0.08m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
-  double time = 10;
+
+  //時間の計算
+
+  //それぞれのロボットに送信する時間の計算
+  double time = 1;
+  double vi_judge_first;
+  double vi_judge_second;
+  while(1){
+    //viが実数解を持つ条件
+    vi_judge_first = 2*Reg_acc*time*old_target_speed_first + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_first;
+    vi_judge_second = 2*Reg_acc*time*old_target_speed_second + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_second;
+
+    //満たしていればbreak
+    if((vi_judge_first>0) && (vi_judge_second>0)){
+      break;
+    }
+    time = time + 0.01;
+    ROS_INFO("%f",time);
+  }
+
+  //使用速度を超えているか判定
+  while(1){
+    double target_speed_first = old_target_speed_first + (Reg_acc * time) - sqrt(vi_judge_first);
+    double target_speed_second = old_target_speed_second + (Reg_acc * time) - sqrt(vi_judge_second);
+
+    if((target_speed_first < use_speed) && (target_speed_second < use_speed)){
+      break;
+    }
+    //vi_judgeを更新
+    vi_judge_first = 2*Reg_acc*time*old_target_speed_first + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_first;
+    vi_judge_second = 2*Reg_acc*time*old_target_speed_second + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_second;
+    time = time + 0.01;
+    ROS_INFO("%f",time);
+  }
+  //次の計算のために更新
+  old_target_speed_first = target_speed_first;
+  old_target_speed_second = target_speed_second;
+
+  /*
   while(1){
     if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
       //時間は十分と判定
@@ -354,6 +395,8 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
     }
     time++;
   }
+  */
+
 /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;
@@ -381,6 +424,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   }
   */
 
+  
 
   
   //時間をデバック
@@ -453,8 +497,42 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   //時間を計算
   double diff_distance_first = sqrt( (pow((sub_goal_first_x[number+1] - world_offset_position_x_first),2)) + (pow(sub_goal_first_y[number+1] - world_offset_position_y_first,2)) );
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[number+1] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[number+1] - world_offset_position_y_second,2)) );
-  //遅延が1秒あると考えて，最高速度は0.04m/sだから少なくとも1秒あれば次の位置に行けるようにしたい
-  int time = 10;
+  
+  //それぞれのロボットに送信する時間の計算
+  double time = 1;
+  double vi_judge_first;
+  double vi_judge_second;
+  while(1){
+    //viが実数解を持つ条件
+    vi_judge_first = 2*Reg_acc*time*old_target_speed_first + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_first;
+    vi_judge_second = 2*Reg_acc*time*old_target_speed_second + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_second;
+
+    //満たしていればbreak
+    if((vi_judge_first>0) && (vi_judge_second>0)){
+      break;
+    }
+    time = time + 0.01;
+    ROS_INFO("%f",time);
+  }
+
+  //使用速度を超えているか判定
+  while(1){
+    double target_speed_first = old_target_speed_first + (Reg_acc * time) - sqrt(vi_judge_first);
+    double target_speed_second = old_target_speed_second + (Reg_acc * time) - sqrt(vi_judge_second);
+
+    if((target_speed_first < use_speed) && (target_speed_second < use_speed)){
+      break;
+    }
+    time = time + 0.01;
+    ROS_INFO("%f",time);
+    //vi_judgeを更新
+    vi_judge_first = 2*Reg_acc*time*old_target_speed_first + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_first;
+    vi_judge_second = 2*Reg_acc*time*old_target_speed_second + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_second;
+  }
+  //次の計算のために更新
+  old_target_speed_first = target_speed_first;
+  old_target_speed_second = target_speed_second;
+  /*
   while(1){
     if(((diff_distance_first / (double)time) < use_speed) && ((diff_distance_second / (double)time) < use_speed)){
       //時間は十分と判定
@@ -462,6 +540,7 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
     }
     time++;
   }
+  */
  /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;
@@ -490,7 +569,7 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   */
 
   //時間のデバック
-  ROS_INFO("time=%d",time);
+  ROS_INFO("time=%f",time);
 
   //次の場所のサブゴールと時間を送信
   sub_goal_first.pose.pose.position.x = sub_goal_first_x[number+1];
@@ -622,6 +701,10 @@ void path_plan_time::send_target_marker(void){
 
     //ROS_INFO("i=%d",i);
   }
+}
+
+void time_calc(void){
+  
 }
 
 //実行されるメイン関数---------------------------------------------------------------
