@@ -23,7 +23,31 @@
 <property name="wheel_iyy" value="${1.0/12.0*wheel_mass*(3.0*wr*wr+wl*wl)}"/>
 <property name="wheel_izz" value="${1.0/2.0*wheel_mass*wr*wr}"/>
 
+<!--stick-->
+<property name="sd"  value="0.030"/>
+<property name="sw"  value="0.030"/>
+<property name="sh"  value="0.200"/>
+<property name="stick_mass" value="0.1"/>
+<property name="stick_ixx" value="${1.0/12.0*stick_mass*(sw*sw+sh*sh)}"/>
+<property name="stick_iyy" value="${1.0/12.0*stick_mass*(sh*sh+sd*sd)}"/>
+<property name="stick_izz" value="${1.0/12.0*stick_mass*(sw*sw+sd*sd)}"/>
 
+<!--table-->
+<property name="tr" value="0.10"/>
+<property name="tl" value="0.01"/>
+<property name="table_mass" value="0.05"/>
+<property name="table_ixx" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_iyy" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_izz" value="${1.0/2.0*table_mass*tr*tr}"/>
+
+<!--stopper-->
+<property name="stopper_d"  value="0.060"/>
+<property name="stopper_w"  value="0.030"/>
+<property name="stopper_h"  value="0.020"/>
+<property name="stopper_mass" value="0.001"/>
+<property name="stopper_ixx" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_h*stopper_h)}"/>
+<property name="stopper_iyy" value="${1.0/12.0*stopper_mass*(stopper_h*stopper_h+stopper_d*stopper_d)}"/>
+<property name="stopper_izz" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_d*stopper_d)}"/>
 
 
   <!--visual&collision define-->
@@ -149,6 +173,132 @@
     </inertial>
   </link>
 
+  <!--icart_stick-->
+  <link name="stick_first">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stick_mass}"/>
+      <inertia ixx="${stick_ixx}" ixy="0" ixz="0" iyy="${stick_iyy}" iyz="0" izz="${stick_izz}"/>
+    </inertial>
+  </link>
+
+  <!--icart_table-->
+  <link name="table_first">
+    <visual>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${table_mass}"/>
+      <inertia ixx="${table_ixx}" ixy="0" ixz="0" iyy="${table_iyy}" iyz="0" izz="${table_izz}"/>
+   </inertial>
+  </link>
+
+  <!--icart_stopper-->
+  <link name="stopper1_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper2_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper3_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <!--
+  <link name="stopper4_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+  -->
 
   <!--joint define-->
   <!--base_link to base_foot_print-->
@@ -195,6 +345,51 @@
     <parent link="base_foot_print_first"/>
     <child link="hokuyo_link_first"/>
   </joint>
+
+  <!--base_link_offset to stick-->
+  <joint name="stick_joint_first" type="fixed">
+    <parent link="base_link_first_offset"/>
+    <child link="stick_first"/>
+    <origin xyz="0 0 ${sh/2+bh/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!--stick to table-->
+  <joint name="table_joint_first" type="continuous">
+    <parent link="stick_first"/>
+    <child link="table_first"/>
+    <origin xyz="0 0 ${tl/2+sh/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1" />
+  </joint>
+
+  
+
+  <!--table to stopper-->
+  <joint name="stopper1_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper1_first"/>
+    <origin xyz="0 ${-tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="stopper2_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper2_first"/>
+    <origin xyz="0 ${tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+
+  <joint name="stopper3_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper3_first"/>
+    <origin xyz="${tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+
+  <!--
+  <joint name="stopper4_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper4_first"/>
+    <origin xyz="${-tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+  -->
 
   <!--define base_foot-->
   <!--
@@ -265,6 +460,44 @@
     <mu2 value="0.0" />
   </gazebo>
 
+  <gazebo reference="stick_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="table_first">
+   <selfCollide>true</selfCollide>
+    <mu value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <!-->
+  <gazebo reference="stopper1_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper2_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper3_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper4_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+  -->
+
   <!-- hokuyo -->
   <gazebo reference="hokuyo_link_first">
     <sensor type="ray" name="head_hokuyo_sensor">
@@ -283,7 +516,7 @@
         <range>
           <min>0.8</min>
           <max>5.6</max>
-          <resolution>0.01</resolution>
+          <resolution>0.001</resolution>
         </range>
         <noise>
           <type>gaussian</type>
