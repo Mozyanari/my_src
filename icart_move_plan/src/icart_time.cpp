@@ -20,7 +20,7 @@ private:
   void cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg);
 
   //目標時間と位置から速度を計算
-  void calc_target_speed(void);
+  void calc_machine_speed(void);
 
   //ターゲットポジションと現在のオフセットポジションからPIDによる位置制御，またフラグ処理
   void calc_wheel_speed(void);
@@ -30,6 +30,12 @@ private:
 
   //ノードハンドラ作成
 	ros::NodeHandle nh;
+
+  //0.1秒ごとに速度更新するための関数
+  void pub_speed(const ros::TimerEvent&);
+
+  //時間の関数作成
+  ros::Timer timer;
 
 /*
 使用するTopicの定義
@@ -123,10 +129,10 @@ icart_time::icart_time(){
   rad = 0.0;
 
   //最高速度:0.1[m/s],100[mm/s]
-  Max_speed = 0.1;
+  Max_speed = 0.02;
 
-  //制限加速度
-  Reg_acc = 0.01;
+  //制限加速度[0.001]
+  Reg_acc = 0.001;
 
 
   //機体間距離[m]570mm
@@ -149,6 +155,9 @@ icart_time::icart_time(){
   //配布するトピックの定義
   pub_vel= nh.advertise<geometry_msgs::Twist>("ypspur_ros/cmd_vel", 1);
   pub_odom_true=nh.advertise<geometry_msgs::Pose2D>("offset_odom_true",1,true);
+
+  //timer定義
+  timer = nh.createTimer(ros::Duration(0.1), &icart_time::pub_speed,this);
 
 }
 //関数定義-----------------------------------------------------------------------
@@ -193,9 +202,9 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   pub_odom_true.publish(odom_offset_true);
   
   //目標時間と現在の位置からマシンの速度を計算
-  calc_target_speed();
+  //calc_target_speed();
   //ホイールの速度を生成
-  calc_wheel_speed();
+  //calc_wheel_speed();
 }
 void icart_time::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   //機体の状態データ
@@ -206,34 +215,44 @@ void icart_time::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
   old_odom = odom;
 }
 //目標時間と現在の位置からマシンの速度を計算
-void icart_time::calc_target_speed(void){
+void icart_time::calc_machine_speed(void){
     if(get_frag < 0){
         //fragの番号が負なら速度0
         set_target_speed = 0;
+        old_set_target_speed = 0;
         return;
     }
     //目標時間と今の時間の差を計算
     double diff_time = (target_point.header.stamp - ros::Time::now()).toSec();
-
+    ROS_INFO("diff_time=%f",diff_time);
     //もし，目標時間が現在時間より遅いとエラーと判定
     if(diff_time < 0){
         set_target_speed = 0;
+        ROS_INFO("time_error");
         return;
     }
 
     //目標位置までの直線距離
     double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
-
+    ROS_INFO("diff_distance=%f",diff_distance);
     //目標
     double a = 2*Reg_acc*diff_time*old_set_target_speed + (pow(Reg_acc,2))*(pow(diff_time,2)) - 2*Reg_acc*diff_distance;
     //ここが負になるのは目標時間内にこのままの制限加速度だと到着が不可能なので，満たす制限加速度にする
     if(a<0){
-      //求めなくても満たす制限加速度を与えるとa=0になる
+      //負になるのはサブゴールに近づいた時なので速度の更新を行わない
       a=0;
     }
     //目標時間で到達するための速度を計算
     double calc_target_speed = old_set_target_speed + (Reg_acc * diff_time) - sqrt(a);
-
+    //double calc_target_speed = diff_distance/diff_time;
+    ROS_INFO("calc_target_speed=%f",calc_target_speed);
+    /*
+    if((old_set_target_speed - calc_target_speed) > Reg_acc){
+      calc_target_speed = old_set_target_speed - Reg_acc;
+    }else if((calc_target_speed - old_set_target_speed) > Reg_acc){
+      calc_target_speed = old_set_target_speed + Reg_acc;
+    }
+    */
     ROS_INFO("calc_target_speed=%f",calc_target_speed);
     //実機での想定最高スピードを超えないようにする
     if(Max_speed < calc_target_speed){
@@ -278,20 +297,20 @@ void icart_time::calc_wheel_speed(void){
 
     //左右の車輪の速度を計算
   //右の車輪計算
-  //double omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
+  double omega_r = (((cos(rad)+((d/s)*sin(rad)))*x_vel) + ((sin(rad)-(d/s)*cos(rad))*y_vel))/r;
   //左の車輪計算
-  //double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
+  double omega_l = (((cos(rad)-((d/s)*sin(rad)))*x_vel) + ((sin(rad)+(d/s)*cos(rad))*y_vel))/r;
 
   //ROS_INFO("omega_r=%f",omega_r);
   //ROS_INFO("omega_l=%f",omega_l);
 
   //速度のpublish
   //車輪の計算からx方向とω方向の速度計算
-  //twist.linear.x  = (r*(omega_r + omega_l)) / 2;
-  //twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
+  twist.linear.x  = (r*(omega_r + omega_l)) / 2;
+  twist.angular.z = ((r*(omega_r - omega_l)) / (2*d));
 
-  twist.linear.x = x_vel * cos(rad) + y_vel * sin(rad);
-  twist.angular.z = 1/s * (x_vel * sin(rad) - y_vel * cos(rad));
+  //twist.linear.x = x_vel * cos(rad) + y_vel * sin(rad);
+  //twist.angular.z = 1/s * (x_vel * sin(rad) - y_vel * cos(rad));
 
   //関連する速度のデバック
   twist.angular.x = x_vel;
@@ -322,6 +341,14 @@ void icart_time::receive_target_point(const nav_msgs::Odometry::ConstPtr &data){
   //set_target_time = target_point.header.stamp.toSec();
 
   //ROS_INFO("target_odom_update");
+  //速度の更新
+  calc_machine_speed();
+}
+void icart_time::pub_speed(const ros::TimerEvent&){
+  //目標時間と現在の位置からマシンの速度を計算
+  //calc_machine_speed();
+  //ホイールの速度を生成
+  calc_wheel_speed();
 }
 
 //実行されるメイン関数---------------------------------------------------------------
