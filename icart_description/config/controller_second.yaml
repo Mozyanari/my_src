@@ -22,13 +22,13 @@ icart_second:
     wheel_radius_multiplier    : 1.0 # default: 1.0
 
     # Velocity commands timeout [s], default 0.5
-    cmd_vel_timeout: 1.0
+    cmd_vel_timeout: 0.5
 
     #odom_frame_id
     odom_frame_id: odom_second #default: odom
 
     # Base frame_id
-    base_frame_id: base_link_second #default: base_link
+    base_frame_id: base_foot_print_second #default: base_link
 
     # Velocity and acceleration limits
     # Whenever a min_* is unspecified, default to -max_*

@@ -1,0 +1,37 @@
+<launch>
+  <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
+
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <arg name="init_pose_first" value="-x  0.5 -y 0.0 -z 0.0" />
+
+  <arg name="rvizconfig" default="$(find icart_description)/gazebo_just_urdf.rviz"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+      <arg name="debug" value="$(arg debug)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+  <!--<param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>-->
+  <param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>
+
+  <include file="$(find icart_description)/launch/control_first.launch"/>
+  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_first) -urdf -model icart_first -param robot_description_first -reference_frame map">
+  </node>
+
+  <!--rvizの表示-->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+  <!--data収集-->
+  <node pkg="icart_move_plan" type="data_create" name="data_create" />
+
+</launch>

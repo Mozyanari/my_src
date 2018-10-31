@@ -1,25 +1,81 @@
 <?xml version="1.0"?>
 <robot name="icart_first">
+
+<!--body-->
+<property name="bd"  value="0.280"/>
+<property name="bw"  value="0.320"/>
+<property name="bh"  value="0.007"/>
+<property name="base_mass" value="1.1"/>
+<property name="base_ixx" value="${1.0/12.0*base_mass*(bw*bw+bh*bh)}"/>
+<property name="base_iyy" value="${1.0/12.0*base_mass*(bh*bh+bd*bd)}"/>
+<property name="base_izz" value="${1.0/12.0*base_mass*(bw*bw+bd*bd)}"/>
+
+<!--caster-->
+<property name="cr" value="0.0325"/>
+<property name="caster_mass" value="0.1"/>
+<property name="caster_i" value="${1.0/5.0*caster_mass*cr*cr}"/>
+
+<!--wheel-->
+<property name="wr" value="0.0325"/>
+<property name="wl" value="0.01"/>
+<property name="wheel_mass" value="1.0"/>
+<property name="wheel_ixx" value="${1.0/12.0*wheel_mass*(3.0*wr*wr+wl*wl)}"/>
+<property name="wheel_iyy" value="${1.0/12.0*wheel_mass*(3.0*wr*wr+wl*wl)}"/>
+<property name="wheel_izz" value="${1.0/2.0*wheel_mass*wr*wr}"/>
+
+<!--stick-->
+<property name="sd"  value="0.030"/>
+<property name="sw"  value="0.030"/>
+<property name="sh"  value="0.200"/>
+<property name="stick_mass" value="0.001"/>
+<property name="stick_ixx" value="${1.0/12.0*stick_mass*(sw*sw+sh*sh)}"/>
+<property name="stick_iyy" value="${1.0/12.0*stick_mass*(sh*sh+sd*sd)}"/>
+<property name="stick_izz" value="${1.0/12.0*stick_mass*(sw*sw+sd*sd)}"/>
+
+<!--table-->
+<property name="tr" value="0.10"/>
+<property name="tl" value="0.01"/>
+<property name="table_mass" value="0.001"/>
+<property name="table_ixx" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_iyy" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_izz" value="${1.0/2.0*table_mass*tr*tr}"/>
+
+<!--stopper-->
+<property name="stopper_d"  value="0.150"/>
+<property name="stopper_w"  value="0.030"/>
+<property name="stopper_h"  value="0.020"/>
+<property name="stopper_mass" value="0.001"/>
+<property name="stopper_ixx" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_h*stopper_h)}"/>
+<property name="stopper_iyy" value="${1.0/12.0*stopper_mass*(stopper_h*stopper_h+stopper_d*stopper_d)}"/>
+<property name="stopper_izz" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_d*stopper_d)}"/>
+
+
   <!--visual&collision define-->
+  <!--base_foot_print-->
+  <link name="base_foot_print_first">
+  </link>
+  <!--base_foot_print-->
+  <link name="base_link_first_offset">
+  </link>
+
   <!--icart_body-->
   <link name="base_link_first">
     <visual>
       <geometry>
-        <mesh filename="package://icart_description/mesh/DAE/i-Cart_body.dae"/>
+        <box size="${bd} ${bw} ${bh}"/>
       </geometry>
     </visual>
 
     <collision>
       <geometry>
-        <mesh filename="package://icart_description/mesh/DAE/i-Cart_body.dae"/>
+        <box size="${bd} ${bw} ${bh}"/>
       </geometry>
     </collision>
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.000"/>
-      <!--<inertia ixx="0.0020833333" ixy="0" ixz="0" iyy="0.0070833333" iyz="0" izz="0.0083333333"/>-->
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_ixx}" ixy="0" ixz="0" iyy="${base_iyy}" iyz="0" izz="${base_izz}"/>
     </inertial>
   </link>
 
@@ -27,21 +83,20 @@
   <link name="caster_link_first">
     <visual>
       <geometry>
-        <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_caster.dae"/>-->
-        <sphere radius="0.0325"/>
+        <sphere radius="${cr}"/>
       </geometry>
     </visual>
 
     <collision>
       <geometry>
-        <mesh filename="package://icart_description/mesh/DAE/i-Cart_caster.dae"/>
+        <sphere radius="${cr}"/>
       </geometry>
     </collision>
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="5.500"/>
-      <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.00025"  iyz="0" izz="0.00025"/>
+      <mass value="${caster_mass}"/>
+      <inertia ixx="${caster_i}" ixy="0" ixz="0" iyy="${caster_i}"  iyz="0" izz="${caster_i}"/>
      </inertial>
 
   </link>
@@ -50,8 +105,7 @@
   <link name="right_wheel_link_first">
     <visual>
       <geometry>
-        <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_right_wheel.dae"/>-->
-        <cylinder radius="0.0325" length="0.01"/>
+        <cylinder radius="${wr}" length="${wl}"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="black"/>
@@ -59,15 +113,14 @@
 
     <collision>
       <geometry>
-        <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_right_wheel.dae"/>-->
-        <cylinder radius="0.0325" length="0.01"/>
+        <cylinder radius="${wr}" length="${wl}"/>
       </geometry>
     </collision>
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="10.500"/>
-      <inertia ixx="0.0013541667" ixy="0" ixz="0" iyy="0.0013541667" iyz="0" izz="0.0025"/>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_ixx}" ixy="0" ixz="0" iyy="${wheel_iyy}" iyz="0" izz="${wheel_izz}"/>
    </inertial>
   </link>
 
@@ -75,8 +128,7 @@
   <link name="left_wheel_link_first">
     <visual>
       <geometry>
-        <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_left_wheel.dae"/>-->
-        <cylinder radius="0.0325" length="0.01"/>
+        <cylinder radius="${wr}" length="${wl}"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="black"/>
@@ -84,15 +136,14 @@
 
     <collision>
       <geometry>
-        <!--<mesh filename="package://icart_description/mesh/DAE/i-Cart_left_wheel.dae"/>-->
-        <cylinder radius="0.0325" length="0.01"/>
+        <cylinder radius="${wr}" length="${wl}"/>
       </geometry>
     </collision>
 
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="10.500"/>
-      <inertia ixx="0.0013541667" ixy="0" ixz="0" iyy="0.0013541667" iyz="0" izz="0.0025"/>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_ixx}" ixy="0" ixz="0" iyy="${wheel_iyy}" iyz="0" izz="${wheel_izz}"/>
    </inertial>
   </link>
 
@@ -122,20 +173,159 @@
     </inertial>
   </link>
 
+  <!--icart_stick-->
+  <link name="stick_first">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stick_mass}"/>
+      <inertia ixx="${stick_ixx}" ixy="0" ixz="0" iyy="${stick_iyy}" iyz="0" izz="${stick_izz}"/>
+    </inertial>
+  </link>
+  <!--icart_table-->
+  <link name="table_first">
+    <visual>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${table_mass}"/>
+      <inertia ixx="${table_ixx}" ixy="0" ixz="0" iyy="${table_iyy}" iyz="0" izz="${table_izz}"/>
+   </inertial>
+  </link>
+
+  <!--icart_stopper-->
+  <!--
+  <link name="stopper1_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper2_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper3_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper4_first">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+  -->
 
   <!--joint define-->
+  <!--base_link to base_foot_print-->
+  <joint name="foot_print_first" type="fixed">
+    <parent link="base_foot_print_first"/>
+    <child link="base_link_first"/>
+    <origin xyz="-0.105 0 ${cr}" rpy="0 0 0"/>
+  </joint>
+
+  <!--base_link to base_link_offset-->
+  <joint name="offset_first" type="fixed">
+    <parent link="base_link_first"/>
+    <child link="base_link_first_offset"/>
+    <origin xyz="-0.055 0 0" rpy="0 0 0"/>
+  </joint>
+
   <!--base_link to caster-->
   <joint name="caster_joint_first" type="fixed">
     <parent link="base_link_first"/>
     <child link="caster_link_first"/>
-    <origin xyz="-0.096 0 -0.019" rpy="0 0 0"/>
+    <origin xyz="-0.096 0 0" rpy="0 0 0"/>
   </joint>
 
   <!--base_link to left_wheel-->
   <joint name="left_wheel_joint_first" type="continuous">
     <parent link="base_link_first"/>
     <child link="left_wheel_link_first"/>
-    <origin xyz="0.105 0.178 -0.022" rpy="-1.5707 0 0"/>
+    <origin xyz="0.105 0.178 0" rpy="-1.5707 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -143,17 +333,62 @@
   <joint name="right_wheel_joint_first" type="continuous">
     <parent link="base_link_first"/>
     <child link="right_wheel_link_first"/>
-    <origin xyz="0.105 -0.178 -0.022" rpy="1.5707 0 0"/>
+    <origin xyz="0.105 -0.178 0" rpy="1.5707 0 0"/>
     <axis xyz="0 0 -1"/>
   </joint>
 
   <!--base_link to hokuyo-->
   <joint name="hokuyo_joint_first" type="fixed">
     <axis xyz="0 0 0" />
-    <origin xyz="0.105 0 0.135" rpy="0 0 0"/>
-    <parent link="base_link_first"/>
+    <origin xyz="0 0 0.0825" rpy="0 0 3.141592"/>
+    <parent link="base_foot_print_first"/>
     <child link="hokuyo_link_first"/>
   </joint>
+
+  <!--base_link_offset to stick-->
+  <joint name="stick_joint_first" type="fixed">
+    <parent link="base_link_first_offset"/>
+    <child link="stick_first"/>
+    <origin xyz="0 0 ${sh/2+bh/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!--stick to table-->
+  <joint name="table_joint_first" type="continuous">
+    <parent link="stick_first"/>
+    <child link="table_first"/>
+    <origin xyz="0 0 ${tl/2+sh/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1" />
+  </joint>
+
+  
+
+  <!--table to stopper-->
+  <!--
+  <joint name="stopper1_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper1_first"/>
+    <origin xyz="0 ${-tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="stopper2_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper2_first"/>
+    <origin xyz="0 ${tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+
+  <joint name="stopper3_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper3_first"/>
+    <origin xyz="${tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+
+  <joint name="stopper4_joint_first" type="fixed">
+    <parent link="table_first"/>
+    <child link="stopper4_first"/>
+    <origin xyz="${-tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+  -->
 
   <!--define base_foot-->
   <!--
@@ -224,12 +459,50 @@
     <mu2 value="0.0" />
   </gazebo>
 
+  <gazebo reference="stick_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="table_first">
+   <selfCollide>true</selfCollide>
+    <mu value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <!--
+  <gazebo reference="stopper1_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper2_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper3_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper4_first">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+  -->
+
   <!-- hokuyo -->
   <gazebo reference="hokuyo_link_first">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>
-      <update_rate>10</update_rate>
+      <update_rate>10.0</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -242,7 +515,7 @@
         <range>
           <min>0.8</min>
           <max>5.6</max>
-          <resolution>0.36</resolution>
+          <resolution>0.001</resolution>
         </range>
         <noise>
           <type>gaussian</type>
@@ -260,4 +533,19 @@
       </plugin>
     </sensor>
   </gazebo>
+
+  <!-- ground_truth_position -->
+  <gazebo>
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+     <alwaysOn>true</alwaysOn>
+     <updateRate>10.0</updateRate>
+     <bodyName>base_foot_print_first</bodyName>
+     <topicName>/icart_first/pose_ground_truth</topicName>
+     <gaussianNoise>0</gaussianNoise>
+     <frameName>map</frameName>
+     <xyzOffsets>0 0 0</xyzOffsets> 
+     <rpyOffsets>0 0 0</rpyOffsets>
+   </plugin>
+ </gazebo>
+
 </robot>

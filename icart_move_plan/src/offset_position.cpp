@@ -29,8 +29,8 @@ offset_position::offset_position(){
   sub_amcl_pose = nh.subscribe("amcl_pose", 5, &offset_position::calc_offset_position,this);
   pub_offset_position = nh.advertise<geometry_msgs::Pose2D>("offset_position", 1000, true);
 
-  //オドメトリ位置からオフセットまでの距離[m]，シミュレーション:55mm
-  s = 0.055;
+  //オドメトリ位置からオフセットまでの距離[m]
+  s = 0.16;
 }
 
 //オフセット位置計算

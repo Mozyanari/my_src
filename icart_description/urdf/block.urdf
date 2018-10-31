@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot name="block">
+<!--stick-->
+<property name="d"  value="1.00"/>
+<property name="w"  value="0.07"/>
+<property name="h"  value="0.100"/>
+<property name="mass" value="0.1"/>
+<property name="ixx" value="${1.0/12.0*mass*(w*w+h*h)}"/>
+<property name="iyy" value="${1.0/12.0*mass*(h*h+d*d)}"/>
+<property name="izz" value="${1.0/12.0*mass*(w*w+d*d)}"/>
+
+  <link name="block">
+    <visual>
+      <geometry>
+        <box size="${d} ${w} ${h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${d} ${w} ${h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${ixx}" ixy="0" ixz="0" iyy="${iyy}" iyz="0" izz="${izz}"/>
+    </inertial>
+  </link>
+
+  <gazebo reference="block">
+  <material>Gazebo/Orange</material>
+   <selfCollide>true</selfCollide>
+    <mu value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+</robot>
