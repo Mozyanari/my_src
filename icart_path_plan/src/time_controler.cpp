@@ -1,3 +1,4 @@
+#define TIME 0.0
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Header.h>
@@ -61,8 +62,8 @@ void time_controler::time_checker(const ros::TimerEvent&){
 
   //到着時間に近いかどうかの判定
   double diff_time = (receive_time.stamp - ros::Time::now()).toSec();
-  //0.1s以内なら次のサブゴールを送信する信号を出す
-  if(diff_time < 1.0){
+  //0.0s以内なら次のサブゴールを送信する信号を出す
+  if(diff_time < TIME){
     time_controler.data = receive_time.seq;
     ROS_INFO("receive_time.seq=%d",receive_time.seq);
     pub_time_controler.publish(time_controler);
