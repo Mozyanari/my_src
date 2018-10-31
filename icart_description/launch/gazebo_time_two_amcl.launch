@@ -1,6 +1,7 @@
 <launch>
   <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
   <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
+  <arg name="model_block" default="$(find icart_description)/urdf/block.urdf"/>
 
   <arg name="paused" default="true"/>
   <arg name="use_sim_time" default="false"/>
@@ -10,6 +11,7 @@
 
   <arg name="init_pose_first" value="-x  0.66 -y 0.0 -z 0.0" />
   <arg name="init_pose_second" value="-x -0.34 -y 0.0 -z 0.0" />
+  <arg name="init_pose_block" value="-x -0.0 -y 0.0 -z 0.3" />
 
   <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
 
@@ -25,6 +27,7 @@
   <!--<param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>-->
   <param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>
   <param name="robot_description_second" command="$(find xacro)/xacro.py $(arg model_second)"/>
+  <param name="robot_description_block" command="$(find xacro)/xacro.py $(arg model_block)"/>
 
   <include file="$(find icart_description)/launch/control_first.launch"/>
   <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
@@ -35,6 +38,12 @@
   <node name="urdf_spawner_second" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="$(arg init_pose_second) -urdf -model icart_second -param robot_description_second -reference_frame map">
   </node>
+
+  <!--
+  <node name="urdf_spawner_block" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_block) -urdf -model block -param robot_description_block -reference_frame map">
+  </node>
+  -->
 
   <!--rvizの表示-->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
@@ -88,7 +97,7 @@
     <param name="odom_alpha2" type="double" value="7.0" />
     <param name="odom_alpha3" type="double" value="3.5" />
     <param name="odom_alpha4" type="double" value="3.5" />
-    <param name="laser_max_beams" type="int" value="10" />
+    <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="500" />
     <param name="max_particles" type="int" value="2000" />
     <param name="update_min_d" type="double" value="0.03" />
@@ -120,7 +129,7 @@
   </node>
 
   <!--協調搬送のパスプランプログラム-->
-  <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time"/>
+  <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time" output="screen"/>
   <!--time_controlerノード-->
   <node pkg="icart_path_plan" type="time_controler" name="time_controler"/>
   <!--data収集-->
