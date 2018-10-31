@@ -1,5 +1,5 @@
 //搬送物のサブゴール間の距離
-#define separete_distance 0.5
+#define separete_distance 0.05
 
 //搬送物の角度の間隔
 #define separate_theta 0.174532
@@ -167,7 +167,7 @@ path_plan_time::path_plan_time(){
   //機体の最高加速度:80[mm/s^2]
   acc_max = 0.08;
   //制限加速度
-  Reg_acc = 0.01;
+  Reg_acc = 0.001;
   //最高速度:0.1[m/s],100[mm/s]
   Max_speed = 0.1;
 
@@ -252,6 +252,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //現在の制御点と目標の制御点までの違いを計算
   double diff_machine_position_x = target_control_point_x - now_control_point_x;
   double diff_machine_position_y = target_control_point_y - now_control_point_y;
+  double diff_machine_distance = sqrt( (pow((diff_machine_position_x),2)) + (pow(diff_machine_position_y,2)) );
   double diff_machine_rad = target_control_point_rad - now_control_point_rad;
 
 
@@ -262,13 +263,15 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   double among_sub_goal_y = 0;
   double among_sub_goal_rad = 0;
   for(;;sub_goal_number++){
+    //ROS_INFO("diff_machine_distance=%f",diff_machine_distance);
     ROS_INFO("sub_goal_number=%d",sub_goal_number);
     //搬送物の制御点の間隔
     among_sub_goal_x=diff_machine_position_x/(double)(sub_goal_number);
     among_sub_goal_y=diff_machine_position_y/(double)(sub_goal_number);
+    double among_sub_goal_distance = diff_machine_distance/(double)(sub_goal_number);
     among_sub_goal_rad=diff_machine_rad/(double)(sub_goal_number);
 
-    if((among_sub_goal_x <separete_distance)&&(among_sub_goal_y <separete_distance)&&(among_sub_goal_rad < separate_theta)){
+    if((among_sub_goal_distance <separete_distance) && (abs(among_sub_goal_rad) < separate_theta)){
       break;
     }
   }
@@ -491,6 +494,9 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
     time_pub.seq = -1;
     pub_time.publish(time_pub);
 
+    old_target_speed_first = 0;
+    old_target_speed_second = 0;
+
     return;
   }
 
@@ -512,8 +518,8 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
       break;
     }
     time = time + 0.01;
-    ROS_INFO("%f",time);
   }
+  ROS_INFO("%f",time);
 
   //使用速度を超えているか判定
   while(1){
@@ -524,11 +530,11 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
       break;
     }
     time = time + 0.01;
-    ROS_INFO("%f",time);
     //vi_judgeを更新
     vi_judge_first = 2*Reg_acc*time*old_target_speed_first + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_first;
     vi_judge_second = 2*Reg_acc*time*old_target_speed_second + (pow(Reg_acc,2))*(pow(time,2)) - 2*Reg_acc*diff_distance_second;
   }
+  ROS_INFO("%f",time);
   //次の計算のために更新
   old_target_speed_first = target_speed_first;
   old_target_speed_second = target_speed_second;
