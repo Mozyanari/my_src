@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="urg_node" type="urg_node" name="urg_node">
+    <param name="cluster" value="8"/>
+    </node>
+</launch>
