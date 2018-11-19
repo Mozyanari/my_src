@@ -56,17 +56,17 @@
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
 
-    <param name="odom_alpha1" type="double" value="7.0" />
-    <param name="odom_alpha2" type="double" value="7.0" />
-    <param name="odom_alpha3" type="double" value="3.5" />
-    <param name="odom_alpha4" type="double" value="3.5" />
+    <param name="odom_alpha1" type="double" value="20.0" />
+    <param name="odom_alpha2" type="double" value="20.0" />
+    <param name="odom_alpha3" type="double" value="10.0" />
+    <param name="odom_alpha4" type="double" value="10.0" />
     <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="500" />
     <param name="max_particles" type="int" value="2000" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
 
-
+    <param name="resample_interval" type ="int" value="2"/>
     <param name="use_map_topic" type="bool" value="true" />
 
     <param name="initial_pose_x" type="double" value="0.66" />
@@ -141,18 +141,24 @@
   <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time" output="screen"/>
   -->
   <!--time_controlerノード-->
+  <!--
   <node pkg="icart_path_plan" type="time_controler" name="time_controler"/>
+  -->
   <!--data収集-->
+  /<!--
   <node pkg="icart_move_plan" type="data_create" name="data_create" />
+  -->
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
 
   <!--gazebo上のロボットの真値を取得して，オフセットの位置を取得-->
   <!--icart_first-->
+  <!--
   <node ns="first" pkg="icart_move_plan" type="Odometry_offset" name="Odometry_offset_first">
     <remap from="pose_ground_truth" to="/icart_first/pose_ground_truth"/>
   </node>
+  -->
   <!--icart_second-->
   <!--
   <node ns="second" pkg="icart_move_plan" type="Odometry_offset" name="Odometry_offset_second">
