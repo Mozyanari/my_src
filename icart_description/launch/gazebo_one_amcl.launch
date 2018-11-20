@@ -66,7 +66,7 @@
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
 
-    <param name="resample_interval" type ="int" value="2"/>
+    <param name="resample_interval" type ="int" value="1"/>
     <param name="use_map_topic" type="bool" value="true" />
 
     <param name="initial_pose_x" type="double" value="0.66" />
@@ -82,12 +82,16 @@
     <param name="global_frame_id" value="/map" type="string"/>
   </node>
   <!--amclによる推定位置から推定オフセット位置の計算-->
+  <!--
   <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
+  -->
   <!--オフセットを考慮した動作プログラム-->
+  <!--
   <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time">
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
+  -->
 
   <!--secondの自己位置推定-->
   <!--amcl-->
