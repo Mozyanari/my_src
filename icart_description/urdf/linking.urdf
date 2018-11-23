@@ -1,0 +1,329 @@
+<?xml version="1.0"?>
+<robot name="linking">
+<!--stick-->
+<property name="d"  value="0.800"/>
+<property name="w"  value="0.05"/>
+<property name="h"  value="0.05"/>
+<property name="mass" value="0.1"/>
+<property name="ixx" value="${1.0/3.0*mass*(w*w+h*h)}"/>
+<property name="iyy" value="${1.0/3.0*mass*(h*h+d*d)}"/>
+<property name="izz" value="${1.0/3.0*mass*(w*w+d*d)}"/>
+
+<!--ring-->
+<property name="rd"  value="0.07"/>
+<property name="rw"  value="0.20"/>
+<property name="rh"  value="0.05"/>
+<property name="rmass" value="0.01"/>
+<property name="rixx" value="${1.0/3.0*rmass*(rw*rw+rh*rh)}"/>
+<property name="riyy" value="${1.0/3.0*rmass*(rh*rh+rd*rd)}"/>
+<property name="rizz" value="${1.0/3.0*rmass*(rw*rw+rd*rd)}"/>
+
+<property name="sd"  value="0.06"/>
+<property name="sw"  value="0.07"/>
+<property name="sh"  value="0.05"/>
+<property name="smass" value="0.01"/>
+<property name="sixx" value="${1.0/3.0*smass*(sw*sw+sh*sh)}"/>
+<property name="siyy" value="${1.0/3.0*smass*(sh*sh+sd*sd)}"/>
+<property name="sizz" value="${1.0/3.0*smass*(sw*sw+sd*sd)}"/>
+
+
+
+
+
+
+  <link name="block">
+    <visual>
+      <geometry>
+        <box size="${d} ${w} ${h}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${d} ${w} ${h}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${ixx}" ixy="0" ixz="0" iyy="${iyy}" iyz="0" izz="${izz}"/>
+    </inertial>
+  </link>
+
+  <!--right-->
+  <link name="ring_right_1">
+    <visual>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${rmass}"/>
+      <inertia ixx="${rixx}" ixy="0" ixz="0" iyy="${riyy}" iyz="0" izz="${rizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_right_2">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${smass}"/>
+      <inertia ixx="${sixx}" ixy="0" ixz="0" iyy="${siyy}" iyz="0" izz="${sizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_right_3">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${smass}"/>
+      <inertia ixx="${sixx}" ixy="0" ixz="0" iyy="${siyy}" iyz="0" izz="${sizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_right_4">
+    <visual>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${rmass}"/>
+      <inertia ixx="${rixx}" ixy="0" ixz="0" iyy="${riyy}" iyz="0" izz="${rizz}"/>
+    </inertial>
+  </link>
+
+  <!--left-->
+  <link name="ring_left_1">
+    <visual>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${rmass}"/>
+      <inertia ixx="${rixx}" ixy="0" ixz="0" iyy="${riyy}" iyz="0" izz="${rizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_left_2">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${smass}"/>
+      <inertia ixx="${sixx}" ixy="0" ixz="0" iyy="${siyy}" iyz="0" izz="${sizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_left_3">
+    <visual>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${sd} ${sw} ${sh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${smass}"/>
+      <inertia ixx="${sixx}" ixy="0" ixz="0" iyy="${siyy}" iyz="0" izz="${sizz}"/>
+    </inertial>
+  </link>
+
+  <link name="ring_left_4">
+    <visual>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${rd} ${rw} ${rh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${rmass}"/>
+      <inertia ixx="${rixx}" ixy="0" ixz="0" iyy="${riyy}" iyz="0" izz="${rizz}"/>
+    </inertial>
+  </link>
+
+  <!--joint define-->
+  <!--right-->
+  <joint name="right_b_1_joint" type="fixed">
+    <parent link="block"/>
+    <child link="ring_right_1"/>
+    <origin xyz="${d/2+rd/2} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="right_1_2_joint" type="fixed">
+    <parent link="ring_right_1"/>
+    <child link="ring_right_2"/>
+    <origin xyz="${rd/2+sd/2} ${rw/2-sw/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="right_1_3_joint" type="fixed">
+    <parent link="ring_right_1"/>
+    <child link="ring_right_3"/>
+    <origin xyz="${rd/2+sd/2} ${-rw/2+sw/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="right_1_4_joint" type="fixed">
+    <parent link="ring_right_1"/>
+    <child link="ring_right_4"/>
+    <origin xyz="${rd+sd} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--left-->
+  <joint name="left_b_1_joint" type="fixed">
+    <parent link="block"/>
+    <child link="ring_left_1"/>
+    <origin xyz="${-(d/2+rd/2)} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="left_1_2_joint" type="fixed">
+    <parent link="ring_left_1"/>
+    <child link="ring_left_2"/>
+    <origin xyz="${-(rd/2+sd/2)} ${rw/2-sw/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="left_1_3_joint" type="fixed">
+    <parent link="ring_left_1"/>
+    <child link="ring_left_3"/>
+    <origin xyz="${-(rd/2+sd/2)} ${-rw/2+sw/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="left_1_4_joint" type="fixed">
+    <parent link="ring_left_1"/>
+    <child link="ring_left_4"/>
+    <origin xyz="${-(rd+sd)} 0 0" rpy="0 0 0"/>
+  </joint>
+
+
+  <gazebo reference="block">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_right_1">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_right_2">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_right_3">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_right_4">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_left_1">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_left_2">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_left_3">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="ring_left_4">
+  <material>Gazebo/Orange</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+</robot>
