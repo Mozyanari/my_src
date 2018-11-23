@@ -13,7 +13,7 @@
 <!--caster-->
 <property name="cr" value="0.0325"/>
 <property name="caster_mass" value="0.1"/>
-<property name="caster_i" value="${1.0/5.0*caster_mass*cr*cr}"/>
+<property name="caster_i" value="${2.0/5.0*caster_mass*cr*cr}"/>
 
 <!--wheel-->
 <property name="wr" value="0.0325"/>
@@ -27,10 +27,16 @@
 <property name="sd"  value="0.030"/>
 <property name="sw"  value="0.030"/>
 <property name="sh"  value="0.200"/>
+
+<property name="sr" value="0.030"/>
+<property name="sl" value="0.200"/>
 <property name="stick_mass" value="0.001"/>
-<property name="stick_ixx" value="${1.0/12.0*stick_mass*(sw*sw+sh*sh)}"/>
+<!--<property name="stick_ixx" value="${1.0/12.0*stick_mass*(sw*sw+sh*sh)}"/>
 <property name="stick_iyy" value="${1.0/12.0*stick_mass*(sh*sh+sd*sd)}"/>
-<property name="stick_izz" value="${1.0/12.0*stick_mass*(sw*sw+sd*sd)}"/>
+<property name="stick_izz" value="${1.0/12.0*stick_mass*(sw*sw+sd*sd)}"/>-->
+<property name="stick_ixx" value="${1.0/12.0*stick_mass*(3.0*sr*sr+sl*sl)}"/>
+<property name="stick_iyy" value="${1.0/12.0*stick_mass*(3.0*sr*sr+sl*sl)}"/>
+<property name="stick_izz" value="${1.0/2.0*stick_mass*sr*sr}"/>
 
 <!--table-->
 <property name="tr" value="0.10"/>
@@ -177,13 +183,15 @@
   <link name="stick_first">
     <visual>
       <geometry>
-        <box size="${sd} ${sw} ${sh}"/>
+        <!--<box size="${sd} ${sw} ${sh}"/>-->
+        <cylinder radius="${sr}" length="${sl}"/>
       </geometry>
     </visual>
 
     <collision>
       <geometry>
-        <box size="${sd} ${sw} ${sh}"/>
+        <!--<box size="${sd} ${sw} ${sh}"/>-->
+        <cylinder radius="${sr}" length="${sl}"/>
       </geometry>
     </collision>
 
@@ -193,6 +201,7 @@
       <inertia ixx="${stick_ixx}" ixy="0" ixz="0" iyy="${stick_iyy}" iyz="0" izz="${stick_izz}"/>
     </inertial>
   </link>
+
   <!--icart_table-->
   <link name="table_first">
     <visual>
@@ -356,7 +365,7 @@
   <joint name="table_joint_first" type="continuous">
     <parent link="stick_first"/>
     <child link="table_first"/>
-    <origin xyz="0 0 ${tl/2+sh/2}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${tl/2}" rpy="0 0 0"/>
     <axis xyz="0 0 1" />
   </joint>
 
