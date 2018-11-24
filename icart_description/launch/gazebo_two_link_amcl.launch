@@ -51,6 +51,7 @@
   <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
+    <!--<remap from="/first/other_poses" to="/second/particlecloud" />-->
 
     <param name="odom_alpha1" type="double" value="7.0" />
     <param name="odom_alpha2" type="double" value="7.0" />
