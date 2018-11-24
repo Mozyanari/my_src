@@ -35,7 +35,8 @@
 
 #include "amcl/sensors/amcl_laser.h"
 
-#include "ros/ros.h"
+//#include "ros/ros.h"
+#include "geometry_msgs/PoseArray.h"
 
 using namespace amcl;
 
@@ -129,7 +130,7 @@ bool AMCLLaser::UpdateSensor(pf_t *pf, AMCLSensorData *data)
   if(this->model_type == LASER_MODEL_BEAM)
     pf_update_sensor(pf, (pf_sensor_model_fn_t) BeamModel, data);
   else if(this->model_type == LASER_MODEL_LIKELIHOOD_FIELD)
-    pf_update_sensor(pf, (pf_sensor_model_fn_t) LikelihoodFieldModel, data);  
+    pf_update_sensor(pf, (pf_sensor_model_fn_t) LikelihoodFieldModel, data);
   else if(this->model_type == LASER_MODEL_LIKELIHOOD_FIELD_PROB)
     pf_update_sensor(pf, (pf_sensor_model_fn_t) LikelihoodFieldModelProb, data);  
   else

@@ -171,8 +171,12 @@ class AmclNode
     //自作部分
     //void other_robot_odom(const geometry_msgs::Pose2D::ConstPtr &position);
     //geometry_msgs::Pose2D other_position;
+    //他のロボットのパーティクルの取得
     void other_robot_pointcloud(const geometry_msgs::PoseArray::ConstPtr &position);
     geometry_msgs::PoseArray other_pointcloud;
+    //他のロボットの位置を使った尤度計算
+    void LinkLikelihoodField(const geometry_msgs::PoseArray::ConstPtr &position);
+    int link_frag= 0;
     
 
     //parameter for what odom to use
@@ -1265,6 +1269,11 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
     pf_odom_pose_ = pose;
 
     //自作部分
+    /*
+    if(link_frag){
+      AmclNode::LinkLikelihoodField(other_pointcloud);
+    }
+    */
     
 
 
@@ -1631,6 +1640,11 @@ void AmclNode::other_robot_pointcloud(const geometry_msgs::PoseArray::ConstPtr &
     other_pointcloud.poses[i].position.x = position->poses[i].position.x - (offset_length * cos(other_pointcloud.poses[i].position.z));
     other_pointcloud.poses[i].position.y = position->poses[i].position.y - (offset_length * sin(other_pointcloud.poses[i].position.z));
   }
+
+  //linkの尤度計算フラグを立てる
+  link_frag = 1;
 }
 
-//void AmclNode::RelateLik
+void AmclNode::LinkLikelihoodField(const geometry_msgs::PoseArray::ConstPtr &position){
+
+}

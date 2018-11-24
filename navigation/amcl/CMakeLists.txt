@@ -11,6 +11,7 @@ find_package(catkin REQUIRED
             dynamic_reconfigure
             nav_msgs
             std_srvs
+            geometry_msgs
         )
 
 find_package(Boost REQUIRED)
@@ -26,6 +27,7 @@ catkin_package(
         roscpp
         dynamic_reconfigure
         tf
+        geometry_msgs
   CATKIN_DEPENDS nav_msgs std_srvs
   INCLUDE_DIRS include
   LIBRARIES amcl_sensors amcl_map amcl_pf
@@ -53,6 +55,8 @@ add_library(amcl_sensors
                     src/amcl/sensors/amcl_sensor.cpp
                     src/amcl/sensors/amcl_odom.cpp
                     src/amcl/sensors/amcl_laser.cpp)
+
+target_link_libraries(amcl_pf ${catkin_LIBRARIES})
 target_link_libraries(amcl_sensors amcl_map amcl_pf)
 
 

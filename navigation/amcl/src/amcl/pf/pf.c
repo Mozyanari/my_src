@@ -34,6 +34,9 @@
 #include "amcl/pf/pf_pdf.h"
 #include "amcl/pf/pf_kdtree.h"
 
+//#include "ros/ros.h"
+//#include "geometry_msgs/PoseArray.h"
+
 
 // Compute the required number of samples, given that there are k bins
 // with samples in them.
@@ -278,6 +281,8 @@ void pf_update_sensor(pf_t *pf, pf_sensor_model_fn_t sensor_fn, void *sensor_dat
   total = (*sensor_fn) (sensor_data, set);
   printf("total_weight_%f\n",total);
 
+  //total = AmclNode::LinkLikelihoodField
+
   //重みの正規化
   if (total > 0.0)
   {
@@ -287,9 +292,11 @@ void pf_update_sensor(pf_t *pf, pf_sensor_model_fn_t sensor_fn, void *sensor_dat
     {
       sample = set->samples + i;
       w_avg += sample->weight;
+      //ここで正規化
       sample->weight /= total;
     }
     // Update running averages of likelihood of samples (Prob Rob p258)
+    //ここで重みの平均を計算
     w_avg /= set->sample_count;
     if(pf->w_slow == 0.0)
       pf->w_slow = w_avg;
