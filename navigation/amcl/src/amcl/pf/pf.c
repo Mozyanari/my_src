@@ -276,7 +276,9 @@ void pf_update_sensor(pf_t *pf, pf_sensor_model_fn_t sensor_fn, void *sensor_dat
   //関数へのポインタを使って計算
   //ここでLikelihoodFieldModelを実行
   total = (*sensor_fn) (sensor_data, set);
-  
+  printf("total_weight_%f\n",total);
+
+  //重みの正規化
   if (total > 0.0)
   {
     // Normalize weights

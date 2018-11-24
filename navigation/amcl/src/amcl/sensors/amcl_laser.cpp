@@ -35,6 +35,8 @@
 
 #include "amcl/sensors/amcl_laser.h"
 
+#include "ros/ros.h"
+
 using namespace amcl;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +208,7 @@ double AMCLLaser::BeamModel(AMCLLaserData *data, pf_sample_set_t* set)
     sample->weight *= p;
     total_weight += sample->weight;
   }
-
+  
   return(total_weight);
 }
 
@@ -297,7 +299,7 @@ double AMCLLaser::LikelihoodFieldModel(AMCLLaserData *data, pf_sample_set_t* set
     sample->weight *= p;
     total_weight += sample->weight;
   }
-
+  
   return(total_weight);
 }
 
