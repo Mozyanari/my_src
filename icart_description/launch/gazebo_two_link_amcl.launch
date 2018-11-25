@@ -3,7 +3,7 @@
   <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
   <arg name="model_block" default="$(find icart_description)/urdf/linking.urdf"/>
 
-  <arg name="paused" default="true"/>
+  <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="false"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
@@ -51,15 +51,15 @@
   <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
-    <!--<remap from="/first/other_poses" to="/second/particlecloud" />-->
+    <remap from="/first/other_poses" to="/second/particlecloud" />
 
     <param name="odom_alpha1" type="double" value="7.0" />
     <param name="odom_alpha2" type="double" value="7.0" />
     <param name="odom_alpha3" type="double" value="3.5" />
     <param name="odom_alpha4" type="double" value="3.5" />
     <param name="laser_max_beams" type="int" value="150" />
-    <param name="min_particles" type="int" value="500" />
-    <param name="max_particles" type="int" value="2000" />
+    <param name="min_particles" type="int" value="50" />
+    <param name="max_particles" type="int" value="200" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
 
@@ -70,9 +70,9 @@
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
 
-    <param name="initial_cov_xx" type="double" value="0.0" />
-    <param name="initial_cov_yy" type="double" value="0.0" />
-    <param name="initial_cov_aa" type="double" value="0.0" />
+    <param name="initial_cov_xx" type="double" value="0.01" />
+    <param name="initial_cov_yy" type="double" value="0.01" />
+    <param name="initial_cov_aa" type="double" value="0.01" />
 
     <param name="odom_frame_id" value="odom_first" type="string"/>
     <param name="base_frame_id" value="base_foot_print_first" type="string"/>
@@ -95,14 +95,15 @@
   <node ns="second" name="amcl" pkg="amcl" type="amcl">
     <remap from="/second/scan" to="/icart_second/laser/scan" />
     <remap from="/second/map" to="/map" />
+    <remap from="/second/other_poses" to="/first/particlecloud" />
 
     <param name="odom_alpha1" type="double" value="7.0" />
     <param name="odom_alpha2" type="double" value="7.0" />
     <param name="odom_alpha3" type="double" value="3.5" />
     <param name="odom_alpha4" type="double" value="3.5" />
     <param name="laser_max_beams" type="int" value="150" />
-    <param name="min_particles" type="int" value="500" />
-    <param name="max_particles" type="int" value="2000" />
+    <param name="min_particles" type="int" value="50" />
+    <param name="max_particles" type="int" value="200" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
 
@@ -113,9 +114,9 @@
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
 
-    <param name="initial_cov_xx" type="double" value="0.0" />
-    <param name="initial_cov_yy" type="double" value="0.0" />
-    <param name="initial_cov_aa" type="double" value="0.0" />
+    <param name="initial_cov_xx" type="double" value="0.01" />
+    <param name="initial_cov_yy" type="double" value="0.01" />
+    <param name="initial_cov_aa" type="double" value="0.01" />
 
     <param name="odom_frame_id" value="odom_second" type="string"/>
     <param name="base_frame_id" value="base_foot_print_second" type="string"/>
