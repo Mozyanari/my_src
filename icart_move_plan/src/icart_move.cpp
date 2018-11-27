@@ -138,13 +138,13 @@ void icart_move::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   //amclで推定位置は分かるが更新頻度が少ないため，更新するまでの間はオドメトリで位置を補完する
   //まず，過去データからオフセット位置を計算
   double old_odom_theta = tf::getYaw(old_odom.pose.pose.orientation);
-  double old_odom_x = old_odom.pose.pose.position.x - (ss * cos(old_odom_theta));
-  double old_odom_y = old_odom.pose.pose.position.y - (ss * sin(old_odom_theta));
+  double old_odom_x = old_odom.pose.pose.position.x - (s * cos(old_odom_theta));
+  double old_odom_y = old_odom.pose.pose.position.y - (s * sin(old_odom_theta));
 
   //現在のオドメトリのオフセット位置を計算
   double odom_theta = tf::getYaw(odom.pose.pose.orientation);
-  double odom_x = odom.pose.pose.position.x - (ss * cos(odom_theta));
-  double odom_y = odom.pose.pose.position.y - (ss * sin(odom_theta));
+  double odom_x = odom.pose.pose.position.x - (s * cos(odom_theta));
+  double odom_y = odom.pose.pose.position.y - (s * sin(odom_theta));
 
   //オフセット位置の進み具合を計算
   double diff_odom_x = old_odom_x - odom_x;
