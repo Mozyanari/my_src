@@ -249,6 +249,7 @@ void data_create::pub_send_data(const ros::TimerEvent&){
 
   //制御点間の計算
   tf_distance = sqrt( (pow((world_offset_position_x_first - world_offset_position_x_second),2)) + (pow((world_offset_position_y_first - world_offset_position_y_second),2)) );
+  ROS_INFO("distance_%f",tf_distance);
   
   //gazebo上の搬送物の制御点の位置と姿勢
   gazebo_control.x = (gazebo_first.x + gazebo_second.x)/2.0;
