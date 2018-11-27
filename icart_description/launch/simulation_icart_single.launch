@@ -39,7 +39,7 @@
       <param name="base_frame" value="base_foot_print_first" type="string" />
       <param name="odom_frame" value="odom_first" type="string" />
 
-      <param name="delta" value="0.01" type="double"/>
+      <param name="delta" value="0.1" type="double"/>
 
       <remap from="/scan" to="/icart_first/laser/scan" />
   	</node>
