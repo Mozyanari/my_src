@@ -354,7 +354,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   double diff_distance_second = sqrt( (pow((sub_goal_second_x[0] - world_offset_position_x_second),2)) + (pow(sub_goal_second_y[0] - world_offset_position_y_second,2)) );
 
   //時間の計算
-
+/*
   //それぞれのロボットに送信する時間の計算
   double time = 1;
   double vi_judge_first;
@@ -389,17 +389,15 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
   //次の計算のために更新
   old_target_speed_first = target_speed_first;
   old_target_speed_second = target_speed_second;
-
-  /*
+*/
+  double time = 1.0;
   while(1){
     if(((diff_distance_first / time) < use_speed) && ((diff_distance_second / time) < use_speed)){
       //時間は十分と判定
       break;
     }
-    time++;
+    time += 0.01;
   }
-  */
-
 /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;
@@ -414,6 +412,8 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
       break;
     }
   }
+  */
+ /*
   //時間が長くかかる方を取る
   double first_time = diff_distance_first / v;
   double second_time = diff_distance_second / v;
@@ -426,6 +426,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
     time = second_time;
   }
   */
+  
 
   
 
@@ -506,6 +507,7 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   
   //それぞれのロボットに送信する時間の計算
   double time = 1;
+  /*
   double vi_judge_first;
   double vi_judge_second;
   while(1){
@@ -538,7 +540,8 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
   //次の計算のために更新
   old_target_speed_first = target_speed_first;
   old_target_speed_second = target_speed_second;
-  /*
+  */
+  
   while(1){
     if(((diff_distance_first / (double)time) < use_speed) && ((diff_distance_second / (double)time) < use_speed)){
       //時間は十分と判定
@@ -546,7 +549,7 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
     }
     time++;
   }
-  */
+  
  /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;
