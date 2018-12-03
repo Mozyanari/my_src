@@ -26,6 +26,15 @@
 <property name="siyy" value="${1.0/3.0*smass*(sh*sh+sd*sd)}"/>
 <property name="sizz" value="${1.0/3.0*smass*(sw*sw+sd*sd)}"/>
 
+<!--Marker-->
+<property name="mr" value="0.025"/>
+<property name="mh" value="0.01"/>
+<property name="mmass" value="0.000001"/>
+<property name="m_ixx" value="${1.0/12.0*mmass*(3.0*mr*mr+mh*mh)}"/>
+<property name="m_iyy" value="${1.0/12.0*mmass*(3.0*mr*mr+mh*mh)}"/>
+<property name="m_izz" value="${1.0/2.0*mmass*mr*mh}"/>
+
+
 
 
 
@@ -211,6 +220,27 @@
     </inertial>
   </link>
 
+  <!--centermark-->
+  <link name="mark">
+    <visual>
+      <geometry>
+        <cylinder radius="${mr}" length="${mh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${mr}" length="${mh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${mmass}"/>
+      <inertia ixx="${m_ixx}" ixy="0" ixz="0" iyy="${m_iyy}" iyz="0" izz="${m_izz}"/>
+    </inertial>
+  </link>
+
   <!--joint define-->
   <!--right-->
   <joint name="right_b_1_joint" type="fixed">
@@ -261,6 +291,13 @@
     <child link="ring_left_4"/>
     <origin xyz="${-(rd+sd)} 0 0" rpy="0 0 0"/>
   </joint>
+
+  <joint name="marker_joint" type="fixed">
+    <parent link="block"/>
+    <child link="mark"/>
+    <origin xyz="0 0 ${(mh/2)+(h/2)}" rpy="0 0 0"/>
+  </joint>
+
 
 
   <gazebo reference="block">
@@ -325,6 +362,14 @@
     <mu value="0.0" />
     <mu2 value="0.0" />
   </gazebo>
+
+  <gazebo reference="mark">
+  <material>Gazebo/Red</material>
+  <selfCollide>true</selfCollide>
+    <mu value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
 
   <gazebo>
     <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
