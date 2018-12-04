@@ -184,8 +184,8 @@ class AmclNode
     geometry_msgs::Pose2D other_2Dpose;
     int pose_frag = 0;
 
-    void OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf);
-    
+    double OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf);
+    void Normalization(pf_t *pf, double total_weight);
 
     //parameter for what odom to use
     std::string odom_frame_id_;
@@ -1277,6 +1277,7 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
     }
     if(pose_frag){
       AmclNode::OtherPoseLikelihoodField(&other_2Dpose ,pf_);
+      //AmclNode::Normalization(pf_,AmclNode::OtherPoseLikelihoodField(&other_2Dpose ,pf_));
     }
 
 
@@ -1660,6 +1661,8 @@ void AmclNode::other_robot_pointcloud(const geometry_msgs::PoseArray::ConstPtr &
 void AmclNode::other_robot_pose2D(const geometry_msgs::Pose2D::ConstPtr &position){
   //他のロボットのオフセット位置を取得
   other_2Dpose = *position;
+  //ROS_INFO("x_%f",other_2Dpose.x);
+  //ROS_INFO("y_%f",other_2Dpose.y);
   //フラグを立てる
   pose_frag = 1;
 }
@@ -1676,7 +1679,7 @@ void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf)
   set = pf->sets + pf->current_set;
 
   //ガウス分布のパラメータ
-  double sigma = 0.01;
+  double sigma = 0.001;
 
   //それぞれのパーティクルの重み
   double p = 1.0;
@@ -1710,11 +1713,13 @@ void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf)
   ROS_INFO("link_weight_%f",total_weight);
 }
 
-void AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf){
+double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf){
   //まずは実行フラグを折る
   pose_frag = 0;
+  //オフセット間距離
+  double offset = 0.16;
   //ロボット間距離
-  double link_distance = 1.0;
+  double link_distance = 1.000000;
   //使用するパーティクル
   pf_sample_set_t *set;
   pf_sample_t *sample;
@@ -1722,11 +1727,11 @@ void AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *p
   set = pf->sets + pf->current_set;
 
   //ガウス分布のパラメータ
-  double sigma = 0.001;
+  double sigma = 0.0001;
+  double total_weight = 0.0;
 
   //それぞれのパーティクルの重み
-  double p = 1.0;
-  double total_weight = 0.0;
+  double p = 0.0;
 
   //現在のパーティクルの数だけ回す
   for (int i = 0; i < set->sample_count; i++)
@@ -1734,8 +1739,9 @@ void AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *p
     sample = set->samples + i;
     pose = sample->pose;
 
+    //ROS_INFO("x_%f__y_%f",pose.v[0]-offset*cos(pose.v[2]),pose.v[1]-offset*sin(pose.v[2]));
     //パーティクル間の距離を計算
-    double particle_distance = sqrt( (pow((pose.v[0] - other_2Dpose.x),2)) + (pow((pose.v[1] - other_2Dpose.y),2)) );
+    double particle_distance = sqrt( (pow(((pose.v[0]-offset*cos(pose.v[2])) - other_2Dpose.x),2)) + (pow(((pose.v[1]-offset*sin(pose.v[2])) - other_2Dpose.y),2)) );
     double particle_distance_error = link_distance - particle_distance;
     //ROS_INFO("error_%f",particle_distance_error);
     //距離からガウス分布を用いて重みを計算
@@ -1748,18 +1754,27 @@ void AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *p
     p += weight*weight*weight;
 
     sample->weight *= p;
+    ROS_INFO("weight_%d_%f",i,sample->weight);
     total_weight += sample->weight;
   }
-  
+  return total_weight;
+}
+
+void AmclNode::Normalization(pf_t *pf, double total_weight){
+  //使用するパーティクル
+  pf_sample_set_t *set;
+  pf_sample_t *sample;
+  pf_vector_t pose;
+  set = pf->sets + pf->current_set;
 
   //重みの正規化する
   for (int i = 0; i < set->sample_count; i++)
   {
     sample = set->samples + i;
+    ROS_INFO("weight_%d_%f",i,sample->weight);
     //ここで正規化
     sample->weight /= total_weight;
-    ROS_INFO("weight_%d_%f",pf->current_set,sample->weight);
+    //ROS_INFO("weight_%d_%f",pf->current_set,sample->weight);
   }
-  ROS_INFO("pose_weight_%d_%f",pf->current_set,total_weight);
+  //ROS_INFO("pose_weight_%d_%f",pf->current_set,total_weight);
 }
-
