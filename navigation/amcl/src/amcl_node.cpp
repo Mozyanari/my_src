@@ -1667,6 +1667,7 @@ void AmclNode::other_robot_pose2D(const geometry_msgs::Pose2D::ConstPtr &positio
   pose_frag = 1;
 }
 
+/*
 void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf){
   //まずは実行フラグを折る
   link_frag = 1;
@@ -1712,10 +1713,11 @@ void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf)
   }
   ROS_INFO("link_weight_%f",total_weight);
 }
+*/
 
 double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf){
   //まずは実行フラグを折る
-  pose_frag = 0;
+  pose_frag = 1;
   //オフセット間距離
   double offset = 0.16;
   //ロボット間距離
@@ -1727,7 +1729,7 @@ double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t 
   set = pf->sets + pf->current_set;
 
   //ガウス分布のパラメータ
-  double sigma = 0.0001;
+  double sigma = 0.1;
   double total_weight = 0.0;
 
   //それぞれのパーティクルの重み
@@ -1739,6 +1741,9 @@ double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t 
     sample = set->samples + i;
     pose = sample->pose;
 
+    //重みの初期化
+    //p= 0.0;
+
     //ROS_INFO("x_%f__y_%f",pose.v[0]-offset*cos(pose.v[2]),pose.v[1]-offset*sin(pose.v[2]));
     //パーティクル間の距離を計算
     double particle_distance = sqrt( (pow(((pose.v[0]-offset*cos(pose.v[2])) - other_2Dpose.x),2)) + (pow(((pose.v[1]-offset*sin(pose.v[2])) - other_2Dpose.y),2)) );
@@ -1746,15 +1751,23 @@ double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t 
     //ROS_INFO("error_%f",particle_distance_error);
     //距離からガウス分布を用いて重みを計算
     double weight = exp(-(particle_distance_error * particle_distance_error) / (2.0 * sigma * sigma));
+    /*
+    double weight = 0;
+    if((fabs(particle_distance_error)) < sigma){
+      weight = 0.9;
+    }else{
+      weight = 0.01;
+    }
+    */
     //ROS_INFO("weight_%f",weight);
 
     assert(weight <= 1.0);
     assert(weight >= 0.0);
 
-    p += weight*weight*weight;
+    //p += weight*weight*weight;
 
-    sample->weight *= p;
-    ROS_INFO("weight_%d_%f",i,sample->weight);
+    sample->weight = weight;
+    ROS_INFO("weight_%d_%f_,%f",i,sample->weight,particle_distance_error);
     total_weight += sample->weight;
   }
   return total_weight;
