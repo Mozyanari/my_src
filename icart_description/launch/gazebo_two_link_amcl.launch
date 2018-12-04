@@ -13,7 +13,7 @@
   <arg name="init_pose_second" value="-x -0.34 -y 0.0 -z 0.0" />
   <arg name="init_pose_block" value="-x -0.0 -y 0.0 -z 0.2" />
 
-  <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
+  <arg name="rvizconfig" default="$(find icart_description)/gazebo_two_link_amcl.rviz"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <!--<arg name="world_name" value="$(find icart_description)/world/test2.world"/>-->
@@ -93,10 +93,13 @@
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
+  <!--amclによる推定パーティクルから推定オフセットパーティクルの計算-->
+  <node ns="first" pkg="icart_move_plan" type="particle_offset" name="particle_offset">
+  </node>
 
   <!--secondの自己位置推定-->
   <!--amcl-->
-  <node ns="second" name="amcl" pkg="amcl" type="amcl" output="log">
+  <node ns="second" name="amcl" pkg="amcl" type="amcl" output="screen">
     <remap from="/second/scan" to="/icart_second/laser/scan" />
     <remap from="/second/map" to="/map" />
     <remap from="/second/other_pose" to="/first/offset_odom_true" />
@@ -141,6 +144,9 @@
   <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
+  </node>
+  <!--amclによる推定パーティクルから推定オフセットパーティクルの計算-->
+  <node ns="second" pkg="icart_move_plan" type="particle_offset" name="particle_offset">
   </node>
 
   <!--協調搬送のパスプランプログラム-->
