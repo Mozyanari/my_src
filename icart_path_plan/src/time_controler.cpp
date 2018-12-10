@@ -55,7 +55,7 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
 
     ROS_INFO("seq_%d",(int)receive_time.seq);
     static int old_seq = 0;
-    static int point = 1;
+    static int point = 6;
     if(((int)receive_time.seq < 0) && (old_seq != (int)receive_time.seq)){
       if(point == 1){
         geometry_msgs::Pose2D pose;
@@ -83,6 +83,20 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
         pose.x = 0.0;
         pose.y = 0.0;
         pose.theta = 3.14;
+        pub_target_point.publish(pose);
+        point++;
+      }else if(point == 6){
+        geometry_msgs::Pose2D pose;
+        pose.x = 5.0;
+        pose.y = 0.0;
+        pose.theta = 1.57;
+        pub_target_point.publish(pose);
+        point++;
+      }else if(point == 7){
+        geometry_msgs::Pose2D pose;
+        pose.x = 10.0;
+        pose.y = 0.0;
+        pose.theta = 0.0;
         pub_target_point.publish(pose);
         point++;
       }else{
