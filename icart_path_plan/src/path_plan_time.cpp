@@ -1,5 +1,5 @@
 //搬送物のサブゴール間の距離
-#define separete_distance 0.05
+#define separete_distance 0.5
 
 //搬送物の角度の間隔
 #define separate_theta 0.174532
@@ -172,7 +172,7 @@ path_plan_time::path_plan_time(){
   Max_speed = 0.1;
 
   //使用速度:0.01[m/s]
-  use_speed = 0.01;
+  use_speed = 0.1;
   //機体間距離[m]570mm,シミュレーション1m
   distance_multi = 1.0;
   //制御点までの距離
@@ -396,7 +396,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
       //時間は十分と判定
       break;
     }
-    time += 0.01;
+    time++;
   }
 /*
   //できるだけ一定の速度で走って欲しい

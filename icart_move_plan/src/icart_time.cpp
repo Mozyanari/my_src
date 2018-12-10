@@ -129,7 +129,7 @@ icart_time::icart_time(){
   rad = 0.0;
 
   //最高速度:0.1[m/s],100[mm/s]
-  Max_speed = 0.02;
+  Max_speed = 0.2;
 
   //制限加速度[0.001]
   Reg_acc = 0.001;
@@ -181,6 +181,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_x = odom_x - old_odom_x;
   double diff_odom_y = odom_y - old_odom_y;
   double diff_odom_theta = odom_theta - old_odom_theta;
+  //ROS_INFO("diff_theta_%f",diff_odom_theta);
 
   //amclの推定位置とオドメトリからオフセット位置を修正
   world_offset_position_x = odom_offset.x + diff_odom_x;
