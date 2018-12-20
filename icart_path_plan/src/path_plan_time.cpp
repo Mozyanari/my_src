@@ -1,5 +1,5 @@
 //搬送物のサブゴール間の距離
-#define separete_distance 0.5
+#define separete_distance 0.05
 
 //搬送物の角度の間隔
 #define separate_theta 0.174532
@@ -398,6 +398,7 @@ void path_plan_time::calc_machine_position(const geometry_msgs::Pose2D::ConstPtr
     }
     time++;
   }
+  time*=2;
 /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;
@@ -549,7 +550,7 @@ void path_plan_time::calc_arrived_time(const std_msgs::Int32::ConstPtr &data){
     }
     time++;
   }
-  
+  time*=2;
  /*
   //できるだけ一定の速度で走って欲しい
   double v = 0.04;

@@ -129,7 +129,7 @@ icart_time::icart_time(){
   rad = 0.0;
 
   //最高速度:0.1[m/s],100[mm/s]
-  Max_speed = 0.2;
+  Max_speed = 0.5;
 
   //制限加速度[0.001]
   Reg_acc = 0.001;

@@ -296,7 +296,7 @@ double AMCLLaser::LikelihoodFieldModel(AMCLLaserData *data, pf_sample_set_t* set
       // works well, though...
       p += pz*pz*pz;
     }
-    printf("%d_before_%f_",j,sample->weight);
+    printf("%d_before_%f_p_%f",j,sample->weight,p);
     sample->weight *= p;
     printf("after_%f\n",sample->weight);
     total_weight += sample->weight;

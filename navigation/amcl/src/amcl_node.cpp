@@ -1717,7 +1717,7 @@ void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf)
 
 double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf){
   //まずは実行フラグを折る
-  pose_frag = 1;
+  pose_frag = 0;
   //オフセット間距離
   double offset = 0.16;
   //ロボット間距離
@@ -1729,7 +1729,7 @@ double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t 
   set = pf->sets + pf->current_set;
 
   //ガウス分布のパラメータ
-  double sigma = 0.1;
+  double sigma = 1.0;
   double total_weight = 0.0;
 
   //それぞれのパーティクルの重み

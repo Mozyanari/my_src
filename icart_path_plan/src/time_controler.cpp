@@ -55,34 +55,37 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
 
     ROS_INFO("seq_%d",(int)receive_time.seq);
     static int old_seq = 0;
-    static int point = 6;
+    static int point = 1;
     if(((int)receive_time.seq < 0) && (old_seq != (int)receive_time.seq)){
       if(point == 1){
         geometry_msgs::Pose2D pose;
         pose.x = 2.0;
         pose.y = 0.0;
-        pose.theta = 1.57;
+        pose.theta = 0.0;
+        //pose.theta = 1.57;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 2){
         geometry_msgs::Pose2D pose;
         pose.x = 2.0;
         pose.y = 2.0;
-        pose.theta = 3.14;
+        pose.theta = 0.0;
+        //pose.theta = 3.14;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 3){
         geometry_msgs::Pose2D pose;
         pose.x = 0.0;
         pose.y = 2.0;
-        pose.theta = 1.57;
+        pose.theta = 0.0;
+        //pose.theta = 1.57;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 4){
         geometry_msgs::Pose2D pose;
         pose.x = 0.0;
         pose.y = 0.0;
-        pose.theta = 3.14;
+        pose.theta = 0.0;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 6){
@@ -97,6 +100,20 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
         pose.x = 10.0;
         pose.y = 0.0;
         pose.theta = 0.0;
+        pub_target_point.publish(pose);
+        point++;
+      }else if(point == 9){
+        geometry_msgs::Pose2D pose;
+        pose.x = 10.0;
+        pose.y = 0.0;
+        pose.theta = 0.0;
+        pub_target_point.publish(pose);
+        point++;
+      }else if(point == 11){
+        geometry_msgs::Pose2D pose;
+        pose.x = 2.0;
+        pose.y = 2.0;
+        pose.theta = 1.57;
         pub_target_point.publish(pose);
         point++;
       }else{
