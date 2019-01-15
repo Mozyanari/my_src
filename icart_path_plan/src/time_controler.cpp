@@ -61,31 +61,32 @@ void time_controler::cb_time_get(const std_msgs::Header::ConstPtr &data){
         geometry_msgs::Pose2D pose;
         pose.x = 2.0;
         pose.y = 0.0;
-        pose.theta = 0.0;
-        //pose.theta = 1.57;
+        //pose.theta = 0.0;
+        pose.theta = 1.57;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 2){
         geometry_msgs::Pose2D pose;
         pose.x = 2.0;
         pose.y = 2.0;
-        pose.theta = 0.0;
-        //pose.theta = 3.14;
+        //pose.theta = 0.0;
+        pose.theta = 3.14;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 3){
         geometry_msgs::Pose2D pose;
         pose.x = 0.0;
         pose.y = 2.0;
-        pose.theta = 0.0;
-        //pose.theta = 1.57;
+        //pose.theta = 0.0;
+        pose.theta = 1.57;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 4){
         geometry_msgs::Pose2D pose;
         pose.x = 0.0;
         pose.y = 0.0;
-        pose.theta = 0.0;
+        //pose.theta = 0.0;
+        pose.theta = 3.14;
         pub_target_point.publish(pose);
         point++;
       }else if(point == 6){
