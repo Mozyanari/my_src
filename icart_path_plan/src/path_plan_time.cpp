@@ -637,7 +637,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.1).sleep();
+    ros::Duration(0.01).sleep();
 
     //ROS_INFO("i=%d",i);
   }
@@ -672,7 +672,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.1).sleep();
+    ros::Duration(0.01).sleep();
 
     //ROS_INFO("i=%d",i);
   }
@@ -707,7 +707,7 @@ void path_plan_time::send_target_marker(void){
 
     marker_pub.publish(marker_control);
 
-    ros::Duration(0.1).sleep();
+    ros::Duration(0.01).sleep();
 
     //ROS_INFO("i=%d",i);
   }
