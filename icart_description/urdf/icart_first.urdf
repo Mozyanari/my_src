@@ -350,6 +350,7 @@
   <joint name="hokuyo_joint_first" type="fixed">
     <axis xyz="0 0 0" />
     <origin xyz="0 0 0.0825" rpy="0 0 3.141592"/>
+    <!--<origin xyz="0 0 0.0825" rpy="0 0 0"/>-->
     <parent link="base_foot_print_first"/>
     <child link="hokuyo_link_first"/>
   </joint>
