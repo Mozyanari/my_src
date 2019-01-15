@@ -1380,6 +1380,7 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
       double weight;
       pf_vector_t pose_mean;
       pf_matrix_t pose_cov;
+      //&weight, &pose_mean, &pose_covにhyp_count番目のパーティクルのデータをコピーする
       if (!pf_get_cluster_stats(pf_, hyp_count, &weight, &pose_mean, &pose_cov))
       {
         ROS_ERROR("Couldn't get stats on cluster %d", hyp_count);
@@ -1400,6 +1401,7 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
     if(max_weight > 0.0)
     {
       ROS_INFO("%f",max_weight);
+      //meanは位置
       ROS_INFO("Max weight pose: %.3f %.3f %.3f",
                 hyps[max_weight_hyp].pf_pose_mean.v[0],
                 hyps[max_weight_hyp].pf_pose_mean.v[1],
@@ -1429,13 +1431,19 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
           // Report the overall filter covariance, rather than the
           // covariance for the highest-weight cluster
           //p.covariance[6*i+j] = hyps[max_weight_hyp].pf_pose_cov.m[i][j];
+
           p.pose.covariance[6*i+j] = set->cov.m[i][j];
         }
       }
       // Report the overall filter covariance, rather than the
       // covariance for the highest-weight cluster
       //p.covariance[6*5+5] = hyps[max_weight_hyp].pf_pose_cov.m[2][2];
+
       p.pose.covariance[6*5+5] = set->cov.m[2][2];
+      //p.pose.covariance[6*5+5] = hyps[max_weight_hyp].pf_pose_cov.m[2][2];
+
+      //重みも同様にcovに入れる
+      //p.pose.covariance[6*2+2] = hyps[max_weight_hyp].weight;
 
       /*
          printf("cov:\n");
