@@ -281,6 +281,8 @@ void pf_update_sensor(pf_t *pf, pf_sensor_model_fn_t sensor_fn, void *sensor_dat
   total = (*sensor_fn) (sensor_data, set);
   printf("total_weight_%f\n",total);
 
+  
+  
   //total = AmclNode::LinkLikelihoodField
 
   //重みの正規化
@@ -288,13 +290,19 @@ void pf_update_sensor(pf_t *pf, pf_sensor_model_fn_t sensor_fn, void *sensor_dat
   {
     // Normalize weights
     double w_avg=0.0;
+    double max_weight = 0.0;
     for (i = 0; i < set->sample_count; i++)
     {
       sample = set->samples + i;
       w_avg += sample->weight;
+      if(sample->weight > max_weight){
+        max_weight =sample->weight;
+        
+      }
       //ここで正規化
       sample->weight /= total;
     }
+    printf("max_weight_%f\n",max_weight);
     // Update running averages of likelihood of samples (Prob Rob p258)
     //ここで重みの平均を計算
     w_avg /= set->sample_count;
@@ -338,7 +346,9 @@ void pf_update_resample(pf_t *pf)
 
   double w_diff;
 
+  //set_aがアクティブなパーティクル
   set_a = pf->sets + pf->current_set;
+  //set_bがリサンプリング後のパーティクル
   set_b = pf->sets + (pf->current_set + 1) % 2;
 
   // Build up cumulative probability table for resampling.
@@ -460,6 +470,7 @@ void pf_update_resample(pf_t *pf)
 
 // Compute the required number of samples, given that there are k bins
 // with samples in them.  This is taken directly from Fox et al.
+//これがKLDサンプリングの限界を計算する場所
 int pf_resample_limit(pf_t *pf, int k)
 {
   double a, b, c, x;
