@@ -32,7 +32,7 @@
 
     <!--gmapping-->
     <node pkg="gmapping" type="slam_gmapping" name="mapper">
-  		<param name="maxUrange" value="20.0" type="double" />
+  		<param name="maxUrange" value="2.0" type="double" />
   		<param name="xmax" value="20" type="double" />
   		<param name="ymax" value="20" type="double" />
   		<param name="xmin" value="-20" type="double" />
@@ -40,7 +40,7 @@
       <param name="base_frame" value="base_foot_print_first" type="string" />
       <param name="odom_frame" value="odom_first" type="string" />
 
-      <param name="delta" value="0.01" type="double"/>
+      <param name="delta" value="10.0" type="double"/>
 
       <remap from="/scan" to="/icart_first/laser/scan" />
   	</node>
