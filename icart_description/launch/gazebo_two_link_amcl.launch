@@ -4,19 +4,30 @@
   <arg name="model_block" default="$(find icart_description)/urdf/linking.urdf"/>
 
   <arg name="paused" default="true"/>
-  <arg name="use_sim_time" default="false"/>
+  <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
+<!--
   <arg name="init_pose_first" value="-x  0.66 -y 0.0 -z 0.0" />
   <arg name="init_pose_second" value="-x -0.34 -y 0.0 -z 0.0" />
-  <arg name="init_pose_block" value="-x -0.0 -y 0.0 -z 0.2" />
+  <arg name="init_pose_block" value="-x 0.0 -y 0.0 -z 0.2" />
+-->
 
-  <arg name="rvizconfig" default="$(find icart_description)/gazebo_time_two_amcl.rviz"/>
+  <arg name="init_pose_first" value="-x  1.66 -y -1.0 -z 0.0" />
+  <arg name="init_pose_second" value="-x 0.66 -y -1.0 -z 0.0" />
+  <arg name="init_pose_block" value="-x 1.0 -y -1.0 -z 0.2" />
+<!--
+  <arg name="init_pose_first" value="-x  0.66 -y -1.0 -z 0.0" />
+  <arg name="init_pose_second" value="-x -0.34 -y -1.0 -z 0.0" />
+  <arg name="init_pose_block" value="-x 0.0 -y -1.0 -z 0.2" />
+-->
+  <arg name="rvizconfig" default="$(find icart_description)/gazebo_two_link_amcl.rviz"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+      <!--<arg name="world_name" value="$(find icart_description)/world/long_corridor.world"/>-->
       <arg name="debug" value="$(arg debug)" />
       <arg name="gui" value="$(arg gui)" />
       <arg name="paused" value="$(arg paused)"/>
@@ -48,21 +59,23 @@
 
   <!--firstの自己位置推定-->
   <!--amcl-->
-  <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
+  <node ns="first" name="amcl" pkg="amcl" type="amcl" output="log">
     <remap from="/first/scan" to="/icart_first/laser/scan" />
     <remap from="/first/map" to="/map" />
-    <!--<remap from="/first/other_poses" to="/second/particlecloud" />-->
+    <remap from="/first/other_pose" to="/second/offset_odom_true" />
+    <!--パーティクルを受け取ると尤度関数が働く-->
+    <!--<remap from="/first/other_particle" to="/second/particlecloud" />-->
 
-    <param name="odom_alpha1" type="double" value="7.0" />
-    <param name="odom_alpha2" type="double" value="7.0" />
-    <param name="odom_alpha3" type="double" value="3.5" />
-    <param name="odom_alpha4" type="double" value="3.5" />
+    <param name="odom_alpha1" type="double" value="30.0" />
+    <param name="odom_alpha2" type="double" value="30.0" />
+    <param name="odom_alpha3" type="double" value="20.0" />
+    <param name="odom_alpha4" type="double" value="20.0" />
     <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="500" />
     <param name="max_particles" type="int" value="2000" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
-
+    <param name="resample_interval" type="int" value="1"/>
 
     <param name="use_map_topic" type="bool" value="true" />
 
@@ -70,41 +83,48 @@
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
 
-    <param name="initial_cov_xx" type="double" value="0.0" />
-    <param name="initial_cov_yy" type="double" value="0.0" />
-    <param name="initial_cov_aa" type="double" value="0.0" />
+    <param name="initial_cov_xx" type="double" value="0.01" />
+    <param name="initial_cov_yy" type="double" value="0.01" />
+    <param name="initial_cov_aa" type="double" value="0.01" />
 
     <param name="odom_frame_id" value="odom_first" type="string"/>
     <param name="base_frame_id" value="base_foot_print_first" type="string"/>
     <param name="global_frame_id" value="/map" type="string"/>
   </node>
   <!--amclによる推定位置から推定オフセット位置の計算-->
-  <!--
-  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
-  -->
+  <node ns="first" pkg="icart_move_plan" type="offset_position" name="offset_position">
+    <!--<remap from="/first/pose_ground_truth" to="/icart_first/pose_ground_truth"/>
+    <remap from="/first/amcl_pose" to="/first/nothing"/>-->
+  </node>
   <!--オフセットを考慮した動作プログラム-->
-  <!--
-  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time">
+  <node ns="first" pkg="icart_move_plan" type="icart_time" name="icart_time" output="log">
     <remap from="ypspur_ros/cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_first/diff_drive_controller/odom" />
   </node>
-  -->
+  <!--amclによる推定パーティクルから推定オフセットパーティクルの計算-->
+  <node ns="first" pkg="icart_move_plan" type="particle_offset" name="particle_offset">
+  </node>
 
   <!--secondの自己位置推定-->
   <!--amcl-->
-  <node ns="second" name="amcl" pkg="amcl" type="amcl">
+  <node ns="second" name="amcl" pkg="amcl" type="amcl" output="log">
     <remap from="/second/scan" to="/icart_second/laser/scan" />
     <remap from="/second/map" to="/map" />
+    <remap from="/second/other_pose" to="/first/offset_odom_true" />
+    <!--パーティクルを受け取ると尤度関数が働く-->
+    <!--<remap from="/second/other_particle" to="/first/particlecloud" />-->
 
-    <param name="odom_alpha1" type="double" value="7.0" />
-    <param name="odom_alpha2" type="double" value="7.0" />
-    <param name="odom_alpha3" type="double" value="3.5" />
-    <param name="odom_alpha4" type="double" value="3.5" />
+
+    <param name="odom_alpha1" type="double" value="30.0" />
+    <param name="odom_alpha2" type="double" value="30.0" />
+    <param name="odom_alpha3" type="double" value="20.0" />
+    <param name="odom_alpha4" type="double" value="20.0" />
     <param name="laser_max_beams" type="int" value="150" />
     <param name="min_particles" type="int" value="500" />
     <param name="max_particles" type="int" value="2000" />
     <param name="update_min_d" type="double" value="0.03" />
     <param name="update_min_a" type="double" value="0.06" />
+    <param name="resample_interval" type="int" value="1"/>
 
 
     <param name="use_map_topic" type="bool" value="true" />
@@ -113,9 +133,9 @@
     <param name="initial_pose_y" type="double" value="0.0" />
     <param name="initial_pose_a" type="double" value="0.0" />
 
-    <param name="initial_cov_xx" type="double" value="0.0" />
-    <param name="initial_cov_yy" type="double" value="0.0" />
-    <param name="initial_cov_aa" type="double" value="0.0" />
+    <param name="initial_cov_xx" type="double" value="0.01" />
+    <param name="initial_cov_yy" type="double" value="0.01" />
+    <param name="initial_cov_aa" type="double" value="0.01" />
 
     <param name="odom_frame_id" value="odom_second" type="string"/>
     <param name="base_frame_id" value="base_foot_print_second" type="string"/>
@@ -123,29 +143,30 @@
 
   </node>
   <!--amclによる推定位置から推定オフセット位置の計算-->
-  <!--
-  <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position"/>
-  -->
+  <node ns="second" pkg="icart_move_plan" type="offset_position" name="offset_position">
+    <!--<remap from="/second/pose_ground_truth" to="/icart_second/pose_ground_truth"/>
+    <remap from="/second/amcl_pose" to="/second/nothing"/>-->
+  </node>
 
   <!--オフセットを考慮した動作プログラム-->
-  <!--
   <node ns="second" pkg="icart_move_plan" type="icart_time" name="icart_time">
     <remap from="ypspur_ros/cmd_vel" to="/icart_second/diff_drive_controller/cmd_vel"/>
     <remap from="ypspur_ros/odom" to="/icart_second/diff_drive_controller/odom" />
   </node>
-  -->
+  <!--amclによる推定パーティクルから推定オフセットパーティクルの計算-->
+  <node ns="second" pkg="icart_move_plan" type="particle_offset" name="particle_offset">
+  </node>
 
   <!--協調搬送のパスプランプログラム-->
-  <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time" output="screen"/>
+  <node pkg="icart_path_plan" type="path_plan_time" name="path_plan_time" output="log"/>
   <!--time_controlerノード-->
-  <node pkg="icart_path_plan" type="time_controler" name="time_controler"/>
+  <node pkg="icart_path_plan" type="time_controler" name="time_controler" output="screen"/>
   <!--data収集-->
-  <!--
-  <node pkg="icart_move_plan" type="data_create" name="data_create" />
-  -->
+  <node pkg="icart_move_plan" type="data_create" name="data_create" output="screen"/>
 
   <!--map_serverを立ち上げてマップを出力-->
   <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+  <!--<node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/long_corridor/map.yaml"/>-->
 
   <!--gazebo上のロボットの真値を取得して，オフセットの位置を取得-->
   <!--icart_first-->

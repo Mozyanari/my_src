@@ -31,6 +31,7 @@
 
 #include "amcl_sensor.h"
 #include "../map/map.h"
+//#include "geometry_msgs/PoseArray.h"
 
 namespace amcl
 {
@@ -88,6 +89,7 @@ class AMCLLaser : public AMCLSensor
 
   // Update the filter based on the sensor model.  Returns true if the
   // filter has been updated.
+  //public: virtual bool UpdateSensor(pf_t *pf, AMCLSensorData *data);
   public: virtual bool UpdateSensor(pf_t *pf, AMCLSensorData *data);
 
   // Set the laser's pose after construction

@@ -25,7 +25,12 @@ private:
   //機体の速度
   void cb_vel_first(const geometry_msgs::Twist::ConstPtr &speed);
   void cb_vel_second(const geometry_msgs::Twist::ConstPtr &speed);
-  
+  //連結リンクの真値
+  void cb_block(const nav_msgs::Odometry::ConstPtr &position);
+  //パーティクルの位置
+  void cb_particle_first(const geometry_msgs::PoseArray::ConstPtr &data);
+  void cb_particle_second(const geometry_msgs::PoseArray::ConstPtr &data);
+
 
 
   //一秒ごとにデバックするための関数
@@ -44,6 +49,10 @@ private:
   ros::Subscriber sub_target_point_second;
   ros::Subscriber sub_speed_first;
   ros::Subscriber sub_speed_second;
+  ros::Subscriber sub_block;
+  ros::Subscriber sub_particle_first;
+  ros::Subscriber sub_particle_second;
+
 
 
   ros::Publisher pub_data;
@@ -78,6 +87,9 @@ private:
   geometry_msgs::Pose2D gazebo_second;
 
   geometry_msgs::Pose2D gazebo_control;
+
+  //blockの真値
+  nav_msgs::Odometry block;
 
   //送信データ型
   geometry_msgs::PoseArray senddata;
@@ -118,6 +130,10 @@ private:
   double machine_x_second;
   double machine_z_second;
 
+  //particle_first
+  geometry_msgs::PoseArray particle_first;
+  //particle_first
+  geometry_msgs::PoseArray particle_second;
 
   //オフセット距離
   double s;
@@ -137,7 +153,9 @@ data_create::data_create(){
   sub_target_point_second = nh.subscribe("/second/target_point", 5, &data_create::cb_target_point_second,this);
   sub_speed_first = nh.subscribe("/icart_first/diff_drive_controller/cmd_vel", 5, &data_create::cb_vel_first,this);
   sub_speed_second = nh.subscribe("/icart_second/diff_drive_controller/cmd_vel", 5, &data_create::cb_vel_second,this);
-
+  sub_block = nh.subscribe("/block/pose_ground_truth", 5, &data_create::cb_block,this);
+  sub_particle_first = nh.subscribe("/first/particlecloud_offset",5,&data_create::cb_particle_first,this);
+  sub_particle_second = nh.subscribe("/second/particlecloud_offset",5,&data_create::cb_particle_second,this);
 
 
   //配布するトピックの定義
@@ -241,6 +259,21 @@ void data_create::cb_vel_second(const geometry_msgs::Twist::ConstPtr &speed){
   machine_x_second=speed->linear.x;
   machine_z_second=speed->angular.z;
 }
+
+void data_create::cb_block(const nav_msgs::Odometry::ConstPtr &position){
+  block = *position;
+}
+
+void data_create::cb_particle_first(const geometry_msgs::PoseArray::ConstPtr &data){
+  particle_first = *data;
+}
+
+void data_create::cb_particle_second(const geometry_msgs::PoseArray::ConstPtr &data){
+  particle_second = *data;
+}
+
+
+
 void data_create::pub_send_data(const ros::TimerEvent&){
   //搬送物の制御点の位置と姿勢
   world_offset_position_x_control = (world_offset_position_x_first + world_offset_position_x_second)/2.0;
@@ -249,13 +282,14 @@ void data_create::pub_send_data(const ros::TimerEvent&){
 
   //制御点間の計算
   tf_distance = sqrt( (pow((world_offset_position_x_first - world_offset_position_x_second),2)) + (pow((world_offset_position_y_first - world_offset_position_y_second),2)) );
+  ROS_INFO("distance_%f",tf_distance);
   
   //gazebo上の搬送物の制御点の位置と姿勢
   gazebo_control.x = (gazebo_first.x + gazebo_second.x)/2.0;
   gazebo_control.y = (gazebo_first.y + gazebo_second.y)/2.0;
   gazebo_control.theta = atan2(gazebo_first.y - gazebo_second.y, gazebo_first.x - gazebo_second.x);
 
-  //gazebo上の制御点間の計算
+  //gazebo上の制御点間の真値の計算
   double gazebo_tf_distance = sqrt( (pow((gazebo_first.x - gazebo_second.x),2)) + (pow((gazebo_first.y - gazebo_second.y),2)) );
 
   geometry_msgs::Pose data;
@@ -267,6 +301,7 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   data.position.y = world_offset_position_y_control;
   data.position.z = world_offset_position_theta_control;
   data.orientation.x = tf_distance;
+  data.orientation.y = gazebo_tf_distance;
   senddata.poses.push_back(data);
 
   //1(first)
@@ -286,19 +321,30 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   data.position.x = gazebo_control.x;
   data.position.y = gazebo_control.y;
   data.position.z = gazebo_control.theta;
-  data.orientation.x = gazebo_tf_distance;
+  data.orientation.x = gazebo_control.x - world_offset_position_x_control;
+  data.orientation.y = gazebo_control.y - world_offset_position_y_control;
+  data.orientation.z = gazebo_control.theta - world_offset_position_theta_control;
+  data.orientation.w = sqrt( (pow((gazebo_control.x - world_offset_position_x_control),2)) + (pow((gazebo_control.y - world_offset_position_y_control),2)) );
   senddata.poses.push_back(data);
 
   //4(first)
   data.position.x = gazebo_first.x;
   data.position.y = gazebo_first.y;
   data.position.z = gazebo_first.theta;
+  data.orientation.x = gazebo_first.x - world_offset_position_x_first;
+  data.orientation.y = gazebo_first.y - world_offset_position_y_first;
+  data.orientation.z = gazebo_first.theta - world_offset_position_theta_first;
+  data.orientation.w = sqrt( (pow((gazebo_first.x - world_offset_position_x_first),2)) + (pow((gazebo_first.y - world_offset_position_y_first),2)) );
   senddata.poses.push_back(data);
 
   //5(second)
   data.position.x = gazebo_second.x;
   data.position.y = gazebo_second.y;
   data.position.z = gazebo_second.theta;
+  data.orientation.x = gazebo_second.x - world_offset_position_x_second;
+  data.orientation.y = gazebo_second.y - world_offset_position_y_second;
+  data.orientation.z = gazebo_second.theta - world_offset_position_theta_second;
+  data.orientation.w = sqrt( (pow((gazebo_second.x - world_offset_position_x_second),2)) + (pow((gazebo_second.y - world_offset_position_y_second),2)) );
   senddata.poses.push_back(data);
 
   //目標位置
@@ -339,6 +385,78 @@ void data_create::pub_send_data(const ros::TimerEvent&){
   data.orientation.y=omega_r_second;
   senddata.poses.push_back(data);
 
+  //11(blockの真値)
+  data.position.x = block.pose.pose.position.x;
+  data.position.y = block.pose.pose.position.y;
+  data.position.z = tf::getYaw(block.pose.pose.orientation);
+  senddata.poses.push_back(data);
+
+  //12(firstのパーティクルの性質)
+  //パーティクルの平均と分散を計算
+  //パーティクルの数を取得
+  double size = particle_first.poses.size();
+  double x_total = 0;
+  double y_total = 0;
+  double x_ave = 0;
+  double y_ave = 0;
+  for(int i=0;i<size;i++){
+    x_total += particle_first.poses[i].position.x;
+    y_total += particle_first.poses[i].position.y;
+  }
+  x_ave = x_total/size;
+  y_ave = y_total/size;
+
+  double x_dispersion = 0;
+  double y_dispersion = 0;
+
+  for(int i=0;i<size;i++){
+    x_dispersion += pow((particle_first.poses[i].position.x-x_ave),2);
+    y_dispersion += pow((particle_first.poses[i].position.y-y_ave),2);
+  }
+  x_dispersion /= size;
+  y_dispersion /= size;
+
+  data.position.x = x_ave;
+  data.position.y = y_ave;
+  data.orientation.x = x_dispersion;
+  data.orientation.y = y_dispersion;
+  data.orientation.w = size;
+
+  senddata.poses.push_back(data);
+
+
+  //13(secondのパーティクルの性質)
+  //パーティクルの平均と分散を計算
+  //パーティクルの数を取得
+  size = particle_second.poses.size();
+  x_total = 0;
+  y_total = 0;
+  x_ave = 0;
+  y_ave = 0;
+  for(int i=0;i<size;i++){
+    x_total += particle_second.poses[i].position.x;
+    y_total += particle_second.poses[i].position.y;
+  }
+  x_ave = x_total/size;
+  y_ave = y_total/size;
+
+  x_dispersion = 0;
+  y_dispersion = 0;
+
+  for(int i=0;i<size;i++){
+    x_dispersion += pow((particle_second.poses[i].position.x-x_ave),2);
+    y_dispersion += pow((particle_second.poses[i].position.y-y_ave),2);
+  }
+  x_dispersion /= size;
+  y_dispersion /= size;
+
+  data.position.x = x_ave;
+  data.position.y = y_ave;
+  data.orientation.x = x_dispersion;
+  data.orientation.y = y_dispersion;
+  data.orientation.w = size;
+  
+  senddata.poses.push_back(data);
 
   pub_data.publish(senddata);
 }

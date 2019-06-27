@@ -39,6 +39,7 @@
 #include "ros/assert.h"
 
 //#include "amcl"
+//自作部分
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/PoseArray.h>
 
@@ -171,9 +172,20 @@ class AmclNode
     //自作部分
     //void other_robot_odom(const geometry_msgs::Pose2D::ConstPtr &position);
     //geometry_msgs::Pose2D other_position;
+    //他のロボットのパーティクルの取得
     void other_robot_pointcloud(const geometry_msgs::PoseArray::ConstPtr &position);
     geometry_msgs::PoseArray other_pointcloud;
-    
+    int link_frag = 0;
+
+    void LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf);
+
+    //他のロボットの位置の取得
+    void other_robot_pose2D(const geometry_msgs::Pose2D::ConstPtr &position);
+    geometry_msgs::Pose2D other_2Dpose;
+    int pose_frag = 0;
+
+    double OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf);
+    void Normalization(pf_t *pf, double total_weight);
 
     //parameter for what odom to use
     std::string odom_frame_id_;
@@ -251,7 +263,8 @@ class AmclNode
     ros::Subscriber map_sub_;
 
     //自作部分
-    ros::Subscriber other_odom_sub_;
+    ros::Subscriber other_particle_sub_;
+    ros::Subscriber other_pose_sub_;
 
     amcl_hyp_t* initial_pose_hyp_;
     bool first_map_received_;
@@ -477,7 +490,8 @@ AmclNode::AmclNode() :
 
 
   //自作部分
-  other_odom_sub_ = nh_.subscribe("other_poses",5,&AmclNode::other_robot_pointcloud,this);
+  other_particle_sub_ = nh_.subscribe("other_particle",5,&AmclNode::other_robot_pointcloud,this);
+  other_pose_sub_ = nh_.subscribe("other_pose",5,&AmclNode::other_robot_pose2D,this);
 }
 
 void AmclNode::reconfigureCB(AMCLConfig &config, uint32_t level)
@@ -1256,6 +1270,16 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
       ldata.ranges[i][1] = angle_min +
               (i * angle_increment);
     }
+    
+    //連結位置を使った尤度計算
+    if(link_frag){
+      //AmclNode::LinkLikelihoodField(&other_pointcloud ,pf_);
+    }
+    if(pose_frag){
+      AmclNode::OtherPoseLikelihoodField(&other_2Dpose ,pf_);
+      //AmclNode::Normalization(pf_,AmclNode::OtherPoseLikelihoodField(&other_2Dpose ,pf_));
+    }
+
 
     //レーザによる尤度計算
     lasers_[laser_index]->UpdateSensor(pf_, (AMCLSensorData*)&ldata);
@@ -1356,6 +1380,7 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
       double weight;
       pf_vector_t pose_mean;
       pf_matrix_t pose_cov;
+      //&weight, &pose_mean, &pose_covにhyp_count番目のパーティクルのデータをコピーする
       if (!pf_get_cluster_stats(pf_, hyp_count, &weight, &pose_mean, &pose_cov))
       {
         ROS_ERROR("Couldn't get stats on cluster %d", hyp_count);
@@ -1376,6 +1401,7 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
     if(max_weight > 0.0)
     {
       ROS_INFO("%f",max_weight);
+      //meanは位置
       ROS_INFO("Max weight pose: %.3f %.3f %.3f",
                 hyps[max_weight_hyp].pf_pose_mean.v[0],
                 hyps[max_weight_hyp].pf_pose_mean.v[1],
@@ -1405,13 +1431,19 @@ AmclNode::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan)
           // Report the overall filter covariance, rather than the
           // covariance for the highest-weight cluster
           //p.covariance[6*i+j] = hyps[max_weight_hyp].pf_pose_cov.m[i][j];
+
           p.pose.covariance[6*i+j] = set->cov.m[i][j];
         }
       }
       // Report the overall filter covariance, rather than the
       // covariance for the highest-weight cluster
       //p.covariance[6*5+5] = hyps[max_weight_hyp].pf_pose_cov.m[2][2];
+
       p.pose.covariance[6*5+5] = set->cov.m[2][2];
+      //p.pose.covariance[6*5+5] = hyps[max_weight_hyp].pf_pose_cov.m[2][2];
+
+      //重みも同様にcovに入れる
+      //p.pose.covariance[6*2+2] = hyps[max_weight_hyp].weight;
 
       /*
          printf("cov:\n");
@@ -1631,6 +1663,139 @@ void AmclNode::other_robot_pointcloud(const geometry_msgs::PoseArray::ConstPtr &
     other_pointcloud.poses[i].position.x = position->poses[i].position.x - (offset_length * cos(other_pointcloud.poses[i].position.z));
     other_pointcloud.poses[i].position.y = position->poses[i].position.y - (offset_length * sin(other_pointcloud.poses[i].position.z));
   }
+  link_frag = 1;
 }
 
-//void AmclNode::RelateLik
+void AmclNode::other_robot_pose2D(const geometry_msgs::Pose2D::ConstPtr &position){
+  //他のロボットのオフセット位置を取得
+  other_2Dpose = *position;
+  //ROS_INFO("x_%f",other_2Dpose.x);
+  //ROS_INFO("y_%f",other_2Dpose.y);
+  //フラグを立てる
+  pose_frag = 1;
+}
+
+/*
+void AmclNode::LinkLikelihoodField(geometry_msgs::PoseArray *position, pf_t *pf){
+  //まずは実行フラグを折る
+  link_frag = 1;
+  //ロボット間距離
+  double link_distance = 1.0;
+  //使用するパーティクル
+  pf_sample_set_t *set;
+  pf_sample_t *sample;
+  pf_vector_t pose;
+  set = pf->sets + pf->current_set;
+
+  //ガウス分布のパラメータ
+  double sigma = 0.001;
+
+  //それぞれのパーティクルの重み
+  double p = 1.0;
+  double total_weight = 0.0;
+
+  //現在のパーティクルの数だけ回す
+  for (int i = 0; i < set->sample_count; i++)
+  {
+    sample = set->samples + i;
+    pose = sample->pose;
+
+    //相手のロボットのパーティクル数だけ回す
+    for(int j = 0; j < other_pointcloud.poses.size(); j++){
+      //まずはパーティクル間の距離を計算
+      double particle_distance = sqrt( (pow((pose.v[0] - other_pointcloud.poses[j].position.x),2)) + (pow((pose.v[1] - other_pointcloud.poses[j].position.y),2)) );
+      double particle_distance_error = link_distance - particle_distance;
+      //ROS_INFO("error_%f",particle_distance_error);
+      //距離からガウス分布を用いて重みを計算
+      double weight = exp(-(particle_distance_error * particle_distance_error) / (2.0 * sigma * sigma));
+      ROS_INFO("weight_%f",weight);
+
+      assert(weight <= 1.0);
+      assert(weight >= 0.0);
+
+      p += weight*weight*weight;
+    }
+
+    sample->weight *= p;
+    total_weight += sample->weight;
+  }
+  ROS_INFO("link_weight_%f",total_weight);
+}
+*/
+
+double AmclNode::OtherPoseLikelihoodField(geometry_msgs::Pose2D *position, pf_t *pf){
+  //まずは実行フラグを折る
+  pose_frag = 0;
+  //オフセット間距離
+  double offset = 0.16;
+  //ロボット間距離
+  double link_distance = 1.000000;
+  //使用するパーティクル
+  pf_sample_set_t *set;
+  pf_sample_t *sample;
+  pf_vector_t pose;
+  set = pf->sets + pf->current_set;
+
+  //ガウス分布のパラメータ
+  double sigma = 1.0;
+  double total_weight = 0.0;
+
+  //それぞれのパーティクルの重み
+  double p = 0.0;
+
+  //現在のパーティクルの数だけ回す
+  for (int i = 0; i < set->sample_count; i++)
+  {
+    sample = set->samples + i;
+    pose = sample->pose;
+
+    //重みの初期化
+    //p= 0.0;
+
+    //ROS_INFO("x_%f__y_%f",pose.v[0]-offset*cos(pose.v[2]),pose.v[1]-offset*sin(pose.v[2]));
+    //パーティクル間の距離を計算
+    double particle_distance = sqrt( (pow(((pose.v[0]-offset*cos(pose.v[2])) - other_2Dpose.x),2)) + (pow(((pose.v[1]-offset*sin(pose.v[2])) - other_2Dpose.y),2)) );
+    double particle_distance_error = link_distance - particle_distance;
+    //ROS_INFO("error_%f",particle_distance_error);
+    //距離からガウス分布を用いて重みを計算
+    double weight = exp(-(particle_distance_error * particle_distance_error) / (2.0 * sigma * sigma));
+    /*
+    double weight = 0;
+    if((fabs(particle_distance_error)) < sigma){
+      weight = 0.9;
+    }else{
+      weight = 0.01;
+    }
+    */
+    //ROS_INFO("weight_%f",weight);
+
+    assert(weight <= 1.0);
+    assert(weight >= 0.0);
+
+    //p += weight*weight*weight;
+
+    sample->weight = weight;
+    ROS_INFO("weight_%d_%f_,%f",i,sample->weight,particle_distance_error);
+    total_weight += sample->weight;
+  }
+  return total_weight;
+}
+
+void AmclNode::Normalization(pf_t *pf, double total_weight){
+  //使用するパーティクル
+  pf_sample_set_t *set;
+  pf_sample_t *sample;
+  pf_vector_t pose;
+  set = pf->sets + pf->current_set;
+
+  //重みの正規化する
+  for (int i = 0; i < set->sample_count; i++)
+  {
+    sample = set->samples + i;
+    ROS_INFO("weight_%d_%f",i,sample->weight);
+    //ここで正規化
+    sample->weight /= total_weight;
+    //ROS_INFO("weight_%d_%f",pf->current_set,sample->weight);
+  }
+  //ROS_INFO("pose_weight_%d_%f",pf->current_set,total_weight);
+}

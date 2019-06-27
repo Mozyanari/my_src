@@ -129,7 +129,7 @@ icart_time::icart_time(){
   rad = 0.0;
 
   //最高速度:0.1[m/s],100[mm/s]
-  Max_speed = 0.02;
+  Max_speed = 0.5;
 
   //制限加速度[0.001]
   Reg_acc = 0.001;
@@ -181,6 +181,7 @@ void icart_time::cb_odom(const nav_msgs::Odometry::ConstPtr &data){
   double diff_odom_x = odom_x - old_odom_x;
   double diff_odom_y = odom_y - old_odom_y;
   double diff_odom_theta = odom_theta - old_odom_theta;
+  //ROS_INFO("diff_theta_%f",diff_odom_theta);
 
   //amclの推定位置とオドメトリからオフセット位置を修正
   world_offset_position_x = odom_offset.x + diff_odom_x;
@@ -216,68 +217,71 @@ void icart_time::cb_offset_position(const geometry_msgs::Pose2D::ConstPtr &msg){
 }
 //目標時間と現在の位置からマシンの速度を計算
 void icart_time::calc_machine_speed(void){
-    if(get_frag < 0){
-        //fragの番号が負なら速度0
-        set_target_speed = 0;
-        old_set_target_speed = 0;
-        return;
-    }
-    //目標時間と今の時間の差を計算
-    double diff_time = (target_point.header.stamp - ros::Time::now()).toSec();
-    ROS_INFO("diff_time=%f",diff_time);
-    //もし，目標時間が現在時間より遅いとエラーと判定
-    if(diff_time < 0){
-        set_target_speed = 0;
-        ROS_INFO("time_error");
-        return;
-    }
+  if(get_frag < 0){
+      //fragの番号が負なら速度0
+      set_target_speed = 0;
+      old_set_target_speed = 0;
+      return;
+  }
+  //目標時間と今の時間の差を計算
+  double diff_time = (target_point.header.stamp - ros::Time::now()).toSec();
+  ROS_INFO("diff_time=%f",diff_time);
+  //もし，目標時間が現在時間より遅いとエラーと判定
+  if(diff_time < 0){
+      set_target_speed = 0;
+      ROS_INFO("time_error");
+      return;
+  }
 
-    //目標位置までの直線距離
-    double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
-    ROS_INFO("diff_distance=%f",diff_distance);
-    //目標
-    double a = 2*Reg_acc*diff_time*old_set_target_speed + (pow(Reg_acc,2))*(pow(diff_time,2)) - 2*Reg_acc*diff_distance;
-    //ここが負になるのは目標時間内にこのままの制限加速度だと到着が不可能なので，満たす制限加速度にする
-    if(a<0){
-      //負になるのはサブゴールに近づいた時なので速度の更新を行わない
-      a=0;
-    }
-    //目標時間で到達するための速度を計算
-    double calc_target_speed = old_set_target_speed + (Reg_acc * diff_time) - sqrt(a);
-    //double calc_target_speed = diff_distance/diff_time;
-    ROS_INFO("calc_target_speed=%f",calc_target_speed);
-    /*
-    if((old_set_target_speed - calc_target_speed) > Reg_acc){
-      calc_target_speed = old_set_target_speed - Reg_acc;
-    }else if((calc_target_speed - old_set_target_speed) > Reg_acc){
-      calc_target_speed = old_set_target_speed + Reg_acc;
-    }
-    */
-    ROS_INFO("calc_target_speed=%f",calc_target_speed);
-    //実機での想定最高スピードを超えないようにする
-    if(Max_speed < calc_target_speed){
-      calc_target_speed = Max_speed;
-    }
-    /*
-    //速度更新の判定
-    //直線距離が10cm以内ならもう速度を上げることは行わない
-    if(diff_distance<0.10){
-      //速度が一つ前より早いかどうかを判定
-      if(old_set_target_speed < calc_target_speed){
-        //早いなら更新なし
-        set_target_speed = old_set_target_speed;
-      }else{
-        //遅いなら更新
-        set_target_speed = calc_target_speed;
-      }
+  //目標位置までの直線距離
+  double diff_distance = sqrt( (pow((set_target_x - world_offset_position_x),2)) + (pow(set_target_y - world_offset_position_y,2)) );
+  ROS_INFO("diff_distance=%f",diff_distance);
+  /*
+  //目標
+  double a = 2*Reg_acc*diff_time*old_set_target_speed + (pow(Reg_acc,2))*(pow(diff_time,2)) - 2*Reg_acc*diff_distance;
+  //ここが負になるのは目標時間内にこのままの制限加速度だと到着が不可能なので，満たす制限加速度にする
+  if(a<0){
+    //負になるのはサブゴールに近づいた時なので速度の更新を行わない
+    a=0;
+  }
+  //目標時間で到達するための速度を計算
+  double calc_target_speed = old_set_target_speed + (Reg_acc * diff_time) - sqrt(a);
+  //double calc_target_speed = diff_distance/diff_time;
+  ROS_INFO("calc_target_speed=%f",calc_target_speed);
+  */
+  double calc_target_speed = diff_distance/diff_time;
+  /*
+  if((old_set_target_speed - calc_target_speed) > Reg_acc){
+    calc_target_speed = old_set_target_speed - Reg_acc;
+  }else if((calc_target_speed - old_set_target_speed) > Reg_acc){
+    calc_target_speed = old_set_target_speed + Reg_acc;
+  }
+  */
+  ROS_INFO("calc_target_speed=%f",calc_target_speed);
+  //実機での想定最高スピードを超えないようにする
+  if(Max_speed < calc_target_speed){
+    calc_target_speed = Max_speed;
+  }
+  /*
+  //速度更新の判定
+  //直線距離が10cm以内ならもう速度を上げることは行わない
+  if(diff_distance<0.10){
+    //速度が一つ前より早いかどうかを判定
+    if(old_set_target_speed < calc_target_speed){
+      //早いなら更新なし
+      set_target_speed = old_set_target_speed;
     }else{
-      //10cmより離れているなら速度の更新
+      //遅いなら更新
       set_target_speed = calc_target_speed;
     }
-    */
-   set_target_speed = calc_target_speed;
-    //次回使用する一つ前の速度を保存
-    old_set_target_speed = set_target_speed;
+  }else{
+    //10cmより離れているなら速度の更新
+    set_target_speed = calc_target_speed;
+  }
+  */
+  set_target_speed = calc_target_speed;
+  //次回使用する一つ前の速度を保存
+  old_set_target_speed = set_target_speed;
 }
 
 //ホイール速度の計算と速度のpublish
