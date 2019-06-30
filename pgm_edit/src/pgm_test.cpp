@@ -19,10 +19,71 @@ private:
     int row = 0, col = 0, numrows = 0, numcols = 0;
     int **array;
     int grey_max;
+    FILE *fp;
 };
 
 //コンストラクタ
 pgm_test::pgm_test(){
+    //mapｗｐ読み込み
+    fp = fopen("/home/masanari/maps/map_test.pgm","rb");
+
+    char type[256];
+    //fpからcharバイトのデータを3つ読む
+    //読みだすたびにfpの指定位置が変化する
+    fread(type,sizeof(char),3,fp);
+
+    for(int i=0;i<3;i++){
+        std::cout << type[i] << std::endl;
+    }
+    //出力結果
+    //P5
+    //
+
+    //P5の下には空白がある
+
+    //コメント行への対処
+    int pos = ftell(fp);
+    while(fgetc(fp) == '#'){
+        while(fgetc(fp) != '\n'){
+        }
+        pos = ftell(fp);
+    }
+
+    fseek(fp,pos,SEEK_SET);
+
+    //画像の幅、高さ、色深度取得
+    int width,height,depth;
+    fscanf(fp,"%d %d %d¥n",&width,&height,&depth);
+
+    std::cout << width << std::endl;
+    std::cout << height << std::endl;
+    std::cout << depth << std::endl;
+
+    unsigned char **buffer;
+    buffer = (unsigned char**)malloc(sizeof(char*)*width);
+    for(int i=0;i<width;i++) buffer[i] = (unsigned char*)malloc(sizeof(char)*height);
+
+    //画素値を読み込んでいく
+    for(int i=0;i<width;i++)
+        for(int j=0;j<height;j++)
+        {
+            buffer[i][j] = fgetc(fp);
+            if(buffer[i][j] == 0){
+                std::cout << i << j << std::endl;
+            }
+        }
+
+    fclose(fp);
+    /*
+    for(row = 0; row < width; ++row) {
+        for(col = 0; col < height; ++col) {
+            std::cout << std::isprint(buffer[row][col]) << std::endl;
+            //printf("%s",buffer[row][col]);
+        }
+    }
+    */
+
+    /*
     //どのファイルを読むか指定
     std::ifstream infile("/home/masanari/maps/map_test.pgm");
     std::stringstream ss;
@@ -44,6 +105,7 @@ pgm_test::pgm_test(){
     // Second line : comment
     std::getline(infile,inputline);
     std::cout << "Comment : " << inputline << std::endl;
+    */
 
     /*
     std::getline(infile,inputline);
@@ -55,6 +117,8 @@ pgm_test::pgm_test(){
     std::getline(infile,inputline);
     std::cout << "data : " << inputline << std::endl;
     */
+
+   /*
     // Continue with a stringstream
     ss << infile.rdbuf();
     // Third line : size
@@ -85,6 +149,7 @@ pgm_test::pgm_test(){
             std::cout << array[row][col] << std::endl;
         }
     }
+    */
 
 }
 
