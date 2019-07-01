@@ -31,7 +31,14 @@ pgm_test::pgm_test(){
     
     //mapを読み込み
     //fp = fopen("/home/masanari/maps/map_test.pgm","rb");
-    fp = fopen("/home/masanari/map.pgm","rb");
+    char *username;
+    username = std::getenv("USER");
+    //std::cout << username << std::endl;
+    std::string home = "/home/";
+    std::string map = "/map.pgm";
+    std::string filename = home + username + map;
+    //std::cout << username << std::endl;
+    fp = fopen(filename.c_str(),"rb");
 
     
     char type[256];
