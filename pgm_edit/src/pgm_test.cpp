@@ -20,18 +20,25 @@ private:
     int **array;
     int grey_max;
     FILE *fp;
+
+    int black_count=0;
+    int grey_count=0;
+    int white_count=0;
 };
 
 //コンストラクタ
 pgm_test::pgm_test(){
-    //mapｗｐ読み込み
-    fp = fopen("/home/masanari/maps/map_test.pgm","rb");
+    
+    //mapを読み込み
+    //fp = fopen("/home/masanari/maps/map_test.pgm","rb");
+    fp = fopen("/home/masanari/map.pgm","rb");
 
+    
     char type[256];
     //fpからcharバイトのデータを3つ読む
     //読みだすたびにfpの指定位置が変化する
     fread(type,sizeof(char),3,fp);
-
+    
     for(int i=0;i<3;i++){
         std::cout << type[i] << std::endl;
     }
@@ -59,19 +66,56 @@ pgm_test::pgm_test(){
     std::cout << height << std::endl;
     std::cout << depth << std::endl;
 
-    unsigned char **buffer;
-    buffer = (unsigned char**)malloc(sizeof(char*)*width);
-    for(int i=0;i<width;i++) buffer[i] = (unsigned char*)malloc(sizeof(char)*height);
+    //データの間のwhitespaceを一つ埋める
+    fseek(fp,1,SEEK_CUR);
+
+    int **buffer;
+    buffer = (int**)malloc(sizeof(int*)*width);
+    for(int i=0;i<width;i++) buffer[i] = (int*)malloc(sizeof(int)*height);
 
     //画素値を読み込んでいく
-    for(int i=0;i<width;i++)
+    //白は254
+    //黒は0
+    //グレーは205
+
+    for(int i=0;i<width;i++){
         for(int j=0;j<height;j++)
         {
             buffer[i][j] = fgetc(fp);
             if(buffer[i][j] == 0){
-                std::cout << i << j << std::endl;
+                black_count++;
+                std::cout << 1;
             }
+            else if(buffer[i][j] == 205){
+                grey_count++;
+                std::cout << 0;
+            }else if(buffer[i][j] == 254){
+                white_count++;
+                std::cout << 2;
+            }else{
+                std::cout << 3;
+            }
+            //std::cout << buffer[i][j];
+            //white_count++;
+            /*
+            //色が黒=0の数
+            //白は255
+            if(buffer[i][j] == 0){
+                black_count++;
+                //std::cout << i << j << std::endl;
+            }else if(buffer[i][j] > 200){
+                white_count++;
+            }else{
+                std::cout << std::isprint(buffer[i][j]) << std::endl;
+            }
+            */
         }
+        std::cout << std::endl;
+    }
+    std::cout << "black" << black_count <<  std::endl;
+    std::cout << "white" << white_count <<  std::endl;
+    std::cout << "grey" << grey_count <<  std::endl;
+        
 
     fclose(fp);
     /*
