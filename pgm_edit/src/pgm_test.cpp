@@ -4,8 +4,8 @@
 #include <sstream> // stringstream
 
 #include <std_msgs/String.h>
-
 #include <boost/filesystem.hpp>
+#include <geometry_msgs/Point.h>
 
 
 
@@ -14,10 +14,13 @@ public:
     pgm_test();
 private:
     //コールバック関数
-
+    void cb_edit(const geometry_msgs::Point::ConstPtr &point);
     //ノードハンドラ作成
     ros::NodeHandle nh;
 
+    ros::Subscriber sub_point;
+
+    //変数
     int row = 0, col = 0, numrows = 0, numcols = 0;
     int **array;
     int grey_max;
@@ -26,20 +29,26 @@ private:
     int black_count=0;
     int grey_count=0;
     int white_count=0;
+
+    char *username;
+    std::string home = "/home/";
+    std::string map = "/maps/map_test.pgm";
+    long data_position;
 };
 
 //コンストラクタ
+//コンストラクタで元の地図データをコピーする
 pgm_test::pgm_test(){
-    
+    //購読するトピックの定義
+    sub_point = nh.subscribe("/point",5,&pgm_test::cb_edit,this);
+
     //mapを読み込み
     //usernameを取得
-    char *username;
     username = std::getenv("USER");
     //std::cout << username << std::endl;
 
     //mapのパスは/home/(username)/maps/map_test.pgmにある前提
-    std::string home = "/home/";
-    std::string map = "/maps/map_test.pgm";
+    
     //パスを結合
     std::string filename = home + username + map;
     //std::cout << filename << std::endl;
@@ -59,9 +68,10 @@ pgm_test::pgm_test(){
     //fpからcharバイトのデータを3つ読む
     //読みだすたびにfpの指定位置が変化する
     fread(type,sizeof(char),3,fp);
-    type[3] = '\n';
+    type[3] = '\0';
     //mapデータのpgmのはずなので、P5の場合は実行しない
     if(strcmp("P5\n",type) != 0){
+        std::cout << type << std::endl;
         return;
     }
     /*
@@ -95,6 +105,9 @@ pgm_test::pgm_test(){
 
     //データの間のwhitespaceを一つ埋める
     fseek(fp,1,SEEK_CUR);
+
+    //
+    data_position = ftell(fp);
 
     int **buffer;
     buffer = (int**)malloc(sizeof(int*)*width);
@@ -134,17 +147,36 @@ pgm_test::pgm_test(){
     std::string exitname = home + username + "/map_temp.pgm";
     
     try {
-        boost::filesystem::copy_file(filename, exitname);
+        boost::filesystem::copy_file(filename, exitname,boost::filesystem::copy_option::overwrite_if_exists);
     }
     catch (boost::filesystem::filesystem_error& ex) {
         std::cout << ex.what() << std::endl;
         throw;
     }
 
+    //bufferを開放
+    for(int i=0;i<width;i++) free(buffer[i]);
+    free(buffer);
+
 }
 
 //関数定義-----------------------------------------------------------------------
+void pgm_test::cb_edit(const geometry_msgs::Point::ConstPtr &point){
+    std::string filename = home + username + "/map_temp.pgm";
 
+    //書き込みモードで開く
+    fp = fopen(filename.c_str(),"ab");
+    //一度読み込んだ時のデータの位置にポインタを移動
+    fseek(fp,data_position,SEEK_SET);
+    std::cout << data_position << std::endl;
+    for(int i=0;i<100000;i++){
+        //std::cout << fputc(254,fp) << std::endl;
+        fputc(254,fp);
+    }
+    fclose(fp);
+    
+    return;
+}
 
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
