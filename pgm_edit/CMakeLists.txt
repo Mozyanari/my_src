@@ -13,6 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(Boost REQUIRED
+  filesystem
+)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -118,6 +122,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -149,7 +154,7 @@ add_executable(pgm_test src/pgm_test.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(pgm_test ${catkin_LIBRARIES})
+target_link_libraries(pgm_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #############
 ## Install ##

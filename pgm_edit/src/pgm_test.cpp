@@ -5,6 +5,8 @@
 
 #include <std_msgs/String.h>
 
+#include <boost/filesystem.hpp>
+
 
 
 class pgm_test{
@@ -30,15 +32,21 @@ private:
 pgm_test::pgm_test(){
     
     //mapを読み込み
-    //fp = fopen("/home/masanari/maps/map_test.pgm","rb");
+    //usernameを取得
     char *username;
     username = std::getenv("USER");
-    //std::cout << username << std::endl;
+    std::cout << username << std::endl;
+
+    //mapのパスは/home/(username)/maps/map_test.pgmにある前提
     std::string home = "/home/";
-    std::string map = "/map.pgm";
+    std::string map = "/maps/map_test.pgm";
+    //パスを結合
     std::string filename = home + username + map;
-    //std::cout << username << std::endl;
+    std::cout << filename << std::endl;
+
+    //mapをオープンして読み込み
     fp = fopen(filename.c_str(),"rb");
+    //fp = fopen("/home/masanari/maps/map_test.pgm","rb");
 
     
     char type[256];
@@ -102,37 +110,25 @@ pgm_test::pgm_test(){
             }else{
                 std::cout << 3;
             }
-            //std::cout << buffer[i][j];
-            //white_count++;
-            /*
-            //色が黒=0の数
-            //白は255
-            if(buffer[i][j] == 0){
-                black_count++;
-                //std::cout << i << j << std::endl;
-            }else if(buffer[i][j] > 200){
-                white_count++;
-            }else{
-                std::cout << std::isprint(buffer[i][j]) << std::endl;
-            }
-            */
         }
         std::cout << std::endl;
     }
     std::cout << "black" << black_count <<  std::endl;
     std::cout << "white" << white_count <<  std::endl;
     std::cout << "grey" << grey_count <<  std::endl;
-        
-
+    //ファイルを閉じる
     fclose(fp);
-    /*
-    for(row = 0; row < width; ++row) {
-        for(col = 0; col < height; ++col) {
-            std::cout << std::isprint(buffer[row][col]) << std::endl;
-            //printf("%s",buffer[row][col]);
-        }
+
+    //mapをコピー
+    std::string exitname = home + username + "/map_temp.pgm";
+    
+    try {
+        boost::filesystem::copy_file(filename, exitname);
     }
-    */
+    catch (boost::filesystem::filesystem_error& ex) {
+        std::cout << ex.what() << std::endl;
+        throw;
+    }
 
     /*
     //どのファイルを読むか指定
