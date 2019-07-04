@@ -33,7 +33,9 @@ private:
     char *username;
     std::string home = "/home/";
     std::string map = "/maps/map_test.pgm";
-    long data_position;
+    long comment_start;
+    long comment_end;
+    int width,height,depth;
 };
 
 //コンストラクタ
@@ -96,8 +98,8 @@ pgm_test::pgm_test(){
     fseek(fp,pos,SEEK_SET);
 
     //画像の幅、高さ、色深度取得
-    int width,height,depth;
-    fscanf(fp,"%d %d %d¥n",&width,&height,&depth);
+    
+    fscanf(fp,"%d %d %d\n",&width,&height,&depth);
 
     std::cout << width << std::endl;
     std::cout << height << std::endl;
@@ -107,7 +109,7 @@ pgm_test::pgm_test(){
     fseek(fp,1,SEEK_CUR);
 
     //
-    data_position = ftell(fp);
+    //data_position = ftell(fp);
 
     int **buffer;
     buffer = (int**)malloc(sizeof(int*)*width);
@@ -132,6 +134,7 @@ pgm_test::pgm_test(){
                 white_count++;
                 std::cout << 2;
             }else{
+                //その他が一番最後に何故かある
                 std::cout << 3;
             }
         }
@@ -164,15 +167,53 @@ pgm_test::pgm_test(){
 void pgm_test::cb_edit(const geometry_msgs::Point::ConstPtr &point){
     std::string filename = home + username + "/map_temp.pgm";
 
+    //読み込みモードで開く→データをすべて吸い出す→書き込みモードで開いて同じようにすべて格納
+    //読み込みモードで開く
+    //fp = fopen(filename.c_str(),"rb");
+
+
+
+    //読み込みモードで開いたファイルを閉じる
+    //fclose(fp);
     //書き込みモードで開く
-    fp = fopen(filename.c_str(),"ab");
+    fp = fopen(filename.c_str(),"wb");
+
+    //マジックナンバー
+    fprintf(fp, "P5\n");
+    //fwrite("P5\n",1,4,fp);
+
+    //コメント
+    fprintf(fp, "#test\n");
+    //fwrite("#test\n",1,7,fp);
+
+    //データ数
+    fprintf(fp, "200 200\n");
+    //fwrite("2 2\n",1,5,fp);
+
+    //データの深度
+    fprintf(fp, "255\n");
+    //fwrite("125\n",1,5,fp);
+
+    //データの書き込み
+    for(int i=0;i<20500;i++){
+        //std::string a = std::to_string(1);
+        //バイナリ形式で書き込む
+        unsigned char a = i%255;
+        //fprintf(fp, "%d ", a);
+        fwrite(&a,sizeof(unsigned char),1,fp);
+    }
+    
+    //fwrite("100",1,1,fp);
+
     //一度読み込んだ時のデータの位置にポインタを移動
+    /*
     fseek(fp,data_position,SEEK_SET);
     std::cout << data_position << std::endl;
     for(int i=0;i<100000;i++){
         //std::cout << fputc(254,fp) << std::endl;
         fputc(254,fp);
     }
+    */
     fclose(fp);
     
     return;
