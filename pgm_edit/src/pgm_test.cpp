@@ -29,6 +29,7 @@ private:
     int black_count=0;
     int grey_count=0;
     int white_count=0;
+    int other_count=0;
 
     char *username;
     std::string home = "/home/";
@@ -106,7 +107,7 @@ pgm_test::pgm_test(){
     std::cout << depth << std::endl;
 
     //データの間のwhitespaceを一つ埋める
-    fseek(fp,1,SEEK_CUR);
+    //fseek(fp,1,SEEK_CUR);
 
     //
     //data_position = ftell(fp);
@@ -135,7 +136,9 @@ pgm_test::pgm_test(){
                 std::cout << 2;
             }else{
                 //その他が一番最後に何故かある
-                std::cout << 3;
+                other_count++;
+                //std::cout << 3;
+                std::cout << buffer[i][j];
             }
         }
         std::cout << std::endl;
@@ -143,6 +146,7 @@ pgm_test::pgm_test(){
     std::cout << "black" << black_count <<  std::endl;
     std::cout << "white" << white_count <<  std::endl;
     std::cout << "grey" << grey_count <<  std::endl;
+    std::cout << "other" << other_count <<  std::endl;
     //ファイルを閉じる
     fclose(fp);
 
@@ -196,7 +200,6 @@ void pgm_test::cb_edit(const geometry_msgs::Point::ConstPtr &point){
 
     //データの書き込み
     for(int i=0;i<20500;i++){
-        //std::string a = std::to_string(1);
         //バイナリ形式で書き込む
         unsigned char a = i%255;
         //fprintf(fp, "%d ", a);
