@@ -1,0 +1,15 @@
+<launch>
+    <!--mapの場所-->
+    <arg name="map_path" default="/home/$(env USER)/maps"/>
+
+    <!--rosのパラメータ設定-->
+    <param name ="map_path" value ="$(arg map_path)"/>
+
+    <!--map_serverを立ち上げてマップを出力-->
+    <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map.yaml"/>
+
+    <!--pgm_polygonを起動-->
+    <node name="pgm" pkg ="pgm_edit" type ="pgm_polygon" output="screen">
+    </node>
+    
+</launch>
