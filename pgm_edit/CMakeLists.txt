@@ -139,6 +139,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(pgm_test src/pgm_test.cpp)
+add_executable(pgm_polygon src/pgm_polygon.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +156,7 @@ add_executable(pgm_test src/pgm_test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(pgm_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(pgm_polygon ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #############
 ## Install ##
