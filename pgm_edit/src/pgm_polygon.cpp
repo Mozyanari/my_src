@@ -3,23 +3,31 @@
 #include <fstream> // ifstream
 #include <sstream> // stringstream
 
+//コンストラクタ
 #include <std_msgs/String.h>
 #include <boost/filesystem.hpp>
-#include <geometry_msgs/Point.h>
 #include <geometry_msgs/Polygon.h>
 
+//cb_polygon
+#include <std_srvs/SetBool.h>
+#include <std_msgs/Bool.h>
+
 //コンストラクタでtmpのコピーファイルを作成
-//polygonのコールバックで，tmpファイルを読み込み全部コピーからの指定した場所の情報を変更
+//polygonのコールバックで，map_serviceを落としtmpファイルを読み込み全部コピーからの指定した場所の情報を変更
 
 class pgm_polygon{
 public:
     pgm_polygon();
 private:
     //コールバック関数
-    
+    void cb_polygon(const geometry_msgs::Polygon::ConstPtr &data);
+    void map_server_request(bool request);
+
     //ノードハンドラ作成
-    //nh("~")にすることで
     ros::NodeHandle nh;
+    ros::Subscriber sub_polygon;
+
+    ros::ServiceClient service_client;
 
     //map_serverが読み込んだパス
     std_msgs::String map_path;
@@ -36,6 +44,12 @@ private:
 //コンストラクタ
 //コンストラクタで元の地図データをコピーする
 pgm_polygon::pgm_polygon(){
+    //購読するトピックの定義
+    sub_polygon = nh.subscribe("/map_polygon",5,&pgm_polygon::cb_polygon,this);
+
+    //サービスの定義
+    service_client = nh.serviceClient<std_srvs::SetBool>("map_server_enable");
+
     //map_serverが読み込んだmapのパスを取得
     nh.getParam("map_path", map_path.data);
     if(nh.hasParam("map_path")){
@@ -68,6 +82,32 @@ pgm_polygon::pgm_polygon(){
     }
 }
 
+void pgm_polygon::cb_polygon(const geometry_msgs::Polygon::ConstPtr &data){
+    //map_serverを落とすリクエストをサービス経由で出す
+    //落とすのでfalseを送信
+    map_server_request(false);
+
+    //maps_tempの中の地図データを編集する
+    //地図データのコピーを行う
+
+    //maps/tempの中の地図データからmap_serverを立ち上げる
+    //map_serverを起動するリクエストをサービス経由で出す
+    map_server_request(true);
+    
+    //amclのサービスからロボット位置を新しいmapの中で認識させる
+    
+}
+
+//map_serverの起動関数
+void pgm_polygon::map_server_request(bool request){
+    std_srvs::SetBool map_flag;
+    map_flag.request.data =request;
+    if(!(service_client.call(map_flag))){
+        //失敗したら何もしない
+        ROS_ERROR("Failed map_server request!!");
+        return;
+    }
+}
 
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
