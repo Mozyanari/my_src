@@ -22,6 +22,7 @@ private:
     //コールバック関数
     void cb_polygon(const geometry_msgs::Polygon::ConstPtr &data);
     void map_server_request(bool request);
+    void map_polygon(const geometry_msgs::Polygon::ConstPtr &data);
 
     //ノードハンドラ作成
     ros::NodeHandle nh;
@@ -39,6 +40,11 @@ private:
     //mapのコピー先に必要なパス変数
     char *username;
     std::string home = "/home/";
+
+    //ファイル編集変数
+    FILE *fp;
+    //画像の縦・横・深度
+    int width,height,depth;
 };
 
 //コンストラクタ
@@ -88,14 +94,14 @@ void pgm_polygon::cb_polygon(const geometry_msgs::Polygon::ConstPtr &data){
     map_server_request(false);
 
     //maps_tempの中の地図データを編集する
-    //地図データのコピーを行う
+    map_polygon(data);
 
     //maps/tempの中の地図データからmap_serverを立ち上げる
     //map_serverを起動するリクエストをサービス経由で出す
     map_server_request(true);
     
     //amclのサービスからロボット位置を新しいmapの中で認識させる
-    
+
 }
 
 //map_serverの起動関数
@@ -109,6 +115,86 @@ void pgm_polygon::map_server_request(bool request){
     }
 }
 
+//mapのコピーと編集の関数
+void pgm_polygon::map_polygon(const geometry_msgs::Polygon::ConstPtr &data){
+    //地図データの読み出し
+    fp = fopen(output_pgm.c_str(),"rb");
+
+    //1.マジックナンバー
+    char type[256];
+    fread(type,sizeof(char),3,fp);
+    type[3] = '\0';
+    //mapデータのpgmのはずなので、P5の場合は実行しない
+    if(strcmp("P5\n",type) != 0){
+        std::cout << type << std::endl;
+        return;
+    }
+
+    //2.コメント
+    int pos = ftell(fp);
+    while(fgetc(fp) == '#'){
+        while(fgetc(fp) != '\n'){
+        }
+        pos = ftell(fp);
+    }
+
+    fseek(fp,pos,SEEK_SET);
+
+    //3.データの行列の数
+    //4.グレースケールの最大値
+    fscanf(fp,"%d %d %d\n",&width,&height,&depth);
+
+    //5.データ(P5は1byteずつ)
+    //データの数でbufferを動的に確保
+    int **buffer;
+    buffer = (int**)malloc(sizeof(int*)*width);
+    for(int i=0;i<width;i++) buffer[i] = (int*)malloc(sizeof(int)*height);
+
+    //データをバッファに格納
+    for(int i=0;i<width;i++){
+        for(int j=0;j<height;j++)
+        {
+            buffer[i][j] = fgetc(fp);
+        }
+    }
+
+    //読み込みで開いたファイルを閉じる
+    fclose(fp);
+
+    //書き込みモードで開く
+    fp = fopen(output_pgm.c_str(),"wb");
+
+    //1.マジックナンバー
+    fprintf(fp, "P5\n");
+
+    //3.データの行列の数
+    fprintf(fp, "%d %d\n",width,height);
+
+    //4.グレースケールの最大値
+    fprintf(fp, "%d\n",depth);
+
+    //5.データ(P5は1byteずつ)
+    for(int i=0;i<width;i++){
+        for(int j=0;j<height;j++)
+        {
+            
+            if(!(i%10)){
+                fwrite(&buffer[0][0],sizeof(unsigned char),1,fp);
+            }else{
+                fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
+            }
+            
+            //fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
+        }
+    }
+
+    //書き込みで開いたファイルを閉じる
+    fclose(fp);
+
+    //バッファを開放
+    for(int i=0;i<width;i++) free(buffer[i]);
+    free(buffer);
+}
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
 {
