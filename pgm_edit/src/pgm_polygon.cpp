@@ -151,8 +151,8 @@ void pgm_polygon::map_polygon(const geometry_msgs::Polygon::ConstPtr &data){
     for(int i=0;i<width;i++) buffer[i] = (int*)malloc(sizeof(int)*height);
 
     //データをバッファに格納
-    for(int i=0;i<width;i++){
-        for(int j=0;j<height;j++)
+    for(int i=0;i<height;i++){
+        for(int j=0;j<width;j++)
         {
             buffer[i][j] = fgetc(fp);
         }
@@ -173,20 +173,33 @@ void pgm_polygon::map_polygon(const geometry_msgs::Polygon::ConstPtr &data){
     //4.グレースケールの最大値
     fprintf(fp, "%d\n",depth);
 
+    //polygonで受け取ったデータからmapデータを編集
+    for(int i = 0;i< data->points.size(); i++){
+        buffer[(int)data->points[i].x][(int)data->points[i].y] = (int)data->points[i].z;
+    }
+
     //5.データ(P5は1byteずつ)
-    for(int i=0;i<width;i++){
-        for(int j=0;j<height;j++)
+    for(int i=0;i<height;i++){
+        for(int j=0;j<width;j++)
         {
-            
+            /*
             if(!(i%10)){
                 fwrite(&buffer[0][0],sizeof(unsigned char),1,fp);
             }else{
                 fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
             }
+            */
             
-            //fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
+            fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
         }
     }
+
+    
+    /*
+    for(int i = 0;i< data->points.size(); i++){
+        fwrite(&buffer[(int)data->points[i].x][(int)data->points[i].y],sizeof(unsigned char),(int)data->points[i].z,fp);
+    }
+    */
 
     //書き込みで開いたファイルを閉じる
     fclose(fp);
