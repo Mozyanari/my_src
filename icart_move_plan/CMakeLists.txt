@@ -147,6 +147,8 @@ add_executable(Odometry_offset src/Odometry_offset.cpp)
 add_executable(icart_time src/icart_time.cpp)
 add_executable(particle_offset src/particle_offset.cpp)
 
+add_executable(PoseWithCovarianceStamped_to_PoseStamped src/PoseWithCovarianceStamped_to_PoseStamped.cpp)
+
 
 
 ## Rename C++ executable without prefix
@@ -173,6 +175,9 @@ target_link_libraries(Odometry_offset ${catkin_LIBRARIES})
 
 target_link_libraries(icart_time ${catkin_LIBRARIES})
 target_link_libraries(particle_offset ${catkin_LIBRARIES})
+
+target_link_libraries(PoseWithCovarianceStamped_to_PoseStamped ${catkin_LIBRARIES})
+
 
 
 
