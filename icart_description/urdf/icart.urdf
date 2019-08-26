@@ -153,9 +153,9 @@
   </joint>
 
   <!--define base_foot-->
-  <link name="base_footprint"/>
+  <link name="base_foot_print"/>
     <joint name="base_link_joint" type="fixed">
-    <parent link="base_footprint"/>
+    <parent link="base_foot_print"/>
     <child link="base_link"/>
     <origin xyz="-0.105 0 0.0545"/>
   </joint>
@@ -222,7 +222,7 @@
   <gazebo reference="hokuyo_link">
     <sensor type="ray" name="head_hokuyo_sensor">
       <pose>0 0 0 0 0 0</pose>
-      <visualize>true</visualize>
+      <visualize>false</visualize>
       <update_rate>40</update_rate>
       <ray>
         <scan>
