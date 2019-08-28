@@ -30,6 +30,10 @@ private:
   //ダイクストラ法による経路計画
   void calc_path(void);
 
+  void free_node_list_check(int x,int y);
+  void open_node_list_check(int x,int y);
+  void close_node_list_check(int x,int y);
+
   //ノードハンドラ作成
   ros::NodeHandle nh;
 
@@ -73,8 +77,11 @@ void diijkstra::calc_path(){
     int cell_width = current_map.info.width;
     int cell_height = current_map.info.height;
 
+    int start_x = 0;
+    int start_y = 0;
+
     //オープンリスト，クローズリスト，フリーリストの初期化
-    //値が1ならオープン，-1ならクローズ，0ならフリー，2なら計算リスト
+    //値が1ならオープン，-1ならクローズ，0ならフリー，2なら次にオープン
     //0で初期化
     char state_list[cell_width][cell_height];
     for(int i = 0; i< cell_width;i++){
@@ -99,14 +106,46 @@ void diijkstra::calc_path(){
     while(1){
         for(int i = 0; i< cell_width;i++){
             for(int j = 0; j<cell_height;j++){
-                //オープンリストに入ってるのをコスト計算する
+                //オープンリストに入ってるノードを発見したら、クローズリストにして、隣接したノードを計算する
                 if(state_list[i][j] == 1){
-
+                    //クローズリストにする
+                    state_list[i][j] = -1;
+                    //隣接したノードがフリーリストなら、次のオープンリストに登録してコスト計算
+                    //そして、元のノードを親として登録
+                    free_node_list_check(i,j);
+                    //隣接したノードがオープンリストなら、計算したコストと登録されたコストを比較して
+                    //計算コストの方が小さければコストを更新する
+                    //そして、元のノードを親として登録
+                    open_node_list_check(i,j);
+                    //隣接したノードがオープンリストなら、計算したコストと登録されたコストを比較して
+                    //計算コストの方が小さければコストを更新する。そして隣接したノードをオープンリストにする
+                    //そして、元のノードを親として登録
+                    close_node_list_check(i,j);
                 }
+            }
+        }
+        //セルを一通り計算したので、
+        //次にオープンリストにするノードをオープンリストにする
+        for(int i = 0; i< cell_width;i++){
+            for(int j = 0; j<cell_height;j++){
+                if(state_list[i][j] == 2){
+                    state_list[i][j] = 1;
+                }
+            }
+        }
+        //オープンリストの中にゴールの中に到達したものがあれば終了
+        if(state_list[100][100] == 1){
+            break;
         }
 
-        //計算したノードをクローズリストに入れる
-    }
+        //オープンリストがなくなったら失敗と判定
+        for(int i = 0; i< cell_width;i++){
+            for(int j = 0; j<cell_height;j++){
+                if(state_list[i][j] != 1){
+                    break;
+                }
+            }
+        }
     }
 
     geometry_msgs::Pose2D start_position;
@@ -131,6 +170,10 @@ void diijkstra::calc_path(){
     path.poses[2].pose.orientation.w = 1.0;
 
     pub_path.publish(path);
+}
+
+void diijkstra::free_node_list_check(int x,int y){
+    
 }
 //実行されるメイン関数---------------------------------------------------------------
 int main(int argc, char** argv)
