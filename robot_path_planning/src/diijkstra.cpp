@@ -6,11 +6,18 @@
 
 #include <std_msgs/Bool.h>
 
+#include <geometry_msgs/Pose2D.h>
+
+
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/transform_listener.h>
 #include <nav_msgs/Odometry.h>
 
-
+struct CostList{
+    int cost;
+    int parent_x;
+    int parent_y;
+};
 
 class diijkstra{
 public:
@@ -57,12 +64,54 @@ void diijkstra::sub_map(const nav_msgs::OccupancyGrid::ConstPtr& map){
 void diijkstra::sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &target_place){
     if(receive_map_flag.data == true){
         goal =*target_place;
-        
     }
     calc_path();
 }
 
 void diijkstra::calc_path(){
+    //マップのセル数の取得
+    int cell_width = current_map.info.width;
+    int cell_height = current_map.info.height;
+
+    //オープンリスト，クローズリスト，フリーリストの初期化
+    //値が1ならオープン，-1ならクローズ，0ならフリー，2なら計算リスト
+    //0で初期化
+    char state_list[cell_width][cell_height];
+    for(int i = 0; i< cell_width;i++){
+        for(int j = 0; j<cell_height;j++){
+            state_list[i][j] = 0;
+        }
+    }
+    //コストリストの初期化
+    CostList cost_list[cell_width][cell_height];
+    for(int i = 0; i< cell_width;i++){
+        for(int j = 0; j<cell_height;j++){
+            cost_list[i][j].cost = 0;
+            cost_list[i][j].parent_x = 0;
+            cost_list[i][j].parent_y = 0;
+        }
+    }
+
+    //スタートノードをオープンリストに入れる
+    state_list[0][0] = 1;
+
+    //コスト計算をする
+    while(1){
+        for(int i = 0; i< cell_width;i++){
+            for(int j = 0; j<cell_height;j++){
+                //オープンリストに入ってるのをコスト計算する
+                if(state_list[i][j] == 1){
+
+                }
+        }
+
+        //計算したノードをクローズリストに入れる
+    }
+    }
+
+    geometry_msgs::Pose2D start_position;
+    geometry_msgs::Pose2D goal_position;
+
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.poses.resize(3);
