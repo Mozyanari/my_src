@@ -47,8 +47,8 @@ private:
   std_msgs::Bool receive_map_flag;
   geometry_msgs::PoseStamped goal;
 
-  char state_list[];
-  CostList cost_list[];
+  int *state_list;
+  CostList *cost_list;
 
 };
 
@@ -90,13 +90,13 @@ int diijkstra::calc_path(){
     int start_x = 0;
     int start_y = 0;
 
-    int goal_x = 10;
-    int goal_y = 10;
+    int goal_x = 30;
+    int goal_y = 30;
 
     //オープンリスト，クローズリスト，フリーリストの初期化
     //値が1ならオープン，-1ならクローズ，0ならフリー，2なら次にオープン，-100なら通れない場所
     //0で初期化
-    state_list[cell_length];
+    state_list = (int *)malloc(cell_length * sizeof(int));  /* メモリ領域の確保 */
     for(int i = 0; i< cell_length;i++){
         //mapのデータは100なら障害物，0なら床，-1なら未定となる
         if(cost_map.data[i] == 100){
@@ -106,23 +106,40 @@ int diijkstra::calc_path(){
         }
     }
 
-    //Debug
+    //Debug state
+    /*
     for(int i=0;i<cell_width;i++){
         for(int j=0;j<cell_height;j++){
             printf("%4d",state_list[i*(cell_width)+j]);
         }
         printf("\n");
     }
+    printf("\n");
+    */
 
     //コストリストの初期化
-    cost_list[cell_length];
+    cost_list = (CostList *)malloc(cell_length * sizeof(CostList));  /* メモリ領域の確保 */
     for(int i = 0; i< cell_length;i++){
         cost_list[i].cost = 0;
         cost_list[i].parent = 0;
     }
+    //Debug cost
+    for(int i=0;i<cell_width;i++){
+        for(int j=0;j<cell_height;j++){
+            printf("%4d",cost_list[i*(cell_width)+j].cost);
+        }
+        printf("\n");
+    }
+    printf("\n");
 
     //スタートノードをオープンリストに入れる
     state_list[(cell_width)*start_y+start_x] = 1;
+    for(int i=0;i<cell_width;i++){
+        for(int j=0;j<cell_height;j++){
+            printf("%4d",state_list[i*(cell_width)+j]);
+        }
+        printf("\n");
+    }
 
     ROS_INFO("start_calclate");
     //コスト計算をする
@@ -133,76 +150,125 @@ int diijkstra::calc_path(){
                 //クローズリストにする
                 state_list[i] = -1;
                 //周囲のノードのチェック
-                int check_number;
+                //現在のノードの位置
+                //xが0なら左側、cell_widthなら右側の探索を行わない
+                //yが0なら下側、cell_heightなら上の探索を行わない
+                int x = i%cell_width;
+                int y = i/cell_width;
                 //周囲のノードの番号が範囲外かどうかチェックして，登録されているリストによって計算
+                int check_number;
                 //左下
                 check_number = i-cell_width-1;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
-                    if(state_list[check_number] == 0)free_node_list_check(i,check_number);
-                    if(state_list[check_number] == 1)open_node_list_check(i,check_number);
-                    if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
+                    
                 }
                 //下
                 check_number = i-cell_width;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
+                if( (check_number > 0) && (cell_length > check_number) ){
                     if(state_list[check_number] == 0)free_node_list_check(i,check_number);
                     if(state_list[check_number] == 1)open_node_list_check(i,check_number);
                     if(state_list[check_number] == -1)close_node_list_check(i,check_number);
                 }
                 //右下
                 check_number = i-cell_width+1;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
-                    if(state_list[check_number] == 0)free_node_list_check(i,check_number);
-                    if(state_list[check_number] == 1)open_node_list_check(i,check_number);
-                    if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
+                    
                 }
                 //左
                 check_number = i-1;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
-                    if(state_list[check_number] == 0)free_node_list_check(i,check_number);
-                    if(state_list[check_number] == 1)open_node_list_check(i,check_number);
-                    if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
                 }
                 //右
                 check_number = i+1;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
-                    if(state_list[check_number] == 0)free_node_list_check(i,check_number);
-                    if(state_list[check_number] == 1)open_node_list_check(i,check_number);
-                    if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
                 }
                 //左上
                 check_number = i+cell_width-1;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
-                    if(state_list[check_number] == 0)free_node_list_check(i,check_number);
-                    if(state_list[check_number] == 1)open_node_list_check(i,check_number);
-                    if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
                 }
                 //上
                 check_number = i+cell_width;
-                if( !(check_number < 0) || !(cell_length < check_number) ){
+                if( (check_number > 0) && (cell_length > check_number) ){
                     if(state_list[check_number] == 0)free_node_list_check(i,check_number);
                     if(state_list[check_number] == 1)open_node_list_check(i,check_number);
                     if(state_list[check_number] == -1)close_node_list_check(i,check_number);
                 }
                 //右上
                 check_number = i+cell_width+1;
-                if(state_list[i-1] == 0)free_node_list_check(i,i-1);
-                if(state_list[i+1] == 0)free_node_list_check(i,i+1);
-                if(state_list[i+cell_width-1] == 0)free_node_list_check(i,i+cell_width-1);
-                if(state_list[i+cell_width] == 0)free_node_list_check(i,i+cell_width);
-                if(state_list[i+cell_width+1] == 0)free_node_list_check(i,i+cell_width+1);
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(state_list[check_number] == 0)free_node_list_check(i,check_number);
+                        if(state_list[check_number] == 1)open_node_list_check(i,check_number);
+                        if(state_list[check_number] == -1)close_node_list_check(i,check_number);
+                    }
 
+                }
                 ROS_INFO("%d",i);
             }
         }
 
-        //debug
+        //debug state
+        /*
         for(int i=0;i<cell_width;i++){
             for(int j=0;j<cell_height;j++){
                 printf("%4d",state_list[i*(cell_width)+j]);
             }
             printf("\n");
         }
+        printf("\n");
+        */
+
+        //Debug cost
+        for(int i=0;i<cell_width;i++){
+            for(int j=0;j<cell_height;j++){
+                printf("%4d",cost_list[i*(cell_width)+j].cost);
+            }
+            printf("\n");
+        }
+        printf("\n");
+        /*
+        while(1){
+            printf("プログラムを終了しますか？\n");
+            printf("y=終了 n=キャンセル\n");
+            int c = getchar();
+            if (c == 'y'){
+                break;
+            }
+        }
+        */
+        /*
+        for(int i=0;i<cell_width;i++){
+            for(int j=0;j<cell_height;j++){
+                printf("%4d",state_list[i*(cell_width)+j]);
+            }
+            printf("\n");
+        }
+        */
 
         //セルを一通り計算したので、
         //次にオープンリストにするノードをオープンリストにする
@@ -228,36 +294,63 @@ int diijkstra::calc_path(){
         }
     }
 
+    
     ROS_INFO("robot path plan ready");
 
+    //debug
+    /*`
     for(int i=0;i<11;i++){
         for(int j=0;j<11;j++){
             ROS_INFO("%d_%d = %d",i,j,cost_list[(cell_width)*j+i].cost);
         }
     }
+    */
+    //Debug parent
+    //ゴールが初期値
+    int parent = (cell_width)*goal_y+goal_x;
+    while(parent != (cell_width)*start_y+start_x){
+        for(int i=0;i<cell_width;i++){
+            for(int j=0;j<cell_height;j++){
+                if((cell_width*i)+j == parent){
+                    printf("%4d",1);
+                    parent = cost_list[(cell_width*i)+j].parent;
+                }else{
+                    printf("%4d",0);
+                }
+            }
+            printf("\n");
+        }
+        printf("\n");
+        while(1){
+            printf("プログラムを終了しますか？\n");
+            printf("y=終了 n=キャンセル\n");
+            int c = getchar();
+            if (c == 'y'){
+                break;
+            }
+        }
+    }
     
-    geometry_msgs::Pose2D start_position;
-    geometry_msgs::Pose2D goal_position;
-
+    //経路をPathに変換する
     nav_msgs::Path path;
     path.header.frame_id = "map";
-    path.poses.resize(3);
-    path.poses[0].pose.position.x = 0.0;
-    path.poses[0].pose.position.y = 0.0;
-    path.poses[0].pose.position.z = 0.0;
-    path.poses[0].pose.orientation.w = 1.0;
-
-    path.poses[1].pose.position.x = 1.0;
-    path.poses[1].pose.position.y = 1.0;
-    path.poses[1].pose.position.z = 1.0;
-    path.poses[1].pose.orientation.w = 1.0;
-
-    path.poses[2].pose.position.x = 2.0;
-    path.poses[2].pose.position.y = 2.0;
-    path.poses[2].pose.position.z = 2.0;
-    path.poses[2].pose.orientation.w = 1.0;
+    int path_length = cost_list[(cell_width)*goal_y+goal_x].cost+ 1;
+    int path_parent = (cell_width)*goal_y+goal_x;
+    path.poses.resize(path_length);
+    //まずはゴールをpathに入力
+    path.poses[path_length-1].pose.position.x = goal_x;
+    path.poses[path_length-1].pose.position.y = goal_y;
+    //残りのスタートまでのpathを入力
+    for(int i= (path_length-2); i>-1; i--){
+        path_parent = cost_list[path_parent].parent;
+        path.poses[i].pose.position.x = path_parent%cell_width;
+        path.poses[i].pose.position.y = path_parent/cell_width;
+    }
 
     pub_path.publish(path);
+    //動的に確保した変数を開放
+    free(state_list);
+    free(cost_list);
     ROS_INFO("end");
 }
 
