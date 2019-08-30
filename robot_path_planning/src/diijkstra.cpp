@@ -3,6 +3,7 @@
 #include <nav_msgs/Path.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #include <std_msgs/Bool.h>
 
@@ -10,7 +11,7 @@
 
 #include "eigen3/Eigen/Core"
 
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+
 #include <tf/transform_listener.h>
 #include <nav_msgs/Odometry.h>
 
@@ -20,67 +21,198 @@ struct CostList{
 };
 
 class diijkstra{
-public:
-  diijkstra();
-private:
-  //コールバック定義
-  void sub_map(const nav_msgs::OccupancyGrid::ConstPtr& map);
-  void sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &target_place);
+    public:
+    diijkstra();
+    private:
+    //コールバック定義
+    void sub_map(const nav_msgs::OccupancyGrid::ConstPtr& map);
+    void sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &target_place);
+    void sub_robot_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose);
 
-  //ダイクストラ法による経路計画
-  //返り値が-1なら失敗，1なら成功
-  int calc_path(void);
+    //コストマップをロボットの大きさで作成
+    int make_costmap(nav_msgs::OccupancyGrid map);
 
-  void free_node_list_check(int parent,int now);
-  void open_node_list_check(int parent,int now);
-  void close_node_list_check(int parent,int now);
+    //ダイクストラ法による経路計画
+    //返り値が-1なら失敗，1なら成功
+    int calc_path(void);
 
-  //ノードハンドラ作成
-  ros::NodeHandle nh;
+    void free_node_list_check(int parent,int now);
+    void open_node_list_check(int parent,int now);
+    void close_node_list_check(int parent,int now);
 
-  ros::Subscriber sub_goal;
-  ros::Subscriber sub_grid_map;
-  ros::Publisher pub_path;
+    //ノードハンドラ作成
+    ros::NodeHandle nh;
 
-  nav_msgs::OccupancyGrid current_map;
-  nav_msgs::OccupancyGrid cost_map;
-  std_msgs::Bool receive_map_flag;
-  geometry_msgs::PoseStamped goal;
+    ros::Subscriber sub_goal;
+    ros::Subscriber sub_grid_map;
+    ros::Subscriber sub_amcl_pose;
+    ros::Publisher pub_path;
+    ros::Publisher pub_costmap;
 
-  //セルの状態，コストを動的一次配列で確保する
-  //セルの状態
-  int *state_list;
-  //セルのコスト，親
-  CostList *cost_list;
+    nav_msgs::OccupancyGrid current_map;
+    nav_msgs::OccupancyGrid cost_map;
+    std_msgs::Bool receive_map_flag;
+
+    geometry_msgs::PoseStamped goal;
+
+    int start_cell_x = 0;
+    int start_cell_y = 0;
+
+    int goal_cell_x = 0;
+    int goal_cell_y = 0;
+    //セルの状態，コストを動的一次配列で確保する
+    //セルの状態
+    int *state_list;
+    //セルのコスト，親
+    CostList *cost_list;
 
 };
 
 //コンストラクタ定義
 diijkstra::diijkstra(){
-  //Pub,Sub定義
-  sub_grid_map = nh.subscribe("/map", 5, &diijkstra::sub_map,this);
-  sub_goal = nh.subscribe("/move_base_simple/goal", 5, &diijkstra::sub_target_place, this);
+    //Pub,Sub定義
+    sub_grid_map = nh.subscribe("/map", 5, &diijkstra::sub_map,this);
+    sub_goal = nh.subscribe("/move_base_simple/goal", 5, &diijkstra::sub_target_place, this);
+    sub_amcl_pose = nh.subscribe("amcl_pose",5,&diijkstra::sub_robot_position,this);
 
-  pub_path = nh.advertise<nav_msgs::Path>("robot_path", 1000, true);
+    pub_path = nh.advertise<nav_msgs::Path>("robot_path", 1000, true);
+    pub_costmap = nh.advertise<nav_msgs::OccupancyGrid>("costmap",1000,true);
 
-  receive_map_flag.data =false;
+    receive_map_flag.data =false;
 }
 
 //mapを取得
 void diijkstra::sub_map(const nav_msgs::OccupancyGrid::ConstPtr& map){
     current_map = *map;
-    cost_map = current_map;
+    make_costmap(current_map);
     receive_map_flag.data = true;
     ROS_INFO("receive map");
 }
+//コストmapを作成
+int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
+    cost_map = map;
+    //マップのセル数の取得
+    int cell_width = current_map.info.width;
+    int cell_height = current_map.info.height;
+    int cell_length = cell_width*cell_height;
 
-//
+    for(int count = 0;count<10;count++){
+        for(int i = 0; i< cell_length;i++){
+            //障害物の範囲を膨らませる
+            //膨らませる予定の場所に120を入れる
+            //一通り探索すると100にして障害物にする
+            if(cost_map.data[i] == 100){
+                //xが0なら左側、cell_widthなら右側の探索を行わない
+                //yが0なら下側、cell_heightなら上の探索を行わない
+                int x = i%cell_width;
+                int y = i/cell_width;
+                //周囲のセルの番号が範囲外かどうかチェックする
+                int check_number;
+                //左下
+                check_number = i-cell_width-1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                    
+                }
+                //下
+                check_number = i-cell_width;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(cost_map.data[check_number] != 100){
+                        cost_map.data[check_number] = 120;
+                    }
+                }
+                //右下
+                check_number = i-cell_width+1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                }
+                //左
+                check_number = i-1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                }
+                //右
+                check_number = i+1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                }
+                //左上
+                check_number = i+cell_width-1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != 0){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                }
+                //上
+                check_number = i+cell_width;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(cost_map.data[check_number] != 100){
+                        cost_map.data[check_number] = 120;
+                    }
+                }
+                //右上
+                check_number = i+cell_width+1;
+                if( (check_number > 0) && (cell_length > check_number) ){
+                    if(x != cell_width-1){
+                        if(cost_map.data[check_number] != 100){
+                            cost_map.data[check_number] = 120;
+                        }
+                    }
+                }
+            }
+        }
+        for(int j = 0; j< cell_length;j++){
+            if(cost_map.data[j] == 120){
+                cost_map.data[j] = 100;
+            }
+        }
+    }
+    //costmapを送信
+    pub_costmap.publish(cost_map);
+}
+//現在のロボットの位置を取得
+void diijkstra::sub_robot_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose){
+    if(receive_map_flag.data == true){
+        int cell_width = current_map.info.width;
+        int cell_height = current_map.info.height;
+        int cell_resolution = current_map.info.resolution;
+        double offset_x = current_map.info.origin.position.x;
+        double offset_y = current_map.info.origin.position.y;
+
+        //mapトピックの座標軸でのロボット位置
+        double map_robot_x = pose->pose.pose.position.x - offset_x;
+        double map_robot_y = pose->pose.pose.position.x - offset_y;
+
+        //mapトピック座標軸でロボットのセル位置計算
+        int cell_robot_x = map_robot_x / cell_resolution;
+        int cell_robot_y = map_robot_y / cell_resolution;
+    }
+}
+
+//目標位置を取得
 void diijkstra::sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &target_place){
     if(receive_map_flag.data == true){
-        goal =*target_place;
+        goal = *target_place;
         calc_path();
     }
-    
 }
 
 int diijkstra::calc_path(){
@@ -90,11 +222,14 @@ int diijkstra::calc_path(){
     int cell_length = cell_width*cell_height;
     ROS_INFO("width=%d height=%d",cell_width,cell_height);
 
-    int start_cell_x = 0;
-    int start_cell_y = 0;
+    start_cell_x = 0;
+    start_cell_y = 0;
 
-    int goal_cell_x = 30;
-    int goal_cell_y = 30;
+    goal_cell_x = 700;
+    goal_cell_y = 700;
+
+    //スタートセル，ゴールセルが障害物なら失敗
+
 
     //オープンリスト，クローズリスト，フリーリストの初期化
     //値が1ならオープン，-1ならクローズ，0ならフリー，2なら次にオープン，-100なら通れない場所
@@ -127,6 +262,7 @@ int diijkstra::calc_path(){
         cost_list[i].parent = 0;
     }
     //Debug cost
+    /*
     for(int i=0;i<cell_width;i++){
         for(int j=0;j<cell_height;j++){
             printf("%4d",cost_list[i*(cell_width)+j].cost);
@@ -134,15 +270,19 @@ int diijkstra::calc_path(){
         printf("\n");
     }
     printf("\n");
+    */
 
     //スタートノードをオープンリストに入れる
     state_list[(cell_width)*start_cell_y+start_cell_x] = 1;
+
+    /*
     for(int i=0;i<cell_width;i++){
         for(int j=0;j<cell_height;j++){
             printf("%4d",state_list[i*(cell_width)+j]);
         }
         printf("\n");
     }
+    */
 
     ROS_INFO("start_calclate");
     //コスト計算をする
@@ -154,8 +294,8 @@ int diijkstra::calc_path(){
                 state_list[i] = -1;
                 //周囲のノードのチェック
                 //現在のノードの位置
-                //xが0なら左側、cell_widthなら右側の探索を行わない
-                //yが0なら下側、cell_heightなら上の探索を行わない
+                //xが0なら左側、cell_width-1なら右側の探索を行わない
+                //yが0なら下側、cell_height-1なら上の探索を行わない
                 int x = i%cell_width;
                 int y = i/cell_width;
                 //周囲のノードの番号が範囲外かどうかチェックして，登録されているリストによって計算
@@ -231,7 +371,7 @@ int diijkstra::calc_path(){
                     }
 
                 }
-                ROS_INFO("%d",i);
+                //ROS_INFO("%d",i);
             }
         }
 
@@ -247,6 +387,7 @@ int diijkstra::calc_path(){
         */
 
         //Debug cost
+        /*
         for(int i=0;i<cell_width;i++){
             for(int j=0;j<cell_height;j++){
                 printf("%4d",cost_list[i*(cell_width)+j].cost);
@@ -254,6 +395,7 @@ int diijkstra::calc_path(){
             printf("\n");
         }
         printf("\n");
+        */
         /*
         while(1){
             printf("プログラムを終了しますか？\n");
@@ -312,6 +454,7 @@ int diijkstra::calc_path(){
     }
     */
     //Debug parent
+    /*
     //ゴールが初期値
     int parent = (cell_width)*goal_cell_y+goal_cell_x;
     while(parent != (cell_width)*start_cell_y+start_cell_x){
@@ -336,6 +479,7 @@ int diijkstra::calc_path(){
             }
         }
     }
+    */
     
     //経路をPathに変換する
     nav_msgs::Path path;
