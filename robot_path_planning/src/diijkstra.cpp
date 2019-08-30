@@ -47,7 +47,10 @@ private:
   std_msgs::Bool receive_map_flag;
   geometry_msgs::PoseStamped goal;
 
+  //セルの状態，コストを動的一次配列で確保する
+  //セルの状態
   int *state_list;
+  //セルのコスト，親
   CostList *cost_list;
 
 };
@@ -87,11 +90,11 @@ int diijkstra::calc_path(){
     int cell_length = cell_width*cell_height;
     ROS_INFO("width=%d height=%d",cell_width,cell_height);
 
-    int start_x = 0;
-    int start_y = 0;
+    int start_cell_x = 0;
+    int start_cell_y = 0;
 
-    int goal_x = 30;
-    int goal_y = 30;
+    int goal_cell_x = 30;
+    int goal_cell_y = 30;
 
     //オープンリスト，クローズリスト，フリーリストの初期化
     //値が1ならオープン，-1ならクローズ，0ならフリー，2なら次にオープン，-100なら通れない場所
@@ -133,7 +136,7 @@ int diijkstra::calc_path(){
     printf("\n");
 
     //スタートノードをオープンリストに入れる
-    state_list[(cell_width)*start_y+start_x] = 1;
+    state_list[(cell_width)*start_cell_y+start_cell_x] = 1;
     for(int i=0;i<cell_width;i++){
         for(int j=0;j<cell_height;j++){
             printf("%4d",state_list[i*(cell_width)+j]);
@@ -279,18 +282,21 @@ int diijkstra::calc_path(){
         }
         
         //オープンリストの中にゴールの中に到達したものがあれば終了
-        if(state_list[(cell_width)*goal_y+goal_x] == 1){
+        if(state_list[(cell_width)*goal_cell_y+goal_cell_x] == 1){
             ROS_INFO("serch path fin!");
             break;
         }
 
         //オープンリストがなくなったら失敗と判定
-        //todo
-        for(int i = 0; i< cell_width;i++){
-            for(int j = 0; j<cell_height;j++){
-                if(state_list[(cell_width*i)+j] == 1){
-                }
+        int open_list_flag = 0;
+        for(int i = 0; i< cell_length;i++){
+            if(state_list[i] == 1){
+                open_list_flag = 1;
+                break;
             }
+        }
+        if(open_list_flag == 0){
+            return -1;
         }
     }
 
@@ -307,8 +313,8 @@ int diijkstra::calc_path(){
     */
     //Debug parent
     //ゴールが初期値
-    int parent = (cell_width)*goal_y+goal_x;
-    while(parent != (cell_width)*start_y+start_x){
+    int parent = (cell_width)*goal_cell_y+goal_cell_x;
+    while(parent != (cell_width)*start_cell_y+start_cell_x){
         for(int i=0;i<cell_width;i++){
             for(int j=0;j<cell_height;j++){
                 if((cell_width*i)+j == parent){
@@ -334,17 +340,26 @@ int diijkstra::calc_path(){
     //経路をPathに変換する
     nav_msgs::Path path;
     path.header.frame_id = "map";
-    int path_length = cost_list[(cell_width)*goal_y+goal_x].cost+ 1;
-    int path_parent = (cell_width)*goal_y+goal_x;
+    int path_length = cost_list[(cell_width)*goal_cell_y+goal_cell_x].cost+ 1;
+    int path_parent = (cell_width)*goal_cell_y+goal_cell_x;
     path.poses.resize(path_length);
     //まずはゴールをpathに入力
-    path.poses[path_length-1].pose.position.x = goal_x;
-    path.poses[path_length-1].pose.position.y = goal_y;
+    path.poses[path_length-1].pose.position.x = goal_cell_x;
+    path.poses[path_length-1].pose.position.y = goal_cell_y;
     //残りのスタートまでのpathを入力
     for(int i= (path_length-2); i>-1; i--){
         path_parent = cost_list[path_parent].parent;
         path.poses[i].pose.position.x = path_parent%cell_width;
         path.poses[i].pose.position.y = path_parent/cell_width;
+    }
+    //cellを基準にして原点が左下したpathなので，ロボット座標を原点にしたpathに変更する
+    //cellの分解能
+    double cell_resolution = current_map.info.resolution;
+    double offset_x = current_map.info.origin.position.x;
+    double offset_y = current_map.info.origin.position.y;
+    for(int i= 0; i<path_length; i++){
+        path.poses[i].pose.position.x = ((cell_resolution/2) + path.poses[i].pose.position.x * cell_resolution) + offset_x;
+        path.poses[i].pose.position.y = ((cell_resolution/2) + path.poses[i].pose.position.y * cell_resolution) + offset_y;
     }
 
     pub_path.publish(path);
@@ -378,8 +393,6 @@ void diijkstra::open_node_list_check(int parent,int now){
 //そして隣接したノードを次のオープンリストにする
 //そして、元のノードを親として登録
 void diijkstra::close_node_list_check(int parent,int now){
-    //コスト計算して，以前の計算したものより小さければ更新して次のオープンリストに登録する
-    //そして元のノードを親として登録
     if(cost_list[parent].cost + 1 < cost_list[now].cost){
         cost_list[now].cost = cost_list[parent].cost + 1;
         state_list[now] = 2;
