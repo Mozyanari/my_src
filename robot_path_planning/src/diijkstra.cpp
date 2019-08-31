@@ -344,6 +344,7 @@ int diijkstra::calc_path(){
                     if(state_list[check_number] == 0)free_node_list_check(i,check_number,linear_cost);
                     if(state_list[check_number] == 1)open_node_list_check(i,check_number,linear_cost);
                     if(state_list[check_number] == -1)close_node_list_check(i,check_number,linear_cost);
+                    if(state_list[check_number] == 2)open_node_list_check(i,check_number,linear_cost);
                 }
                 //下
                 check_number = i-cell_width;
@@ -351,6 +352,7 @@ int diijkstra::calc_path(){
                     if(state_list[check_number] == 0)free_node_list_check(i,check_number,linear_cost);
                     if(state_list[check_number] == 1)open_node_list_check(i,check_number,linear_cost);
                     if(state_list[check_number] == -1)close_node_list_check(i,check_number,linear_cost);
+                    if(state_list[check_number] == 2)open_node_list_check(i,check_number,linear_cost);
                 }
                 //左
                 check_number = i-1;
@@ -359,6 +361,7 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,linear_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,linear_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,linear_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,linear_cost);
                     }
                 }
                 //右
@@ -368,8 +371,10 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,linear_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,linear_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,linear_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,linear_cost);
                     }
                 }
+                
                 //左下
                 check_number = i-cell_width-1;
                 if( (check_number > 0) && (cell_length > check_number) ){
@@ -377,6 +382,7 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,diagonal_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,diagonal_cost);
                     }
                     
                 }
@@ -387,6 +393,7 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,diagonal_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,diagonal_cost);
                     }
                     
                 }
@@ -398,6 +405,7 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,diagonal_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,diagonal_cost);
                     }
                 }
                 //右上
@@ -407,9 +415,11 @@ int diijkstra::calc_path(){
                         if(state_list[check_number] == 0)free_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == 1)open_node_list_check(i,check_number,diagonal_cost);
                         if(state_list[check_number] == -1)close_node_list_check(i,check_number,diagonal_cost);
+                        if(state_list[check_number] == 2)open_node_list_check(i,check_number,diagonal_cost);
                     }
 
                 }
+                
                 //ROS_INFO("%d",i);
             }
         }
@@ -434,8 +444,6 @@ int diijkstra::calc_path(){
             printf("\n");
         }
         printf("\n");
-        */
-        /*
         while(1){
             printf("プログラムを終了しますか？\n");
             printf("y=終了 n=キャンセル\n");
@@ -477,7 +485,7 @@ int diijkstra::calc_path(){
             }
         }
         if(open_list_flag == 0){
-            return -1;
+            break;
         }
     }
 
@@ -485,7 +493,7 @@ int diijkstra::calc_path(){
     ROS_INFO("robot path plan ready");
 
     //debug
-    /*`
+    /*
     for(int i=0;i<11;i++){
         for(int j=0;j<11;j++){
             ROS_INFO("%d_%d = %d",i,j,cost_list[(cell_width)*j+i].cost);
@@ -519,11 +527,35 @@ int diijkstra::calc_path(){
         }
     }
     */
+   for(int i=0;i<cell_width;i++){
+        for(int j=0;j<cell_height;j++){
+            printf("%4d",cost_list[i*(cell_width)+j].cost);
+        }
+        printf("\n");
+    }
     
     //経路をPathに変換する
     nav_msgs::Path path;
     path.header.frame_id = "map";
-    int path_length = cost_list[(cell_width)*goal_cell_y+goal_cell_x].cost+ 1;
+
+    //pathの要素数を数える
+    int path_length = 1;
+    int count = 0;
+    int parent = (cell_width)*goal_cell_y+goal_cell_x;
+    while(parent != (cell_width)*start_cell_y+start_cell_x){
+        count ++;
+        for(int i=0;i<cell_length;i++){
+            if(i == parent){
+                parent = cost_list[i].parent;
+                path_length++;
+                break;
+            }
+        }
+        if(count > 1000){
+            ROS_INFO("path_length fail");
+            return -1;
+        }
+    }
     int path_parent = (cell_width)*goal_cell_y+goal_cell_x;
     path.poses.resize(path_length);
     //まずはゴールをpathに入力
@@ -558,7 +590,7 @@ void diijkstra::free_node_list_check(int parent,int now,int path_cost){
     //次のオープンリストに登録
     state_list[now] = 2;
     //コスト計算
-    cost_list[now].cost = cost_list[parent].cost + 1;
+    cost_list[now].cost = cost_list[parent].cost + path_cost;
     //親を登録
     cost_list[now].parent = parent;
 }
@@ -566,8 +598,8 @@ void diijkstra::free_node_list_check(int parent,int now,int path_cost){
 //隣接したノードがオープンリストなら、計算したコストと登録されたコストを比較して計算コストの方が小さければコストを更新する
 //そして、元のノードを親として登録
 void diijkstra::open_node_list_check(int parent,int now, int path_cost){
-    if(cost_list[parent].cost + 1 < cost_list[now].cost){
-        cost_list[now].cost = cost_list[parent].cost + 1;
+    if(cost_list[parent].cost + path_cost < cost_list[now].cost){
+        cost_list[now].cost = cost_list[parent].cost + path_cost;
         cost_list[now].parent = parent;
     }
 }
@@ -576,8 +608,8 @@ void diijkstra::open_node_list_check(int parent,int now, int path_cost){
 //そして隣接したノードを次のオープンリストにする
 //そして、元のノードを親として登録
 void diijkstra::close_node_list_check(int parent,int now, int path_cost){
-    if(cost_list[parent].cost + 1 < cost_list[now].cost){
-        cost_list[now].cost = cost_list[parent].cost + 1;
+    if(cost_list[parent].cost + path_cost < cost_list[now].cost){
+        cost_list[now].cost = cost_list[parent].cost + path_cost;
         state_list[now] = 2;
         cost_list[now].parent = parent;
     }
