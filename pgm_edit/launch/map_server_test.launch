@@ -6,7 +6,7 @@
     <param name ="map_path" value ="$(arg map_path)"/>
 
     <!--map_serverを立ち上げてマップを出力-->
-    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map.yaml"/>
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map_2.yaml"/>
 
     <!--pgm_polygonを起動-->
     <node name="map_editor" pkg ="pgm_edit" type ="pgm_polygon" output="screen">
