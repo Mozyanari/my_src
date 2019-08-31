@@ -485,7 +485,7 @@ int diijkstra::calc_path(){
             }
         }
         if(open_list_flag == 0){
-            break;
+            return -1;
         }
     }
 
