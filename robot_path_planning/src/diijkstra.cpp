@@ -103,7 +103,7 @@ int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
     int cell_height = current_map.info.height;
     int cell_length = cell_width*cell_height;
 
-    for(int count = 0;count<1;count++){
+    for(int count = 0;count<10;count++){
         for(int i = 0; i< cell_length;i++){
             //障害物の範囲を膨らませる
             //膨らませる予定の場所に120を入れる
@@ -199,7 +199,7 @@ int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
 void diijkstra::sub_robot_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose){
     if(receive_map_flag.data == true){
         receive_robot_flag.data = true;
-        int cell_resolution = current_map.info.resolution;
+        double cell_resolution = current_map.info.resolution;
         double offset_x = current_map.info.origin.position.x;
         double offset_y = current_map.info.origin.position.y;
 
@@ -208,8 +208,8 @@ void diijkstra::sub_robot_position(const geometry_msgs::PoseWithCovarianceStampe
         double map_robot_y = pose->pose.pose.position.y - offset_y;
 
         //mapトピック座標軸でロボットのセル位置計算
-        cell_robot_x = (int)(map_robot_x / cell_resolution);
-        cell_robot_y = (int)(map_robot_y / cell_resolution);
+        cell_robot_x = (int)((double)map_robot_x / (double)cell_resolution);
+        cell_robot_y = (int)((double)map_robot_y / (double)cell_resolution);
 
         ROS_INFO("robot cell x = %d robot cell y = %d",cell_robot_x,cell_robot_y);
 
@@ -222,7 +222,7 @@ void diijkstra::sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &tar
     if(receive_map_flag.data == true){
         goal = *target_place;
 
-        int cell_resolution = current_map.info.resolution;
+        double cell_resolution = current_map.info.resolution;
         double offset_x = current_map.info.origin.position.x;
         double offset_y = current_map.info.origin.position.y;
 
@@ -231,8 +231,8 @@ void diijkstra::sub_target_place(const geometry_msgs::PoseStamped::ConstPtr &tar
         double map_goal_y = goal.pose.position.y - offset_y;
 
         //mapトピック座標軸でゴールのセル位置計算
-        cell_goal_x = (int)(map_goal_x / cell_resolution);
-        cell_goal_y = (int)(map_goal_y / cell_resolution);
+        cell_goal_x = (int)((double)map_goal_x / (double)cell_resolution);
+        cell_goal_y = (int)((double)map_goal_y / (double)cell_resolution);
         ROS_INFO("goal cell x = %d goal cell y = %d",cell_goal_x,cell_goal_y);
 
         //pathを計算
