@@ -526,13 +526,13 @@ int diijkstra::calc_path(){
             }
         }
     }
-    */
    for(int i=0;i<cell_width;i++){
         for(int j=0;j<cell_height;j++){
             printf("%4d",cost_list[i*(cell_width)+j].cost);
         }
         printf("\n");
     }
+    */
     
     //経路をPathに変換する
     nav_msgs::Path path;
