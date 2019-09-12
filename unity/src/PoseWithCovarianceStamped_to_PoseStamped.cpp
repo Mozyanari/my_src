@@ -25,6 +25,7 @@ PoseWithCovarianceStamped_to_PoseStamped::PoseWithCovarianceStamped_to_PoseStamp
 
 void PoseWithCovarianceStamped_to_PoseStamped::cb_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& data){
     geometry_msgs::PoseStamped send_data;
+    send_data.header = data->header;
     send_data.pose = data->pose.pose;
     pub_PoseStamped.publish(send_data);
 }
