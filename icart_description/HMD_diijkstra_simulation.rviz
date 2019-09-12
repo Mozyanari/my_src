@@ -111,6 +111,16 @@ Visualization Manager:
       Topic: /robot_path
       Unreliable: false
       Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -134,7 +144,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: 0.00499999989
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
@@ -144,11 +154,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 30.1704445
+      Scale: 17.5450439
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 2.29765677
-      Y: 2.81333375
+      X: -0.13046208
+      Y: 4.72679567
     Saved: ~
 Window Geometry:
   Displays:
@@ -166,5 +176,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1301
-  X: 1985
-  Y: 336
+  X: 65
+  Y: 24
