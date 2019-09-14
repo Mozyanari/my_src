@@ -193,6 +193,7 @@ int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
         }
     }
     //costmapを送信
+    ROS_INFO("pub cost map");
     pub_costmap.publish(cost_map);
 }
 //現在のロボットの位置を取得
