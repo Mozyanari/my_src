@@ -102,8 +102,8 @@ int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
     int cell_width = current_map.info.width;
     int cell_height = current_map.info.height;
     int cell_length = cell_width*cell_height;
-
-    for(int count = 0;count<10;count++){
+    //地図の分解能が10cm，機体本体の大きさが約40cmなので4つぶん膨らませる
+    for(int count = 0;count<4;count++){
         for(int i = 0; i< cell_length;i++){
             //障害物の範囲を膨らませる
             //膨らませる予定の場所に120を入れる
