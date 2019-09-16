@@ -35,7 +35,7 @@ class pure_pursuit{
     int path_flag = 0;
 
     //P制御
-    double Kp = 0.1;
+    double Kp = 0.2;
 
     //時間の関数作成
     ros::Timer timer;
@@ -67,6 +67,8 @@ void pure_pursuit::sub_diijkstra_path(const nav_msgs::Path::ConstPtr &target_pat
     robot_path = *target_path;
     //経路の長さを取得
     path_length = robot_path.poses.size();
+    //numberをリセットする
+    path_number = 0;
 }
 
 //速度計算を行う
@@ -95,17 +97,29 @@ void pure_pursuit::speed_control(const ros::TimerEvent&){
         }
         //ロボットと次のpathまでの角度を計算
         double alpha = atan2(diff_y,diff_x) - robot_pose.theta;
-        ROS_INFO("alpha=%f path_theta=%f,robot_theta=%f",alpha*180/M_PI,atan2(diff_y,diff_x)*180/M_PI,robot_pose.theta*180/M_PI);
+
+        ROS_INFO("alpha=%f path_theta=%f,robot_theta=%f",alpha,atan2(diff_y,diff_x)*180/M_PI,robot_pose.theta*180/M_PI);
         //P制御で適当にVrを決める
         double vr = L * Kp;
         //Wrを式から求める
         double wr = (2.0 * vr * sin(alpha)) / L ;
-        if(!((alpha < 0.5) && (-0.5 < alpha))){
-            vr = 0;
-        }
+
         geometry_msgs::Twist speed;
-        speed.linear.x = vr;
-        speed.angular.z = wr;
+        
+        if((alpha < 0.5) && (-0.5 < alpha)){
+            speed.linear.x = vr;
+            speed.angular.z = wr;
+        }else if((alpha < 2*M_PI) && (2*M_PI-0.5 < alpha)){
+            speed.linear.x = vr;
+            speed.angular.z = wr;
+        }else if((alpha > -2*M_PI) && (-(2*M_PI-0.5) > alpha)){
+            speed.linear.x = vr;
+            speed.angular.z = wr;
+        }else{
+            speed.linear.x = 0.0;
+            speed.angular.z = wr;
+        }
+        
         robot_speed.publish(speed);
     }
 }
