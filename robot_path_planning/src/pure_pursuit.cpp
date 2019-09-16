@@ -61,12 +61,18 @@ void pure_pursuit::sub_robot_position(const geometry_msgs::PoseWithCovarianceSta
 
 //経路を取得
 void pure_pursuit::sub_diijkstra_path(const nav_msgs::Path::ConstPtr &target_path){
-    //パスを取得したらフラグを立てる
-    path_flag = 1;
     //経路を取得
     robot_path = *target_path;
     //経路の長さを取得
     path_length = robot_path.poses.size();
+    if(path_length!=0){
+        //長さのあるパスを取得したらフラグを立てる
+        path_flag = 1;
+    }else{
+        //0の長さのパスを取得したら，mapが更新されたと判定して自立移動を止める
+        path_flag = 0;
+    }
+    
     //numberをリセットする
     path_number = 0;
 }
@@ -76,7 +82,8 @@ void pure_pursuit::speed_control(const ros::TimerEvent&){
     //最後のpathならフラグを折る
     if(path_number == path_length){
         path_flag = 0;
-        path_number = 0;
+        //次のpathを受信するまでnumberは-1にする
+        path_number = -1;
         //停止コマンドを送る
         geometry_msgs::Twist speed;
         speed.linear.x = 0.0;

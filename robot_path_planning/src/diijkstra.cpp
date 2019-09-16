@@ -94,6 +94,11 @@ void diijkstra::sub_map(const nav_msgs::OccupancyGrid::ConstPtr& map){
     make_costmap(current_map);
     receive_map_flag.data = true;
     ROS_INFO("receive map");
+    //mapが更新されたら長さ0のpathを送信する
+    nav_msgs::Path path;
+    path.header.frame_id = "map";
+    path.poses.resize(0);
+    pub_path.publish(path);
 }
 //コストmapを作成
 int diijkstra::make_costmap(nav_msgs::OccupancyGrid map){
