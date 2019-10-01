@@ -58,35 +58,45 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_foot_print_first:
+        base_foot_print:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        base_link_first:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_link_first_offset:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        caster_link_first:
+        base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        hokuyo_link_first:
+        base_link_offset:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        caster_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_wheel_link_first:
+        hokuyo_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_wheel_link_first:
+        left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        stick:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        table:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -114,7 +124,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_foot_print_first
+    Fixed Frame: base_foot_print
     Frame Rate: 30
   Name: root
   Tools:
@@ -135,25 +145,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.733828008
+      Distance: 0.791925907
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0719961673
-        Y: 0.00248095836
-        Z: -0.0511600561
+        X: -0.0962897092
+        Y: 0.0559733622
+        Z: -0.00486853253
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.31479669
+      Pitch: 0.51479739
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.69359159
+      Yaw: 5.6185894
     Saved: ~
 Window Geometry:
   Displays:

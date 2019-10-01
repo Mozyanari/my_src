@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="model" default="$(find icart_description)/urdf/icart.urdf"/>
+  <arg name="model" default="$(find icart_description)/urdf/icart_depth.urdf"/>
   <arg name="gui" default="True"/>
   <arg name="rvizconfig" default="$(find icart_description)/urdf.rviz"/>
 

@@ -1,0 +1,635 @@
+<?xml version="1.0"?>
+<robot name="icart_depth">
+<property name="M_PI" value="3.14159274"/>
+
+
+<!--body-->
+<property name="bd"  value="0.280"/>
+<property name="bw"  value="0.320"/>
+<property name="bh"  value="0.007"/>
+<property name="base_mass" value="1.1"/>
+<property name="base_ixx" value="${1.0/12.0*base_mass*(bw*bw+bh*bh)}"/>
+<property name="base_iyy" value="${1.0/12.0*base_mass*(bh*bh+bd*bd)}"/>
+<property name="base_izz" value="${1.0/12.0*base_mass*(bw*bw+bd*bd)}"/>
+
+<!--caster-->
+<property name="cr" value="0.0325"/>
+<property name="caster_mass" value="0.1"/>
+<property name="caster_i" value="${2.0/5.0*caster_mass*cr*cr}"/>
+
+<!--wheel-->
+<property name="wr" value="0.0325"/>
+<property name="wl" value="0.01"/>
+<property name="wheel_mass" value="1.0"/>
+<property name="wheel_ixx" value="${1.0/12.0*wheel_mass*(3.0*wr*wr+wl*wl)}"/>
+<property name="wheel_iyy" value="${1.0/12.0*wheel_mass*(3.0*wr*wr+wl*wl)}"/>
+<property name="wheel_izz" value="${1.0/2.0*wheel_mass*wr*wr}"/>
+
+<!--stick-->
+<property name="sd"  value="0.030"/>
+<property name="sw"  value="0.030"/>
+<property name="sh"  value="0.200"/>
+
+<property name="sr" value="0.030"/>
+<property name="sl" value="0.200"/>
+<property name="stick_mass" value="0.001"/>
+<!--<property name="stick_ixx" value="${1.0/12.0*stick_mass*(sw*sw+sh*sh)}"/>
+<property name="stick_iyy" value="${1.0/12.0*stick_mass*(sh*sh+sd*sd)}"/>
+<property name="stick_izz" value="${1.0/12.0*stick_mass*(sw*sw+sd*sd)}"/>-->
+<property name="stick_ixx" value="${1.0/12.0*stick_mass*(3.0*sr*sr+sl*sl)}"/>
+<property name="stick_iyy" value="${1.0/12.0*stick_mass*(3.0*sr*sr+sl*sl)}"/>
+<property name="stick_izz" value="${1.0/2.0*stick_mass*sr*sr}"/>
+
+<!--table-->
+<property name="tr" value="0.10"/>
+<property name="tl" value="0.01"/>
+<property name="table_mass" value="0.001"/>
+<property name="table_ixx" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_iyy" value="${1.0/12.0*table_mass*(3.0*tr*tr+tl*tl)}"/>
+<property name="table_izz" value="${1.0/2.0*table_mass*tr*tr}"/>
+
+<!--stopper-->
+<property name="stopper_d"  value="0.150"/>
+<property name="stopper_w"  value="0.030"/>
+<property name="stopper_h"  value="0.020"/>
+<property name="stopper_mass" value="0.001"/>
+<property name="stopper_ixx" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_h*stopper_h)}"/>
+<property name="stopper_iyy" value="${1.0/12.0*stopper_mass*(stopper_h*stopper_h+stopper_d*stopper_d)}"/>
+<property name="stopper_izz" value="${1.0/12.0*stopper_mass*(stopper_w*stopper_w+stopper_d*stopper_d)}"/>
+
+
+  <!--visual&collision define-->
+  <!--base_foot_print-->
+  <link name="base_foot_print">
+  </link>
+  <!--base_foot_print-->
+  <link name="base_link_offset">
+  </link>
+
+  <!--icart_body-->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${bd} ${bw} ${bh}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${bd} ${bw} ${bh}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_ixx}" ixy="0" ixz="0" iyy="${base_iyy}" iyz="0" izz="${base_izz}"/>
+    </inertial>
+  </link>
+
+  <!--icart_caster-->
+  <link name="caster_link">
+    <visual>
+      <geometry>
+        <sphere radius="${cr}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <sphere radius="${cr}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${caster_mass}"/>
+      <inertia ixx="${caster_i}" ixy="0" ixz="0" iyy="${caster_i}"  iyz="0" izz="${caster_i}"/>
+     </inertial>
+
+  </link>
+
+  <!--icart_right_wheel-->
+  <link name="right_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${wr}" length="${wl}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${wr}" length="${wl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_ixx}" ixy="0" ixz="0" iyy="${wheel_iyy}" iyz="0" izz="${wheel_izz}"/>
+   </inertial>
+  </link>
+
+  <!--icart_left_wheel-->
+  <link name="left_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${wr}" length="${wl}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${wr}" length="${wl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_ixx}" ixy="0" ixz="0" iyy="${wheel_iyy}" iyz="0" izz="${wheel_izz}"/>
+   </inertial>
+  </link>
+
+  <!-- Hokuyo Laser -->
+  <link name="hokuyo_link">
+        <!-- laser catch itself. URG collision off-->
+    <!--
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+  -->
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://rrbot_description/meshes/hokuyo.dae"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <!--depth Camera-->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://rrbot_description/meshes/hokuyo.dae"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <!--icart_stick-->
+  <link name="stick">
+    <visual>
+      <geometry>
+        <!--<box size="${sd} ${sw} ${sh}"/>-->
+        <cylinder radius="${sr}" length="${sl}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <!--box size="${sd} ${sw} ${sh}"/-->
+        <cylinder radius="${sr}" length="${sl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stick_mass}"/>
+      <inertia ixx="${stick_ixx}" ixy="0" ixz="0" iyy="${stick_iyy}" iyz="0" izz="${stick_izz}"/>
+    </inertial>
+  </link>
+
+  <!--icart_table-->
+  <link name="table">
+    <visual>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="${tr}" length="${tl}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${table_mass}"/>
+      <inertia ixx="${table_ixx}" ixy="0" ixz="0" iyy="${table_iyy}" iyz="0" izz="${table_izz}"/>
+   </inertial>
+  </link>
+
+  <!--icart_stopper-->
+  <!--
+  <link name="stopper1">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper2">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper3">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+
+  <link name="stopper4">
+    <visual>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${stopper_d} ${stopper_w} ${stopper_h}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${stopper_mass}"/>
+      <inertia ixx="${stopper_ixx}" ixy="0" ixz="0" iyy="${stopper_iyy}" iyz="0" izz="${stopper_izz}"/>
+    </inertial>
+  </link>
+  -->
+
+  <!--joint define-->
+  <!--base_link to base_foot_print-->
+  <joint name="foot_print" type="fixed">
+    <parent link="base_foot_print"/>
+    <child link="base_link"/>
+    <origin xyz="-0.105 0 ${cr}" rpy="0 0 0"/>
+  </joint>
+
+  <!--base_link to base_link_offset-->
+  <joint name="offset" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_link_offset"/>
+    <origin xyz="-0.055 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--base_link to caster-->
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+    <origin xyz="-0.096 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--base_link to left_wheel-->
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+    <origin xyz="0.105 0.178 0" rpy="-1.5707 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!--base_link to right_wheel-->
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+    <origin xyz="0.105 -0.178 0" rpy="1.5707 0 0"/>
+    <axis xyz="0 0 -1"/>
+  </joint>
+
+  <!--base_link to hokuyo-->
+  <joint name="hokuyo_joint" type="fixed">
+    <axis xyz="0 0 0" />
+    <!--<origin xyz="0 0 0.0825" rpy="0 0 3.141592"/>-->
+    <origin xyz="0 0 0.0825" rpy="0 0 0"/>
+    <parent link="base_foot_print"/>
+    <child link="hokuyo_link"/>
+  </joint>
+
+  <!--base_link to depth-->
+   <joint name="depth_joint" type="fixed">
+    <axis xyz="0 0 0" />
+    <!--<origin xyz="0 0 0.0825" rpy="0 0 3.141592"/>-->
+    <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    <parent link="base_foot_print"/>
+    <child link="camera_link"/>
+  </joint>
+
+  <!--base_link_offset to stick-->
+  <joint name="stick_joint" type="fixed">
+    <parent link="base_link_offset"/>
+    <child link="stick"/>
+    <origin xyz="0 0 ${sh/2+bh/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!--stick to table-->
+  <joint name="table_joint" type="continuous">
+    <parent link="stick"/>
+    <child link="table"/>
+    <origin xyz="0 0 ${tl/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1" />
+  </joint>
+
+  
+
+  <!--table to stopper-->
+  <!--
+  <joint name="stopper1_joint" type="fixed">
+    <parent link="table"/>
+    <child link="stopper1"/>
+    <origin xyz="0 ${-tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="stopper2_joint" type="fixed">
+    <parent link="table"/>
+    <child link="stopper2"/>
+    <origin xyz="0 ${tr/2} ${tl/2+stopper_h/2}" rpy="0 0 0"/>
+  </joint>
+
+
+  <joint name="stopper3_joint" type="fixed">
+    <parent link="table"/>
+    <child link="stopper3"/>
+    <origin xyz="${tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+
+  <joint name="stopper4_joint" type="fixed">
+    <parent link="table"/>
+    <child link="stopper4"/>
+    <origin xyz="${-tr/2} 0 ${tl/2+stopper_h/2}" rpy="0 0 1.57"/>
+  </joint>
+  -->
+
+  <!--define base_foot-->
+  <!--
+    <link name="base_footprint"/>
+    <joint name="base_link_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="-0.105 0 0.0545"/>
+  </joint>
+-->
+
+  <!-- ===============  Transmission =============== -->
+
+  <transmission name="left_wheel_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="left_wheel_joint">
+  <hardwareInterface>VelocityJointInterface</hardwareInterface>
+      </joint>
+   <actuator name="left_wheel_motor">
+  <hardwareInterface>VelocityJointInterface</hardwareInterface>
+  <mechanicalReduction>30</mechanicalReduction>
+      </actuator>
+ </transmission>
+
+  <transmission name="right_wheel_trans">
+       <type>transmission_interface/SimpleTransmission</type>
+       <joint name="right_wheel_joint">
+   <hardwareInterface>VelocityJointInterface</hardwareInterface>
+       </joint>
+    <actuator name="right_wheel_motor">
+   <hardwareInterface>VelocityJointInterface</hardwareInterface>
+   <mechanicalReduction>30</mechanicalReduction>
+       </actuator>
+  </transmission>
+
+
+
+ <!-- =============== Gazebo =============== -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>icart_depth</robotNamespace>
+      <robotParam>robot_description_depth</robotParam>
+    </plugin>
+  </gazebo>
+
+ <gazebo reference="base_link">
+   <selfCollide>true</selfCollide>
+    <mu1 value="0.05" />
+    <mu2 value="0.05" />
+  </gazebo>
+
+ <gazebo reference="left_wheel_link">
+   <selfCollide>true</selfCollide>
+    <mu1 value="0.9" />
+    <mu2 value="0.9" />
+  </gazebo>
+
+ <gazebo reference="right_wheel_link">
+   <selfCollide>true</selfCollide>
+    <mu1 value="0.9" />
+    <mu2 value="0.9" />
+  </gazebo>
+
+ <gazebo reference="caster_link">
+   <selfCollide>true</selfCollide>
+     <!-- This caster is no frictional resistance. -->
+    <mu1 value="0.0" />
+    <mu2 value="0.0" />
+  </gazebo>
+
+  <gazebo reference="stick">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="table">
+   <selfCollide>true</selfCollide>
+    <mu value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <!--
+  <gazebo reference="stopper1">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper2">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper3">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+
+  <gazebo reference="stopper4">
+   <selfCollide>true</selfCollide>
+    <mu1 value="1.0" />
+    <mu2 value="1.0" />
+  </gazebo>
+  -->
+
+  <!-- hokuyo -->
+  <gazebo reference="hokuyo_link">
+    <sensor type="ray" name="head_hokuyo_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <update_rate>10.0</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-2.0944</min_angle>
+            <max_angle>2.0944</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.4</min>
+          <max>5.8</max>
+          <resolution>0.001</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise parameters based on published spec for Hokuyo laser
+               achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+               stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+               reading. -->
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+        <topicName>/icart_depth/laser/scan</topicName>
+        <frameName>hokuyo_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!--depth sensor-->
+  <gazebo reference="camera_link">
+    <sensor type="depth" name="depth_sim">
+      <always_on>true</always_on>
+      <update_rate>0.0</update_rate>
+      <camera>
+        <horizontal_fov>${57.0*M_PI/180.0}</horizontal_fov>
+        <image>
+          <format>L8</format>
+          <width>640</width>
+          <height>480</height>
+        </image>
+        <clip>
+          <near>0.5</near>
+          <far>3.0</far>
+        </clip>
+      </camera>
+
+      <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+        <baseline>0.2</baseline>
+        <alwaysOn>true</alwaysOn>
+        <!-- Keep this zero, update_rate in the parent <sensor> tag
+          will control the frame rate. -->
+        <updateRate>0.0</updateRate>
+        <cameraName>camera_ir</cameraName>
+        <imageTopicName>/camera/color/image_raw</imageTopicName>
+        <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+        <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
+        <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
+        <frameName>camera_link</frameName>
+        <pointCloudCutoff>0.5</pointCloudCutoff>
+        <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+        <distortionK1>0</distortionK1>
+        <distortionK2>0</distortionK2>
+        <distortionK3>0</distortionK3>
+        <distortionT1>0</distortionT1>
+        <distortionT2>0</distortionT2>
+        <CxPrime>0</CxPrime>
+        <Cx>0</Cx>
+        <Cy>0</Cy>
+        <focalLength>0</focalLength>
+        <hackBaseline>0</hackBaseline>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ground_truth_position -->
+  <gazebo>
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+     <alwaysOn>true</alwaysOn>
+     <updateRate>10.0</updateRate>
+     <bodyName>base_foot_print</bodyName>
+     <topicName>/icart_depth/pose_ground_truth</topicName>
+     <gaussianNoise>0</gaussianNoise>
+     <frameName>map</frameName>
+     <xyzOffsets>0 0 0</xyzOffsets> 
+     <rpyOffsets>0 0 0</rpyOffsets>
+   </plugin>
+ </gazebo>
+
+</robot>
