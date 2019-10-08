@@ -386,9 +386,16 @@
     <child link="camera_link"/>
   </joint>
   -->
-<link name="pico_flexx_link_optical_frame" />
-<link name="pico_flexx_depth_frame"/>
-<link name="pico_flexx_link">
+
+<!--Depth_camera has bug if you show point cloud in rviz-->
+<!--So, you need tf for showing in rviz-->
+
+<!--Link for base_foot_print-->
+<link name="depth_camera_base_link" />
+<!--Link for rviz-->
+<link name="depth_camera_rviz_link"/>
+<!--Link for real depth camera-->
+<link name="depth_camera_link">
   <visual>
   <geometry>
     <box size="0.007 0.066 0.016"/>
@@ -410,22 +417,22 @@
   </inertial>
 </link>
 
-<joint name="pico_flexx_base_joint" type="fixed">
-  <origin xyz="0.2 0 0.07" rpy="0 0 0"/>
+<joint name="depth_camera_base_joint" type="fixed">
+  <origin xyz="0 0 0.2" rpy="0 0 0"/>
   <parent link="base_foot_print"/>
-  <child link="pico_flexx_link_optical_frame"/>
+  <child link="depth_camera_base_link"/>
 </joint>
 
-<joint name="pico_flexx_depth_joint" type="fixed">
+<joint name="depth_camera_rviz_joint" type="fixed">
   <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-  <parent link="pico_flexx_link_optical_frame" />
-  <child link="pico_flexx_depth_frame" />
+  <parent link="depth_camera_base_link" />
+  <child link="depth_camera_rviz_link" />
 </joint>
 
-<joint name="pico_flexx_joint" type="fixed">
+<joint name="depth_camera_joint" type="fixed">
   <origin xyz="0 0 0" rpy="0 0 0"/>
-  <parent link="pico_flexx_link_optical_frame"/>
-  <child link="pico_flexx_link"/>
+  <parent link="depth_camera_base_link"/>
+  <child link="depth_camera_link"/>
 </joint>
   
 
@@ -670,12 +677,14 @@
     </sensor>
   </gazebo>
   -->
-  <gazebo reference="pico_flexx_link">
-    <sensor type="depth" name="pico_flexx_ir_sensor">
+
+  <gazebo reference="depth_camera_link">
+    <sensor type="depth" name="depth_camera_ir_sensor">
       <always_on>true</always_on>
       <update_rate>0.0</update_rate>
       <camera>
         <horizontal_fov>${57.0*M_PI/180.0}</horizontal_fov>
+        <!--<horizontal_fov>0.1</horizontal_fov>-->
         <image>
           <format>L8</format>
           <width>640</width>
@@ -687,14 +696,14 @@
         </clip>
       </camera>
 
-      <plugin name="pico_flexx_link_controller" filename="libgazebo_ros_openni_kinect.so">
+      <plugin name="depth_camera_link_controller" filename="libgazebo_ros_openni_kinect.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
-        <cameraName>pico_flexx_link_ir</cameraName>
-        <depthImageTopicName>/pico_flexx_link/depth_registered/image_raw</depthImageTopicName>
-        <depthImageCameraInfoTopicName>/pico_flexx_link/depth/camera_info</depthImageCameraInfoTopicName>
-        <pointCloudTopicName>/pico_flexx_link/points</pointCloudTopicName>
-        <frameName>pico_flexx_depth_frame</frameName>
+        <cameraName>depth_camera_link_ir</cameraName>
+        <depthImageTopicName>/depth_camera_link/depth_registered/image_raw</depthImageTopicName>
+        <depthImageCameraInfoTopicName>/depth_camera_link/depth/camera_info</depthImageCameraInfoTopicName>
+        <pointCloudTopicName>/depth_camera_link/points</pointCloudTopicName>
+        <frameName>depth_camera_rviz_link</frameName>
         <pointCloudCutoff>0.5</pointCloudCutoff>
         <distortionK1>0.00000001</distortionK1>
         <distortionK2>0.00000001</distortionK2>
