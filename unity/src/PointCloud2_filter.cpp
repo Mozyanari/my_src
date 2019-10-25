@@ -79,7 +79,7 @@ void PointCloud2_filter::pub_scan_PointCloud2(const ros::TimerEvent&){
         int cast_width = data_width / reduce_size;
         int cast_height = data_height /reduce_size;
         int cast_size = cast_width * cast_height;
-        ROS_INFO("%d",cast_size);
+        //ROS_INFO("%d",cast_size);
 
         //もし、cast_width、cast_heightが0なら縮小しすぎで失敗とする
         if(cast_width == 0 && cast_height == 0){
@@ -112,8 +112,8 @@ void PointCloud2_filter::pub_scan_PointCloud2(const ros::TimerEvent&){
                 memcpy(&temp_data[k].r, &recent_pointcloud.data[(i*data_raw_step) + j*data_step + rgb_offset + 0], sizeof(uint8_t));
                 memcpy(&temp_data[k].g, &recent_pointcloud.data[(i*data_raw_step) + j*data_step + rgb_offset + 1], sizeof(uint8_t));
                 memcpy(&temp_data[k].b, &recent_pointcloud.data[(i*data_raw_step) + j*data_step + rgb_offset + 2], sizeof(uint8_t));
-                ROS_INFO("i=%d j=%d",i,j);
-                ROS_INFO("x=%d",(i*data_raw_step-1) + j*data_step + x_offset);
+                //ROS_INFO("i=%d j=%d",i,j);
+                //ROS_INFO("x=%d",(i*data_raw_step-1) + j*data_step + x_offset);
                 k++;
             }
         }
@@ -133,7 +133,7 @@ void PointCloud2_filter::pub_scan_PointCloud2(const ros::TimerEvent&){
         for(int i = 0;i<9;i++){
             //ROS_INFO("%d row r=%d g=%d b=%d",i,temp_data[i].r,temp_data[i].g,temp_data[i].b);
             //ROS_INFO("%d row x=%f cast x=%d",i,temp_data[i].x,cast_data[i].x);
-            ROS_INFO("%d x=%d y=%d z=%d",i,cast_data[i].x,cast_data[i].y,cast_data[i].z);
+            //ROS_INFO("%d x=%d y=%d z=%d",i,cast_data[i].x,cast_data[i].y,cast_data[i].z);
         }
         //ROS_INFO("x = %d y = %d z =%d",cast_data[0].x,cast_data[0].y, cast_data[0].z);
 
