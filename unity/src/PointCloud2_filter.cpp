@@ -8,16 +8,25 @@ class PointCloud2_filter{
     //コールバック
     void cb_pointcloud2_filter(const sensor_msgs::PointCloud2::ConstPtr& data);
 
+    //タイマーで起動するpublish関数
+    void pub_scan_PointCloud2(void);
     //ノードハンドラ作成
     ros::NodeHandle nh;
 
     ros::Publisher pub_pointcloud2_filter;
     ros::Subscriber sub_pointcloud2;
 
+    //保持するPointCloud2データ
+    sensor_msgs::PointCloud2 recent_pointcloud;
+
+    //時間の関数作成
+    ros::Timer timer;
+
     //PointCloudを何分の1にするか設定
-    int reduce_size = 10;
+    int reduce_size = 7;
 
-
+    //何Hzでデータをpublishするか
+    int pub_hz = 2;
 };
 
 struct PointCloud2_data
@@ -27,7 +36,7 @@ struct PointCloud2_data
     float z;
     uint8_t r;
     uint8_t g;
-    uint8_t b;   
+    uint8_t b;
 };
 struct PointCloud_cast{
     int16_t x;
@@ -43,10 +52,14 @@ struct PointCloud_cast{
 PointCloud2_filter::PointCloud2_filter(){
     sub_pointcloud2 = nh.subscribe("/depth_camera_link/points", 5, &PointCloud2_filter::cb_pointcloud2_filter,this);
     pub_pointcloud2_filter = nh.advertise<sensor_msgs::PointCloud2>("scan_PointCloud2", 1000);
+
+    //timer定義
+    timer = nh.createTimer(ros::Duration(1.0/pub_hz), &PointCloud2_filter::pub_scan_PointCloud2,this);
 }
 
 //関数定義-----------------------------------------------------------------------
 void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::ConstPtr& data){
+    recent_pointcloud = *data;
     //PointCloudの情報を取得
     int x_offset = data->fields[0].offset;
     int y_offset = data->fields[1].offset;
@@ -55,11 +68,13 @@ void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::C
     int data_step = data->point_step;
     int data_width = data->width;
     int data_height = data->height;
+    int data_raw_step = data->row_step;
 
     //変換後のPointCloudのサイズ
     int cast_width = data_width / reduce_size;
     int cast_height = data_height /reduce_size;
     int cast_size = cast_width * cast_height;
+    ROS_INFO("%d",cast_size);
 
     //もし、cast_width、cast_heightが0なら縮小しすぎで失敗とする
     if(cast_width == 0 && cast_height == 0){
@@ -70,6 +85,7 @@ void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::C
     PointCloud2_data *temp_data = new PointCloud2_data[cast_size];
 
     //データを取得
+    /*
     for(int i=0;i<cast_size;i++){
         //データ取得
         memcpy(&temp_data[i].x, &data->data[i*reduce_size*data_step + x_offset], sizeof(float));
@@ -79,6 +95,21 @@ void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::C
         memcpy(&temp_data[i].g, &data->data[i*reduce_size*data_step + rgb_offset + 1], sizeof(uint8_t));
         memcpy(&temp_data[i].b, &data->data[i*reduce_size*data_step + rgb_offset + 2], sizeof(uint8_t));
         //ROS_INFO("%d x=%f y=%f z=%f",i,temp_data->x,temp_data->y,temp_data->z);
+    }
+    */
+    int k=0;
+    for(int i = reduce_size-1; i<data_height; i+=reduce_size){
+        for(int j = reduce_size-1; j<data_width; j+=reduce_size){
+            memcpy(&temp_data[k].x, &data->data[(i*data_raw_step) + j*data_step + x_offset], sizeof(float));
+            memcpy(&temp_data[k].y, &data->data[(i*data_raw_step) + j*data_step + y_offset], sizeof(float));
+            memcpy(&temp_data[k].z, &data->data[(i*data_raw_step) + j*data_step + z_offset], sizeof(float));
+            memcpy(&temp_data[k].r, &data->data[(i*data_raw_step) + j*data_step + rgb_offset + 0], sizeof(uint8_t));
+            memcpy(&temp_data[k].g, &data->data[(i*data_raw_step) + j*data_step + rgb_offset + 1], sizeof(uint8_t));
+            memcpy(&temp_data[k].b, &data->data[(i*data_raw_step) + j*data_step + rgb_offset + 2], sizeof(uint8_t));
+            ROS_INFO("i=%d j=%d",i,j);
+            ROS_INFO("x=%d",(i*data_raw_step-1) + j*data_step + x_offset);
+            k++;
+        }
     }
 
     //キャスト変換
@@ -94,9 +125,11 @@ void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::C
 
     //デバック
     for(int i = 0;i<9;i++){
-        ROS_INFO("%d row r=%d g=%d b=%d",i,temp_data[i].r,temp_data[i].g,temp_data[i].b);
+        //ROS_INFO("%d row r=%d g=%d b=%d",i,temp_data[i].r,temp_data[i].g,temp_data[i].b);
         //ROS_INFO("%d row x=%f cast x=%d",i,temp_data[i].x,cast_data[i].x);
+        ROS_INFO("%d x=%d y=%d z=%d",i,cast_data[i].x,cast_data[i].y,cast_data[i].z);
     }
+    //ROS_INFO("x = %d y = %d z =%d",cast_data[0].x,cast_data[0].y, cast_data[0].z);
 
 
     /*
@@ -154,16 +187,20 @@ void PointCloud2_filter::cb_pointcloud2_filter(const sensor_msgs::PointCloud2::C
     filter_data.fields[2].offset = cast_z_offset;
     filter_data.fields[2].count = 1;
 
-    filter_data.fields[2].name = "rgb";
-    filter_data.fields[2].datatype = 9;
-    filter_data.fields[2].offset = cast_rgb_offset;
-    filter_data.fields[2].count = 1;
+    filter_data.fields[3].name = "rgb";
+    filter_data.fields[3].datatype = 9;
+    filter_data.fields[3].offset = cast_rgb_offset;
+    filter_data.fields[3].count = 1;
 
     pub_pointcloud2_filter.publish(filter_data);
 
     //動的に確保した構造体を削除
     delete []temp_data;
     delete []cast_data;
+}
+
+void PointCloud2_filter::pub_scan_PointCloud2(void){
+    
 }
 
 //実行されるメイン関数---------------------------------------------------------------
