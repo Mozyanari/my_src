@@ -1,4 +1,4 @@
-icart_depth:
+icart_depth_pan_tilt:
   joint_state_controller:
     type: joint_state_controller/JointStateController
     publish_rate: 50
@@ -48,3 +48,13 @@ icart_depth:
         has_acceleration_limits: true
         max_acceleration       : 1.57  # rad/s^2
         min_acceleration       : -1.57
+
+  pan_joint_controller:
+    type  : position_controllers/JointPositionController
+    joint : depth_camera_pan_joint
+    pid   : {p: 50, i: 0.01, d: 10}
+
+  tilt_joint_controller:
+    type  : position_controllers/JointPositionController
+    joint : depth_camera_tilt_joint
+    pid   : {p: 50, i: 0.01, d: 10}

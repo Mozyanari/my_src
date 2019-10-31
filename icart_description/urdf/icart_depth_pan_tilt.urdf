@@ -389,7 +389,6 @@
 
 <!--Depth_camera has bug if you show point cloud in rviz-->
 <!--So, you need tf for showing in rviz-->
-<!--
 <link name ="depth_pan_link"/>
 
 <link name ="depth_pan_tilt_link">
@@ -415,7 +414,6 @@
 </link>
 
 <link name ="depth_tilt_link"/>
--->
 
 <!--Link for base_foot_print-->
 <link name="depth_camera_base_link" />
@@ -444,7 +442,6 @@
   </inertial>
 </link>
 
-<!--
 <joint name="depth_camera_pan_joint" type="revolute">
   <parent link="base_foot_print"/>
   <child link="depth_pan_link"/>
@@ -471,13 +468,6 @@
   <origin xyz="0 0 0.0" rpy="0 0 0"/>
   <parent link="depth_tilt_link"/>
   <child link="depth_camera_base_link"/>
-</joint>
--->
-
-<joint name="depth_camera_pan_joint" type="fixed">
-  <parent link="base_foot_print"/>
-  <child link="depth_camera_base_link"/>
-  <origin xyz="0 0 0.2" rpy="0 0 0"/>
 </joint>
 
 <joint name="depth_camera_rviz_joint" type="fixed">
@@ -571,7 +561,7 @@
       <mechanicalReduction>30</mechanicalReduction>
     </actuator>
   </transmission>
-<!--
+
   <transmission name="pan_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="depth_camera_pan_joint">
@@ -593,7 +583,6 @@
       <mechanicalReduction>30</mechanicalReduction>
     </actuator>
   </transmission>
-  -->
  <!-- =============== Gazebo =============== -->
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">

@@ -1,5 +1,5 @@
 <launch>
-<arg name="model" default="$(find icart_description)/urdf/icart_depth.urdf"/>
+<arg name="model" default="$(find icart_description)/urdf/icart_depth_pan_tilt.urdf"/>
 
 <arg name="paused" default="false"/>
 <arg name="use_sim_time" default="true"/>
@@ -9,7 +9,7 @@
 
 <arg name="init_pose" value="-x  0.0 -y 0.0 -z 0.0" />
 
-<arg name="rvizconfig" default="$(find icart_description)/HMD_depth_simulation.rviz"/>
+<arg name="rvizconfig" default="$(find icart_description)/HMD_depth_simulation_pan_tilt.rviz"/>
 
 <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
@@ -24,19 +24,19 @@
 <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
 </include>
 
-<param name="robot_description_depth" command="$(find xacro)/xacro.py $(arg model)"/>
+<param name="robot_description_depth_pan_tilt" command="$(find xacro)/xacro.py $(arg model)"/>
 <!--<param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>-->
 "
-<include file="$(find icart_description)/launch/control_depth.launch"/>
+<include file="$(find icart_description)/launch/control_depth_pan_tilt.launch"/>
 <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-args="$(arg init_pose) -urdf -model icart_depth -param robot_description_depth -reference_frame map"/>
+args="$(arg init_pose) -urdf -model icart_depth_pan_tilt -param robot_description_depth_pan_tilt -reference_frame map"/>
 
 <!--rvizの表示-->
 <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
 
 <!--icartの自己位置推定-->
 <node name="amcl" pkg="amcl" type="amcl" output="screen">
-<remap from="/scan" to="/icart_depth/laser/scan" />
+<remap from="/scan" to="/icart_depth_pan_tilt/laser/scan" />
 
 <param name="odom_alpha1" type="double" value="20.0" />
 <param name="odom_alpha2" type="double" value="20.0" />
@@ -70,12 +70,12 @@ args="$(arg init_pose) -urdf -model icart_depth -param robot_description_depth -
 
 <!--controler-->
 <node pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop">
-<remap from="/mouse_vel" to="/icart_depth/diff_drive_controller/cmd_vel" />
+<remap from="/mouse_vel" to="/icart_depth_pan_tilt/diff_drive_controller/cmd_vel" />
 <param name="frequency" value="10" type="double" />
 </node>
 <!--経路追従のpure_pursuit-->
 <node pkg="robot_path_planning" type="pure_pursuit" name="pure_pursuit">
-<remap from="/icart/diff_drive_controller/cmd_vel" to="/icart_depth/diff_drive_controller/cmd_vel"/>
+<remap from="/icart/diff_drive_controller/cmd_vel" to="/icart_depth_pan_tilt/diff_drive_controller/cmd_vel"/>
 </node>
 
 <!--mapの場所-->
@@ -96,7 +96,7 @@ args="$(arg init_pose) -urdf -model icart_depth -param robot_description_depth -
 <!--for Unity-->
 <!--scanデータのnanとinfを取り除くノード-->
 <node pkg ="unity" type="scan_filter" name="scan_filter">
-<remap from="/scan" to="/icart_depth/laser/scan"/>
+<remap from="/scan" to="/icart_depth_pan_tilt/laser/scan"/>
 </node>
 <!--amclの結果を変換するノード-->
 <node pkg ="unity" type="PoseWithCovarianceStamped_to_PoseStamped" name="PoseWithCovarianceStamped_to_PoseStamped">
@@ -107,9 +107,10 @@ args="$(arg init_pose) -urdf -model icart_depth -param robot_description_depth -
 <node pkg = "unity" type ="PointCloud2_filter" name ="PointCloud2_filter">
 </node>
 <!--hmdの角度を取得するノード-->
-<!--
 <node pkg = "unity" type ="hmd_rotation" name ="hmd_rotation">
+<remap from="/icart_depth/pan_joint_controller/command" to="/icart_depth_pan_tilt/pan_joint_controller/command"/>
+<remep from="/icart_depth/tilt_joint_controller/command" to="/icart_depth_pan_tilt/tilt_joint_controller/command">
+
 </node>
--->
 
 </launch>
