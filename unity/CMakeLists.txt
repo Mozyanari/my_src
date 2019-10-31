@@ -137,6 +137,8 @@ include_directories(
 add_executable(PoseWithCovarianceStamped_to_PoseStamped src/PoseWithCovarianceStamped_to_PoseStamped.cpp)
 add_executable(scan_filter src/scan_filter.cpp)
 add_executable(PointCloud2_filter src/PointCloud2_filter.cpp)
+add_executable(hmd_rotation src/hmd_rotation.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +157,7 @@ add_executable(PointCloud2_filter src/PointCloud2_filter.cpp)
 target_link_libraries(PoseWithCovarianceStamped_to_PoseStamped ${catkin_LIBRARIES})
 target_link_libraries(scan_filter ${catkin_LIBRARIES})
 target_link_libraries(PointCloud2_filter ${catkin_LIBRARIES})
+target_link_libraries(hmd_rotation ${catkin_LIBRARIES})
 
 #############
 ## Install ##
