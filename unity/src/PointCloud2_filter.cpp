@@ -23,10 +23,10 @@ class PointCloud2_filter{
     ros::Timer timer;
 
     //PointCloudを何分の1にするか設定
-    int reduce_size = 2;
+    int reduce_size = 10;
 
     //何Hzでデータをpublishするか
-    double pub_hz = 2.0;
+    double pub_hz = 5.0;
 };
 
 struct PointCloud2_data
@@ -135,7 +135,7 @@ void PointCloud2_filter::pub_scan_PointCloud2(const ros::TimerEvent&){
             //ROS_INFO("%d row x=%f cast x=%d",i,temp_data[i].x,cast_data[i].x);
             //ROS_INFO("%d x=%d y=%d z=%d",i,cast_data[i].x,cast_data[i].y,cast_data[i].z);
         }
-        //ROS_INFO("x = %d y = %d z =%d",cast_data[0].x,cast_data[0].y, cast_data[0].z);
+        ROS_INFO("x = %d y = %d z =%d",cast_data[0].x,cast_data[0].y, cast_data[0].z);
 
 
         /*
