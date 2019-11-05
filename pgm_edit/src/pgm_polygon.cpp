@@ -189,9 +189,17 @@ void pgm_polygon::map_polygon(const geometry_msgs::Polygon::ConstPtr &data){
                 fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
             }
             */
+           /*
+            if(buffer[i][j] ==0){
+                printf("1");
+            }else{
+                printf("0");
+            }
+            */
             
             fwrite(&buffer[i][j],sizeof(unsigned char),1,fp);
         }
+        //printf("\n");
     }
 
     
