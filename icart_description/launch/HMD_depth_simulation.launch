@@ -26,7 +26,7 @@
 
 <param name="robot_description_depth" command="$(find xacro)/xacro.py $(arg model)"/>
 <!--<param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>-->
-"
+
 <include file="$(find icart_description)/launch/control_depth.launch"/>
 <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
 args="$(arg init_pose) -urdf -model icart_depth -param robot_description_depth -reference_frame map"/>
