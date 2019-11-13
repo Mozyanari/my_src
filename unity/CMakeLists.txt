@@ -138,6 +138,7 @@ add_executable(PoseWithCovarianceStamped_to_PoseStamped src/PoseWithCovarianceSt
 add_executable(scan_filter src/scan_filter.cpp)
 add_executable(PointCloud2_filter src/PointCloud2_filter.cpp)
 add_executable(hmd_rotation src/hmd_rotation.cpp)
+add_executable(joy_to_twist src/joy_to_twist.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -158,6 +159,7 @@ target_link_libraries(PoseWithCovarianceStamped_to_PoseStamped ${catkin_LIBRARIE
 target_link_libraries(scan_filter ${catkin_LIBRARIES})
 target_link_libraries(PointCloud2_filter ${catkin_LIBRARIES})
 target_link_libraries(hmd_rotation ${catkin_LIBRARIES})
+target_link_libraries(joy_to_twist ${catkin_LIBRARIES})
 
 #############
 ## Install ##
