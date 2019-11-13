@@ -1,0 +1,14 @@
+<launch>
+    <!--D435iの起動-->
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
+    </include>
+
+    <!--通信するためのrosbridge-->
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    </include>
+    
+    <!--デプスカメラのデータを圧縮するノード-->
+    <node pkg = "unity" type ="PointCloud2_filter" name ="PointCloud2_filter">
+        <remap from="/depth_camera_link/points" to="/camera/depth_registered/points"/>
+    </node>
+</launch>
