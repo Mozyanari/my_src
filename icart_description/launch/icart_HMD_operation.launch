@@ -13,7 +13,7 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
 
     <!--ypspur_rosの起動-->
-    <node pkg="ypspur_ros" type="ypspur_ros" name="ypspur_ros_first" respawn="true">
+    <node pkg="ypspur_ros" type="ypspur_ros" name="ypspur_ros" respawn="true">
         <param name="port" value="$(arg port_robot)"/>
         <param name="param_file" value="$(arg robot_param)"/>
     </node>
@@ -33,7 +33,7 @@
 
     <!--自己位置推定-->
     <!--mapの場所-->
-    <arg name="map_path" default="/home/$(env USER)/maps"/>
+    <arg name="map_path" default="/home/$(env USER)/maps/real"/>
     <!--rosのパラメータ設定-->
     <param name ="map_path" value ="$(arg map_path)"/>
     <!--map_serverを立ち上げてマップを出力-->
@@ -86,6 +86,6 @@
     </node>
     <!--デプスカメラのデータを圧縮するノード-->
     <node pkg = "unity" type ="PointCloud2_filter" name ="PointCloud2_filter">
-        <remap from="/depth_camera_link/points" to="/camera/depth_registered/points">
+        <remap from="/depth_camera_link/points" to="/camera/depth_registered/points"/>
     </node>
 </launch>
