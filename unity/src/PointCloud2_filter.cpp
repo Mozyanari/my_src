@@ -23,10 +23,10 @@ class PointCloud2_filter{
     ros::Timer timer;
 
     //PointCloudを何分の1にするか設定
-    int reduce_size = 10;
+    int reduce_size = 3;
 
     //何Hzでデータをpublishするか
-    double pub_hz = 5.0;
+    double pub_hz = 2.0;
 };
 
 struct PointCloud2_data
