@@ -135,6 +135,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(serial_test src/serial_test.cpp)
 add_executable(serial_test2 src/serial_test2.cpp)
+add_executable(stm_serial src/stm_serial.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -148,6 +149,7 @@ add_executable(serial_test2 src/serial_test2.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(serial_test ${catkin_LIBRARIES})
 target_link_libraries(serial_test2 ${catkin_LIBRARIES})
+target_link_libraries(stm_serial ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
