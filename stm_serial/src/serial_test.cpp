@@ -13,7 +13,7 @@ int open_serial(const char *device_name){
     struct termios conf_tio;
     tcgetattr(fd1,&conf_tio);
     //set baudrate
-    speed_t BAUDRATE = B115200;
+    speed_t BAUDRATE = B9600;
     cfsetispeed(&conf_tio, BAUDRATE);
     cfsetospeed(&conf_tio, BAUDRATE);
     //non canonical, non echo back
@@ -46,7 +46,9 @@ int main(int argc, char **argv)
     //Subscriber
     ros::Subscriber serial_sub = n.subscribe("Serial_out", 10, serial_callback); 
 
-    char device_name[]="/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0670FF555054877567044633-if02";
+    //char device_name[]="/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0670FF555054877567044633-if02";
+    char device_name[]="/dev/ttyUSB0";
+    //char device_name[]="/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DM009HAY-if00-port0";
     fd1=open_serial(device_name);
     if(fd1<0){
         ROS_ERROR("Serial Fail: cound not open %s", device_name);
