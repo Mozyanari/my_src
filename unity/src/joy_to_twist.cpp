@@ -16,13 +16,20 @@ class joy_to_twist{
 
 joy_to_twist::joy_to_twist(){
     sub_joy = nh.subscribe("/joy",5,&joy_to_twist::cb_joy_to_twist,this);
-    pub_twist = nh.advertise<geometry_msgs::Twist>("/ypspur_ros/cmd_vel",1000);
+    //pub_twist = nh.advertise<geometry_msgs::Twist>("/ypspur_ros/cmd_vel",1000);
+    pub_twist = nh.advertise<geometry_msgs::Twist>("/cmd_vel",1000);
 }
 
 void joy_to_twist::cb_joy_to_twist(const sensor_msgs::Joy::ConstPtr &data){
     geometry_msgs::Twist vel;
+    //ypspur_ros
+    /*
     vel.linear.x = data->axes[1]*0.1;
     vel.angular.z = data->axes[3]*0.3;
+    */
+    //stm_serial
+    vel.linear.x = data->axes[1]*100;
+    vel.angular.z = data->axes[3]*100;
     pub_twist.publish(vel);
 }
 
