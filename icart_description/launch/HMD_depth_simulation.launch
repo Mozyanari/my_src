@@ -12,7 +12,7 @@
 <arg name="rvizconfig" default="$(find icart_description)/HMD_depth_simulation.rviz"/>
 
 <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+    <arg name="world_name" value="$(find icart_description)/world/test3.world"/>
     <!--<arg name="world_name" value="$(find icart_description)/world/obstacle_after.world"/>-->
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
