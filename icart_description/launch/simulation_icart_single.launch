@@ -12,7 +12,8 @@
   <arg name="init_pose" value="-x 0 -y 0 -z 0.0001" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+      <!--<arg name="world_name" value="$(find icart_description)/world/test2.world"/>-->
+      <arg name="world_name" value="$(find icart_description)/world/obstacle_before.world"/>-->
       <!--<arg name="world_name" value="$(find icart_description)/world/long_corridor.world"/>-->
       <arg name="debug" value="$(arg debug)" />
       <arg name="gui" value="$(arg gui)" />
@@ -32,7 +33,7 @@
 
     <!--gmapping-->
     <node pkg="gmapping" type="slam_gmapping" name="mapper">
-  		<param name="maxUrange" value="2.0" type="double" />
+  		<param name="maxUrange" value="10.0" type="double" />
   		<param name="xmax" value="20" type="double" />
   		<param name="ymax" value="20" type="double" />
   		<param name="xmin" value="-20" type="double" />
@@ -40,7 +41,7 @@
       <param name="base_frame" value="base_foot_print_first" type="string" />
       <param name="odom_frame" value="odom_first" type="string" />
 
-      <param name="delta" value="10.0" type="double"/>
+      <param name="delta" value="0.10" type="double"/>
 
       <remap from="/scan" to="/icart_first/laser/scan" />
   	</node>

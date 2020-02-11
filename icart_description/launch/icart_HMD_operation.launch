@@ -1,0 +1,91 @@
+<launch>
+    <!--変数の設定-->
+    <!--シリアルポート選択-->
+    <arg name="port_robot" default="/dev/serial/by-id/usb-T-frog_project_T-frog_Driver-if00" />
+    <!--パラメータの場所設定-->
+    <arg name="robot_param" default ="/home/masanari/icart-edu.param"/>
+    <!--URGポート選択-->
+    <arg name="urg_port" default="/dev/serial/by-id/usb-Hokuyo_Data_Flex_for_USB_URG-Series_USB_Driver-if00"/>
+
+    <!--rviz-->
+    <arg name="rvizconfig" default="$(find icart_description)/icart_HMD_operation.rviz"/>
+    <!--rvizの表示-->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+    <!--ypspur_rosの起動-->
+    <node pkg="ypspur_ros" type="ypspur_ros" name="ypspur_ros" respawn="true">
+        <param name="port" value="$(arg port_robot)"/>
+        <param name="param_file" value="$(arg robot_param)"/>
+    </node>
+
+    <!--urg_nodeの起動-->
+    <node pkg="urg_node" type="urg_node" name="urg_node" respawn="true">
+        <param name="serial_port" value="$(arg urg_port)"/>
+    </node>
+
+    <!--D435iの起動-->
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
+    </include>
+
+    <!--tfによる位置関係の設定-->
+    <node pkg="tf" type="static_transform_publisher" name="stp_laser" args="0 0 0 0 0 0 base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="stp_depth" args="0 0 0.1 0 0 0 base_link camera_link 100" />
+
+    <!--自己位置推定-->
+    <!--mapの場所-->
+    <arg name="map_path" default="/home/$(env USER)/maps/real"/>
+    <!--rosのパラメータ設定-->
+    <param name ="map_path" value ="$(arg map_path)"/>
+    <!--map_serverを立ち上げてマップを出力-->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map.yaml"/>
+
+    <!--pgm_polygonを起動-->
+    <node name="map_editor" pkg ="pgm_edit" type ="pgm_polygon" output="screen">
+    </node>
+
+    <!--map_serverのノードコントローラ-->
+    <node name= "map_server_controller" pkg = "node_contoller" type = "map_node_controller.py" output ="screen">
+    </node>
+
+    <!--amclノード-->
+    <node name="amcl" pkg="amcl" type="amcl">
+		<param name="odom_alpha1" type="double" value="7" />
+		<param name="odom_alpha2" type="double" value="7" />
+		<param name="odom_alpha3" type="double" value="3.5" />
+		<param name="odom_alpha4" type="double" value="3.5" />
+		<param name="laser_max_beams" type="int" value="150" />
+		<param name="min_particles" type="int" value="300" />
+		<param name="max_particles" type="int" value="500" />
+		<param name="update_min_d" type="double" value="0.05" />
+		<param name="update_min_a" type="double" value="0.08" />
+
+        <param name="use_map_topic" type="bool" value="true" />
+	</node>
+    
+    <!--自律移動-->
+    <!--ダイクストラ法-->
+    <node pkg="robot_path_planning" type="diijkstra" name="diijkstra">
+    </node>
+    <!--経路追従のpure_pursuit-->
+    <node pkg="robot_path_planning" type="pure_pursuit" name="pure_pursuit">
+        <remap from="/icart/diff_drive_controller/cmd_vel" to="/ypspur_ros/cmd_vel"/>
+    </node>
+
+    <!--for Unity-->
+    <!--通信するためのrosbridge-->
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    </include>
+
+    <!--scanデータのnanとinfを取り除くノード-->
+    <node pkg ="unity" type="scan_filter" name="scan_filter">
+    </node>
+    <!--amclの結果を変換するノード-->
+    <node pkg ="unity" type="PoseWithCovarianceStamped_to_PoseStamped" name="PoseWithCovarianceStamped_to_PoseStamped">
+        <remap from="/PoseWithCovarianceStamped" to="/amcl_pose"/>
+        <remap from="/PoseStamped" to="/amcl_PoseStamped"/>
+    </node>
+    <!--デプスカメラのデータを圧縮するノード-->
+    <node pkg = "unity" type ="PointCloud2_filter" name ="PointCloud2_filter">
+        <remap from="/depth_camera_link/points" to="/camera/depth_registered/points"/>
+    </node>
+</launch>

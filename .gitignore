@@ -8,6 +8,7 @@ sample_nodelet/
 ypspur_ros/
 yp-spur/
 measure_message_passing/
+realsense-ros-2.2.9/
 
 #勉強のために作成しただけのもの
 ros_param_test/

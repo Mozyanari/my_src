@@ -1,0 +1,107 @@
+<launch>
+<arg name="model" default="$(find icart_description)/urdf/icart.urdf"/>
+
+<arg name="paused" default="false"/>
+<arg name="use_sim_time" default="true"/>
+<arg name="gui" default="true"/>
+<arg name="headless" default="false"/>
+<arg name="debug" default="false"/>
+
+<arg name="init_pose" value="-x  0.0 -y 0.0 -z 0.0" />
+
+<arg name="rvizconfig" default="$(find icart_description)/HMD_diijkstra_simulation.rviz"/>
+
+<include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find icart_description)/world/obstacle_after.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+</include>
+
+<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+</include>
+
+<param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
+<!--<param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>-->
+"
+<include file="$(find icart_description)/launch/control.launch"/>
+<node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+args="$(arg init_pose) -urdf -model icart -param robot_description -reference_frame map"/>
+
+<!--rvizの表示-->
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+<!--icartの自己位置推定-->
+<node name="amcl" pkg="amcl" type="amcl" output="screen">
+<remap from="/scan" to="/icart/laser/scan" />
+
+<param name="odom_alpha1" type="double" value="20.0" />
+<param name="odom_alpha2" type="double" value="20.0" />
+<param name="odom_alpha3" type="double" value="10.0" />
+<param name="odom_alpha4" type="double" value="10.0" />
+<param name="laser_max_beams" type="int" value="150" />
+<param name="min_particles" type="int" value="2000" />
+<param name="max_particles" type="int" value="2000" />
+<param name="update_min_d" type="double" value="0.03" />
+<param name="update_min_a" type="double" value="0.06" />
+
+<param name="resample_interval" type ="int" value="1"/>
+<param name="use_map_topic" type="bool" value="true" />
+
+<param name="initial_pose_x" type="double" value="0.0" />
+<param name="initial_pose_y" type="double" value="0.0" />
+<param name="initial_pose_a" type="double" value="0.0" />
+
+<param name="initial_cov_xx" type="double" value="0.0" />
+<param name="initial_cov_yy" type="double" value="0.0" />
+<param name="initial_cov_aa" type="double" value="0.0" />
+
+<param name="odom_frame_id" value="odom" type="string"/>
+<param name="base_frame_id" value="base_foot_print" type="string"/>
+<param name="global_frame_id" value="map" type="string"/>
+</node>
+
+<!--ダイクストラ法-->
+<node pkg="robot_path_planning" type="diijkstra" name="diijkstra">
+</node>
+
+<!--controler-->
+<!--
+<node pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop">
+<remap from="/mouse_vel" to="/icart/diff_drive_controller/cmd_vel" />
+<param name="frequency" value="10" type="double" />
+</node>
+-->
+<!--経路追従のpure_pursuit-->
+<node pkg="robot_path_planning" type="pure_pursuit" name="pure_pursuit">
+</node>
+
+<!--mapの場所-->
+<arg name="map_path" default="/home/$(env USER)/maps"/>
+<!--rosのパラメータ設定-->
+<param name ="map_path" value ="$(arg map_path)"/>
+<!--map_serverを立ち上げてマップを出力-->
+<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map.yaml"/>
+
+<!--pgm_polygonを起動-->
+<node name="map_editor" pkg ="pgm_edit" type ="pgm_polygon" output="screen">
+</node>
+
+<!--map_serverのノードコントローラ-->
+<node name= "map_server_controller" pkg = "node_contoller" type = "map_node_controller.py" output ="screen">
+</node>
+
+<!--for Unity-->
+<!--scanデータのnanとinfを取り除くノード-->
+<node pkg ="unity" type="scan_filter" name="scan_filter">
+<remap from="/scan" to="/icart/laser/scan"/>
+</node>
+<!--amclの結果を変換するノード-->
+<node pkg ="unity" type="PoseWithCovarianceStamped_to_PoseStamped" name="PoseWithCovarianceStamped_to_PoseStamped">
+<remap from="/PoseWithCovarianceStamped" to="/amcl_pose"/>
+<remap from="/PoseStamped" to="/amcl_PoseStamped"/>
+</node>
+
+</launch>

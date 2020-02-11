@@ -1,0 +1,19 @@
+<launch>
+    <!--mapの場所-->
+    <arg name="map_path" default="/home/$(env USER)/maps/real"/>
+
+    <!--rosのパラメータ設定-->
+    <param name ="map_path" value ="$(arg map_path)"/>
+
+    <!--map_serverを立ち上げてマップを出力-->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)/map.yaml"/>
+
+    <!--pgm_polygonを起動-->
+    <node name="map_editor" pkg ="pgm_edit" type ="pgm_polygon" output="screen">
+    </node>
+
+    <!--map_serverのノードコントローラ-->
+    <node name= "map_server_controller" pkg = "node_contoller" type = "map_node_controller.py" output ="screen">
+    </node>
+    
+</launch>

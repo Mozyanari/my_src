@@ -1,0 +1,142 @@
+<launch>
+  <arg name="map_file" default="/home/$(env USER)/maps/map.yaml" />
+  <arg name="model" default="$(find icart_description)/urdf/icart.urdf"/>
+  <arg name="model_first" default="$(find icart_description)/urdf/icart_first.urdf"/>
+  <arg name="model_second" default="$(find icart_description)/urdf/icart_second.urdf"/>
+
+  <rosparam param="footprint" ns="/global_planner/global_costmap">[[0.05,-0.2], [0.05,0.2], [-0.3,0.2], [-0.3,-0.2]]</rosparam>
+
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <arg name="init_pose" value="-x  0.0 -y 0.0 -z 0.0" />
+  <!--<arg name="init_pose_first" value="-x  0.0 -y 0.0 -z 0.0" />-->
+
+  <arg name="rvizconfig" default="$(find icart_description)/HMD_one_amcl.rviz"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(find icart_description)/world/test2.world"/>
+      <arg name="debug" value="$(arg debug)" />
+      <arg name="gui" value="$(arg gui)" />
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
+  <!--<param name="robot_description_first" command="$(find xacro)/xacro.py $(arg model_first)"/>-->
+
+  <include file="$(find icart_description)/launch/control.launch"/>
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose) -urdf -model icart -param robot_description -reference_frame map"/>
+  
+  <!--
+  <include file="$(find icart_description)/launch/control_first.launch"/>
+  <node name="urdf_spawner_first" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="$(arg init_pose_first) -urdf -model icart_first -param robot_description_first -reference_frame map">
+  </node>
+  -->
+
+  <!--rvizの表示-->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+  <!--icartの自己位置推定-->
+  <node name="amcl" pkg="amcl" type="amcl" output="screen">
+    <remap from="/scan" to="/icart/laser/scan" />
+
+    <param name="odom_alpha1" type="double" value="20.0" />
+    <param name="odom_alpha2" type="double" value="20.0" />
+    <param name="odom_alpha3" type="double" value="10.0" />
+    <param name="odom_alpha4" type="double" value="10.0" />
+    <param name="laser_max_beams" type="int" value="150" />
+    <param name="min_particles" type="int" value="2000" />
+    <param name="max_particles" type="int" value="2000" />
+    <param name="update_min_d" type="double" value="0.03" />
+    <param name="update_min_a" type="double" value="0.06" />
+
+    <param name="resample_interval" type ="int" value="1"/>
+    <param name="use_map_topic" type="bool" value="true" />
+
+    <param name="initial_pose_x" type="double" value="0.0" />
+    <param name="initial_pose_y" type="double" value="0.0" />
+    <param name="initial_pose_a" type="double" value="0.0" />
+
+    <param name="initial_cov_xx" type="double" value="0.0" />
+    <param name="initial_cov_yy" type="double" value="0.0" />
+    <param name="initial_cov_aa" type="double" value="0.0" />
+
+    <param name="odom_frame_id" value="odom" type="string"/>
+    <param name="base_frame_id" value="base_foot_print" type="string"/>
+    <param name="global_frame_id" value="map" type="string"/>
+  </node>
+
+  <!--amcl-->
+  <!--
+  <node ns="first" name="amcl" pkg="amcl" type="amcl" output="screen">
+    <remap from="/first/scan" to="/icart_first/laser/scan" />
+    <remap from="/first/map" to="/map" />
+
+    <param name="odom_alpha1" type="double" value="20.0" />
+    <param name="odom_alpha2" type="double" value="20.0" />
+    <param name="odom_alpha3" type="double" value="10.0" />
+    <param name="odom_alpha4" type="double" value="10.0" />
+    <param name="laser_max_beams" type="int" value="150" />
+    <param name="min_particles" type="int" value="2000" />
+    <param name="max_particles" type="int" value="2000" />
+    <param name="update_min_d" type="double" value="0.03" />
+    <param name="update_min_a" type="double" value="0.06" />
+
+    <param name="resample_interval" type ="int" value="1"/>
+    <param name="use_map_topic" type="bool" value="true" />
+
+    <param name="initial_pose_x" type="double" value="0.66" />
+    <param name="initial_pose_y" type="double" value="0.0" />
+    <param name="initial_pose_a" type="double" value="0.0" />
+
+    <param name="initial_cov_xx" type="double" value="0.0" />
+    <param name="initial_cov_yy" type="double" value="0.0" />
+    <param name="initial_cov_aa" type="double" value="0.0" />
+
+    <param name="odom_frame_id" value="odom_first" type="string"/>
+    <param name="base_frame_id" value="base_foot_print_first" type="string"/>
+    <param name="global_frame_id" value="map" type="string"/>
+  </node>
+  -->
+<!--
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+		<rosparam file="$(find icart_description)/config/navigation/move_base.yaml" command="load" />
+		<rosparam file="$(find icart_description)/config/navigation/costmap_common.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find icart_description)/config/navigation/costmap_common.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find icart_description)/config/navigation/costmap_local.yaml" command="load" />
+		<rosparam file="$(find icart_description)/config/navigation/costmap_global.yaml" command="load" />
+		<rosparam file="$(find icart_description)/config/navigation/planner_local.yaml" command="load" />
+		<rosparam file="$(find icart_description)/config/navigation/planner_global.yaml" command="load" />
+		<remap from="cmd_vel" to="/icart_first/diff_drive_controller/cmd_vel" />
+    <remap from="odom" to="/icart_first/diff_drive_controller/odom"/>
+	</node>
+-->
+<!--
+  <node pkg ="global_planner" type="planner" name="global_planner" output="screen">
+    <remap from ="/global_planner/goal" to ="/move_base_simple/goal"/>
+  </node>
+-->
+
+<!--
+  <node pkg ="costmap_2d" type ="costmap_2d_node" name="costmap_2d" output="screen">
+    <rosparam file="$(find turtlebot3_navigation)/param/global_costmap_params.yaml" command="load" />
+  </node>
+-->
+
+  <!--controler-->
+  <node pkg="mouse_teleop" type="mouse_teleop.py" name="mouse_teleop">
+    <remap from="/mouse_vel" to="/icart/diff_drive_controller/cmd_vel" />
+    <param name="frequency" value="10" type="double" />
+  </node>
+
+
+  <!--map_serverを立ち上げてマップを出力-->
+  <node respawn="true" name="map_server" pkg="map_server" type="map_server" args="/home/$(env USER)/maps/map.yaml"/>
+</launch>
